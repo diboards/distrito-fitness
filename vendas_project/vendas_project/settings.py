@@ -14,6 +14,7 @@ ALLOWED_HOSTS = ['.onrender.com']
 CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
 
 # 🔐 Segurança HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
