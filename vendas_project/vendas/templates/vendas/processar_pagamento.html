@@ -1,0 +1,96 @@
+{% extends 'vendas/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">💳 Processando Pagamento</h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <h5>Pedido #{{ pedido.id }}</h5>
+                        <p class="text-muted">Total: R$ {{ pedido.total }}</p>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Você será redirecionado para o Mercado Pago para finalizar o pagamento.
+                    </div>
+
+                    <!-- Botão para iniciar pagamento -->
+                    <div id="mercado-pago-button" class="mb-3"></div>
+                    
+                    <p class="text-muted small">
+                        Pagamento 100% seguro via Mercado Pago
+                    </p>
+
+                    <!-- Loading -->
+                    <div id="loading" class="d-none">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="mt-2">Redirecionando...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SDK Mercado Pago -->
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script>
+  const mp = new MercadoPago("{{ public_key }}", { locale: "pt-BR" });
+
+  const cardForm = mp.cardForm({
+    amount: "{{ pedido.total }}",
+    autoMount: true,
+    form: {
+      id: "payment-form",
+      cardholderName: { id: "form-checkout__cardholderName" },
+      cardholderEmail: { id: "form-checkout__cardholderEmail" },
+      cardNumber: { id: "form-checkout__cardNumber" },
+      expirationMonth: { id: "form-checkout__cardExpirationMonth" },
+      expirationYear: { id: "form-checkout__cardExpirationYear" },
+      securityCode: { id: "form-checkout__securityCode" },
+      installments: { id: "form-checkout__installments" },
+      identificationNumber: { id: "form-checkout__docNumber" },
+      issuer: { id: "form-checkout__issuer" },
+    },
+    callbacks: {
+      onSubmit: event => {
+        event.preventDefault();
+        const data = cardForm.getCardFormData();
+
+        fetch("{% url 'processar_pagamento' pedido.id %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+          },
+          body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "approved") {
+            window.location.href = "/sucesso/{{ pedido.id }}/";
+          } else {
+            alert("Pagamento falhou: " + data.message);
+          }
+        });
+      }
+    }
+  });
+</script>
+
+<style>
+.mercadopago-button {
+    background-color: #009EE3 !important;
+    border: none !important;
+    padding: 12px 24px !important;
+    font-size: 16px !important;
+    border-radius: 6px !important;
+}
+</style>
+{% endblock %}

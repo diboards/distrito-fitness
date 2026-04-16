@@ -1,0 +1,372 @@
+{% extends 'vendas/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Menu lateral -->
+        <div class="col-md-3">
+            <div class="list-group">
+                <a href="#" class="list-group-item list-group-item-action active">Pedidos</a>
+                <a href="#" class="list-group-item list-group-item-action">Trocas</a>
+                <a href="#" class="list-group-item list-group-item-action">Vales</a>
+                <a href="#" class="list-group-item list-group-item-action">Seus dados</a>
+                <a href="#" class="list-group-item list-group-item-action">Endereços</a>
+                <a href="#" class="list-group-item list-group-item-action">Cartões salvos</a>
+                <a href="#" class="list-group-item list-group-item-action">Central de preferências</a>
+            </div>
+        </div>
+
+        <!-- Listagem de pedidos -->
+        <div class="col-md-9">
+            <h3 class="mb-4">Pedidos</h3>
+
+            {% if pedidos %}
+                {% for pedido in pedidos %}
+                <div class="card mb-4" data-status="{{ pedido.status }}" data-id="{{ pedido.id }}">
+                    <div class="card-body row">
+                        <!-- Esquerda: Itens + Timeline -->
+                        <div class="col-md-8 border-end">
+                            {% for item in pedido.itens_pedido.all %}
+                            <div class="d-flex mb-3">
+                                {% if item.produto.imagem %}
+                                    <img src="{{ item.produto.imagem.url }}" 
+                                         class="rounded me-3" 
+                                         style="width:100px; height:100px; object-fit:cover;">
+                                {% else %}
+                                    <img src="{% static 'vendas/images/default-product.png' %}" 
+                                         class="rounded me-3" 
+                                         style="width:100px; height:100px; object-fit:cover;">
+                                {% endif %}
+                                <div>
+                                    <h5>{{ item.produto.nome }}</h5>
+                                    <p class="mb-1">Cor: {{ item.cor_selecionada|default:item.produto.cor }}</p>
+                                    <p class="mb-1">Tamanho: {{ item.tamanho_selecionado|default:item.produto.tamanho }}</p>
+                                    <p class="mb-1">Quantidade: {{ item.quantidade }}</p>
+                                    <p class="fw-bold">Valor: R$ {{ item.subtotal }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+
+                            <!-- Timeline -->
+                            <div class="status-timeline mb-3 
+                                {% if pedido.status == 'cancelado' %} cancelado {% endif %}">
+                                
+                                <div class="timeline-progress" style="width:
+                                    {% if pedido.status == 'pendente' %}10%
+                                    {% elif pedido.status == 'aguardando_aprovacao' %}20%
+                                    {% elif pedido.status == 'aprovado' %}40%
+                                    {% elif pedido.status == 'processando' %}60%
+                                    {% elif pedido.status == 'enviado' %}80%
+                                    {% elif pedido.status == 'entregue' %}100%
+                                    {% else %}0{% endif %}
+                                "></div>
+
+                                <!-- Pedido Realizado (azul para todos os status exceto cancelado) -->
+                                <div class="status-step">
+                                    <div class="status-icon 
+                                        {% if pedido.status != 'cancelado' %}active{% else %}cancelado{% endif %}">
+                                        <i class="bi bi-cart"></i>
+                                    </div>
+                                    <div class="status-text 
+                                        {% if pedido.status != 'cancelado' %}active{% else %}cancelado{% endif %}">
+                                        Pedido Realizado
+                                    </div>
+                                </div>
+                                
+                                <!-- Pagamento (amarelo quando pendente, verde quando aprovado) -->
+                                <div class="status-step">
+                                    <div class="status-icon 
+                                        {% if pedido.status == 'aprovado' %}bg-success text-white
+                                        {% elif pedido.status in 'processando,enviado,entregue' %}active
+                                        {% elif pedido.status in 'pendente,aguardando_aprovacao' %}bg-warning text-dark
+                                        {% elif pedido.status == 'cancelado' %}cancelado
+                                        {% endif %}">
+                                        <i class="bi bi-credit-card"></i>
+                                    </div>
+                                    <div class="status-text 
+                                        {% if pedido.status == 'pago' %}text-success fw-bold
+                                        {% elif pedido.status in 'processando,enviado,entregue' %}active
+                                        {% elif pedido.status in 'pendente,aguardando_aprovacao' %}text-warning fw-bold
+                                        {% elif pedido.status == 'cancelado' %}cancelado
+                                        {% endif %}">
+                                        {% if pedido.status in 'pendente,aguardando_aprovacao' %}
+                                            Aguardando pagamento
+            {% else %}
+                Provado
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Processando -->
+    <div class="status-step">
+        <div class="status-icon 
+            {% if pedido.status == 'processando' %}active
+            {% elif pedido.status in 'enviado,entregue' %}active
+            {% elif pedido.status == 'cancelado' %}cancelado
+            {% endif %}">
+            <i class="bi bi-gear"></i>
+        </div>
+        <div class="status-text 
+            {% if pedido.status == 'processando' %}active
+            {% elif pedido.status in 'enviado,entregue' %}active
+            {% elif pedido.status == 'cancelado' %}cancelado
+            {% endif %}">
+            Processando
+        </div>
+    </div>
+    
+    <!-- Enviado -->
+    <div class="status-step">
+        <div class="status-icon 
+            {% if pedido.status == 'enviado' %}active
+            {% elif pedido.status == 'entregue' %}active
+            {% elif pedido.status == 'cancelado' %}cancelado
+            {% endif %}">
+            <i class="bi bi-truck"></i>
+        </div>
+        <div class="status-text 
+            {% if pedido.status == 'enviado' %}active
+            {% elif pedido.status == 'entregue' %}active
+            {% elif pedido.status == 'cancelado' %}cancelado
+            {% endif %}">
+            Enviado
+        </div>
+    </div>
+    
+    <!-- Entregue -->
+    <div class="status-step">
+        <div class="status-icon 
+            {% if pedido.status == 'entregue' %}active
+            {% elif pedido.status == 'cancelado' %}cancelado
+            {% endif %}">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="status-text 
+            {% if pedido.status == 'entregue' %}active
+            {% elif pedido.status == 'cancelado' %}cancelado
+            {% endif %}">
+            {% if pedido.status == 'cancelado' %}
+                Cancelado
+            {% else %}
+                Entregue
+            {% endif %}
+        </div>
+    </div>
+</div>
+                        </div>
+
+                        <!-- Direita: Resumo -->
+                        <div class="col-md-4 d-flex flex-column justify-content-center text-center">
+                            <h6 class="mb-2">Resumo da compra</h6>
+                            <p><strong>Pedido:</strong> {{ pedido.id }}</p>
+                            <p><strong>Data:</strong> {{ pedido.data_criacao|date:"d/m/Y" }}</p>
+                            <p><strong>Total:</strong> R$ {{ pedido.total }}</p>
+
+                            {% if pedido.status == 'cancelado' %}
+                                <span class="badge bg-danger">Pedido Cancelado</span>
+                            {% else %}
+                                <a href="{% url 'detalhes_pedido' pedido.id %}" class="btn btn-primary mt-2 w-100">VER DETALHES</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted">Você ainda não possui pedidos.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.status-timeline {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 30px 0;
+}
+.status-timeline::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #dee2e6;
+    z-index: 1;
+}
+.timeline-progress {
+    position: absolute;
+    top: 15px;
+    left: 0;
+    height: 3px;
+    background: #0d6efd;
+    z-index: 2;
+}
+.status-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 3;
+    width: 20%;
+}
+.status-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 3px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+.status-icon.active {
+    border-color: #0d6efd;
+    background: #0d6efd;
+    color: white;
+}
+.status-icon.bg-success {
+    border-color: #198754;
+    background: #198754;
+    color: white;
+}
+.status-icon.cancelado {
+    border-color: #dc3545;
+    background: #dc3545;
+    color: white;
+}
+.status-timeline.cancelado::before,
+.status-timeline.cancelado .timeline-progress {
+    background: #dc3545;
+}
+.status-text { 
+    font-size: 11px; 
+    color: #6c757d; 
+}
+.status-text.active {
+    color: #0d6efd;
+    font-weight: bold;
+}
+.status-text.text-success {
+    color: #198754;
+    font-weight: bold;
+}
+.status-text.cancelado {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* ... outros estilos existentes ... */
+
+.status-icon.bg-warning {
+    border-color: #ffc107;
+    background: #ffc107;
+    color: #000;
+}
+
+.status-text.text-warning {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+/* Progresso da timeline para status pendente */
+.status-timeline .timeline-progress {
+    transition: width 0.5s ease;
+}
+
+/* Para pedidos pendentes, mostrar progresso mínimo */
+.status-timeline:not(.cancelado) .timeline-progress {
+    {% if pedido.status in 'pendente,aguardando_aprovacao' %}
+    width: 10% !important; /* Pequeno progresso para mostrar que começou */
+    {% endif %}
+}
+</style>
+<script>
+
+// Sistema para meus_pedidos.html
+console.log('=== 🚨 VERIFICAÇÃO AUTOMÁTICA - Lista de Pedidos ===');
+
+function verificarPedidosPendentes() {
+    console.log('🔍 Verificando pedidos pendentes...');
+    
+    // Encontrar todos os pedidos pendentes
+    const pedidosPendentes = [];
+    
+    document.querySelectorAll('.card.mb-4').forEach(card => {
+        const link = card.querySelector('a[href*="/pedido/"]');
+        if (!link) return;
+        
+        const href = link.getAttribute('href');
+        const pedidoId = href.match(/\/pedido\/(\d+)\//)?.[1];
+        
+        if (pedidoId) {
+            // Verificar se é pendente pelo texto ou classes
+            const cardText = card.textContent.toLowerCase();
+            const isPendente = cardText.includes('aguardando') || 
+                              cardText.includes('pendente') ||
+                              card.querySelector('.badge.bg-warning') ||
+                              card.querySelector('.status-text.text-warning');
+            
+            if (isPendente) {
+                pedidosPendentes.push(pedidoId);
+                console.log(`📋 Pedido ${pedidoId} marcado como pendente`);
+            }
+        }
+    });
+    
+    console.log('📦 Pedidos para verificar:', pedidosPendentes);
+    
+    // Verificar cada pedido pendente
+    pedidosPendentes.forEach(pedidoId => {
+        verificarPedidoIndividual(pedidoId);
+    });
+}
+
+function verificarPedidoIndividual(pedidoId) {
+    fetch(`/pedido/${pedidoId}/verificar-status/`)
+        .then(response => response.json())
+        .then(data => {
+            console.log(`Pedido ${pedidoId}:`, data);
+            
+            if (data.status === 'success' && data.atualizado) {
+                console.log(`🎉 Pedido ${pedidoId} atualizado! Recarregando...`);
+                
+                // Mostrar notificação
+                showNotification(`Pedido #${pedidoId} atualizado!`, 'success');
+                
+                // Recarregar após delay
+                setTimeout(() => location.reload(), 2000);
+            }
+        })
+        .catch(error => {
+            console.error(`Erro no pedido ${pedidoId}:`, error);
+        });
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+    notification.innerHTML = `
+        <strong>🔄 Status Atualizado</strong><br>
+        ${message}
+    `;
+    
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 5000);
+}
+
+// Iniciar verificação automática
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔄 Iniciando verificações automáticas para pedidos pendentes');
+    
+    // Verificar a cada 30 segundos
+    setInterval(verificarPedidosPendentes, 30000);
+    
+    // Primeira verificação em 5 segundos
+    setTimeout(verificarPedidosPendentes, 5000);
+});
+
+</script>
+{% endblock %}

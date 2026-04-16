@@ -1,0 +1,216 @@
+{% extends 'vendas/base.html' %}
+{% load static %}
+
+{% block extra_js %}
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script>
+    // Inicializar Mercado Pago com a public key do settings
+    const mp = new MercadoPago('{{ mp_public_key|default:"TEST-12345678-1234-1234-1234-123456789012" }}');
+    
+    console.log('Mercado Pago inicializado com public key:', '{{ mp_public_key|default:"TEST" }}');
+
+    
+    // Obter tipos de documento (para formulário futuro)
+    async function getIdentificationTypes() {
+        try {
+            const identificationTypes = await mp.getIdentificationTypes();
+            console.log('Tipos de documento:', identificationTypes);
+        } catch (e) {
+            console.error('Erro ao obter tipos de documento:', e);
+        }
+    }
+    
+    // Chamar quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        getIdentificationTypes();
+        
+        {% if not modo_desenvolvimento %}
+        console.log('Integração com Mercado Pago ativa');
+        {% else %}
+        console.log('Modo desenvolvimento - PIX simulado');
+        {% endif %}
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-qr-code"></i> Pagamento via PIX</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Cabeçalho do Pedido -->
+                    <div class="text-center mb-4">
+                        <h5>Pedido #{{ pedido.id }}</h5>
+                        <p class="lead mb-1">Total: <strong>R$ {{ pedido.total }}</strong></p>
+                        <small class="text-muted">Status: Aguardando pagamento</small>
+                    </div>
+
+                    {% if modo_desenvolvimento %}
+                    <!-- MODO DESENVOLVIMENTO - APENAS EM CASO DE ERRO -->
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        <strong>Erro ao conectar com Mercado Pago</strong>
+                        <p class="mb-1">{{ erro_exception }}</p>
+                        <small>Verifique as configurações no settings.py</small>
+                    </div>
+                    {% else %}
+                    <!-- MODO PRODUÇÃO - PIX REAL -->
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> 
+                        <strong>Pagamento PIX Gerado com Sucesso!</strong>
+                        <p class="mb-0">Use o QR Code abaixo para pagar</p>
+                    </div>
+                    <!-- ... resto do código para PIX real ... -->
+                    {% endif %}
+
+                                        
+
+                    
+                    <!-- MODO PRODUÇÃO COM MERCADO PAGO REAL -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-check-circle"></i> 
+                        Pagamento processado via Mercado Pago
+                    </div>
+
+                    <div class="text-center mb-4">
+                        <h6><i class="bi bi-qr-code"></i> Escaneie o QR Code</h6>
+                        {% if qr_code_base64 %}
+                        <img src="data:image/png;base64,{{ qr_code_base64 }}" 
+                             alt="QR Code PIX" 
+                             class="img-fluid border rounded p-2"
+                             style="max-width: 250px;">
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <h6><i class="bi bi-clipboard"></i> Código PIX:</h6>
+                        <div class="input-group">
+                            <input type="text" 
+                                   class="form-control" 
+                                   value="{{ qr_code }}" 
+                                   id="pix-code" 
+                                   readonly
+                                   style="font-size: 0.8rem;">
+                            <button class="btn btn-outline-primary" type="button" onclick="copiarPix()">
+                                <i class="bi bi-clipboard"></i> Copiar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-4">
+                        <a href="{{ ticket_url }}" target="_blank" class="btn btn-outline-success">
+                            <i class="bi bi-box-arrow-up-right"></i> Abrir página de pagamento
+                        </a>
+                    </div>
+                    
+
+                    <!-- Instruções -->
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> Como pagar com PIX:</h6>
+                        <ol class="mb-0 small">
+                            <li>Abra o app do seu banco</li>
+                            <li>Selecione a opção PIX</li>
+                            <li>Escaneie o QR Code ou cole o código</li>
+                            <li>Confirme o pagamento de R$ {{ pedido.total }}</li>
+                            <li>Seu pedido será confirmado automaticamente</li>
+                        </ol>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'detalhes_pedido' pedido.id %}" class="btn btn-primary">
+                            <i class="bi bi-eye"></i> Ver Detalhes do Pedido
+                        </a>
+                        <a href="{% url 'pagina_inicial' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-house"></i> Continuar Comprando
+                        </a>
+                        
+                        {% if modo_desenvolvimento %}
+                        <button class="btn btn-success mt-3" onclick="simularPagamento()">
+                            <i class="bi bi-check-circle"></i> Simular Pagamento Concluído
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copiarPix() {
+    const input = document.getElementById('pix-code');
+    input.select();
+    document.execCommand('copy');
+    
+    // Feedback visual
+    const btn = event.target;
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check"></i> Copiado!';
+    btn.classList.remove('btn-outline-primary');
+    btn.classList.add('btn-success');
+    
+    setTimeout(() => {
+        btn.innerHTML = originalHtml;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-primary');
+    }, 2000);
+}
+
+{% if modo_desenvolvimento %}
+function simularPagamento() {
+    if (confirm('Deseja simular o pagamento concluído?\n\nEm produção, esta etapa seria automática após o pagamento real.')) {
+        // Redirecionar para página de sucesso
+        window.location.href = "{% url 'detalhes_pedido' pedido.id %}";
+    }
+}
+{% endif %}
+
+// Verificar status do pagamento periodicamente
+{% if not modo_desenvolvimento and pedido.status == 'pending' %}
+function verificarStatusPagamento() {
+    fetch(`/api/verificar-pagamento/{{ pedido.id }}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'approved') {
+                // Pagamento aprovado!
+                alert('Pagamento confirmado! Redirecionando...');
+                window.location.href = "{% url 'detalhes_pedido' pedido.id %}";
+            } else if (data.status === 'rejected') {
+                alert('Pagamento recusado. Tente novamente.');
+            }
+        })
+        .catch(error => console.error('Erro:', error));
+}
+
+// Verificar a cada 30 segundos
+setInterval(verificarStatusPagamento, 30000);
+{% endif %}
+</script>
+
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.btn {
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-weight: 500;
+}
+
+#pix-code {
+    font-family: 'Courier New', monospace;
+}
+</style>
+{% endblock %}

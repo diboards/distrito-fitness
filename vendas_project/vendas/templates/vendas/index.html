@@ -1,0 +1,288 @@
+{% extends 'vendas/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- CSS externo a partir do static -->
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="container-projetos">
+    <!-- Filtros - ESTILO ORIGINAL PERSONALIZADO -->
+    <div class="filters-container mb-5">
+        <h2 class="filters-title mb-4">Loja!</h2>
+        <h1 class="filters-title text-center">Mirna Boutique.</h1>
+        
+        <ul class="filter-list mb-4">
+            <li class="nav-item">
+                <a class="nav-link {% if not categoria_selecionada %}active{% endif %}" 
+                   href="{% url 'pagina_inicial' %}">Todos</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if categoria_selecionada == 'lancamentos' %}active{% endif %}" 
+                   href="{% url 'pagina_inicial' %}?categoria=lancamentos">Lançamentos</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if categoria_selecionada == 'promocoes' %}active{% endif %}" 
+                   href="{% url 'pagina_inicial' %}?categoria=promocoes">Promoções</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if categoria_selecionada == 'conjuntos' %}active{% endif %}" 
+                   href="{% url 'pagina_inicial' %}?categoria=conjuntos">Conjuntos</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link " href="{% url 'orcamento' %}">
+                    <i class="bi bi-card-list"></i> Orçamento
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if categoria_selecionada == 'outros' %}active{% endif %}" 
+                   href="{% url 'pagina_inicial' %}?categoria=outros">Outros</a>
+            </li>
+            <li class="nav-item d-flex align-items-center me-3">
+                <a class="nav-link IG-link-filter" href="https://instagram.com/boutiquemirna7" target="_blank">
+                    <i class="bi bi-instagram fs-5 text-danger"></i>MirnaBoutique
+                </a>
+                </li>
+        </ul>
+    </div>
+    
+    <!-- Seção de produtos dinâmica -->
+    {% if produtos %}
+        <h1 class="section-title text-center mt-5 mb-4">
+            {% if categoria_selecionada == 'lancamentos' %}Lançamentos
+            {% elif categoria_selecionada == 'promocoes' %}Promoções
+            {% elif categoria_selecionada == 'conjuntos' %}Conjuntos
+            {% elif categoria_selecionada == 'outros' %}Outros
+            {% else %}Todos os Produtos da Loja{% endif %}
+        </h1>
+        
+        <div class="row g-4 row-custom mx-0">
+            {% for produto in produtos %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                    <div class="image-container position-relative overflow-hidden">
+                        <a href="{% url 'detalhes_produto' produto.id %}">
+                            {% if produto.imagem %}
+                            <img src="{{ produto.imagem.url }}" class="img-fluid" 
+                                 alt="{{ produto.nome }}">
+                            {% else %}
+                            <img src="{% static 'vendas/images/default-product.png' %}" class="img-fluid" 
+                                 alt="{{ produto.nome }}">
+                            {% endif %}
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ produto.nome }}</h5>
+
+                        <!-- preço normal -->
+                        <p class="text-muted mb-1">
+                            <del>R$ {{ produto.preco }}</del>
+                        </p>
+
+                        <!-- preço no PIX -->
+                        <p class="fw-bold text-success mb-1">
+                            R$ {{ produto.preco_pix }} (10% OFF)
+                        </p>
+
+                        <!-- preço parcelado -->
+                        <p class="text-primary mb-2">
+                            ou em até 3x  sem juros
+                        </p>
+
+                        <!-- Botões -->
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'detalhes_produto' produto.id %}" class="btn btn-sm btn-outline-primary">
+                                Ver Detalhes
+                            </a>
+                            <form method="POST" action="{% url 'adicionar_carrinho' produto.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="quantidade" value="1">
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-cart-plus"></i> Add
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                Nenhum produto encontrado nesta categoria.
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Conteúdo estático (APENAS SE NENHUMA CATEGORIA ESTIVER SELECIONADA) -->
+    {% if not categoria_selecionada %}
+    <!-- Seção Promoções -->
+    <h1 class="section-title text-center mt-5 mb-4" id="cozinha">Promoções</h1>
+    
+    <div class="row g-4 row-custom mx-0">
+        <!-- Imagem Cozinha 1 -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                <div class="image-container position-relative overflow-hidden">
+                    <img src="{% static 'img/Conjuntob.jpeg' %}" class="img-fluid" alt="Cozinha Moderna">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Conjuntinho - Branco</h5>
+                    <p class="card-text text-muted">R$ 125,99</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Imagem Cozinha 2 -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                <div class="image-container position-relative overflow-hidden">
+                    <img src="{% static 'img/Conjuntop.jpeg' %}" class="img-fluid" alt="Cozinha Clássica">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Conjuntinho - Preto</h5>
+                    <p class="card-text text-muted">R$ 130,99</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                <div class="image-container position-relative overflow-hidden">
+                    <img src="{% static 'img/Conjuntol.jpeg' %}" class="img-fluid" alt="Cozinha Clássica">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Conjuntinho - Laranja</h5>
+                    <p class="card-text text-muted">R$ 150,99</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="section-title text-center mt-5 mb-4" id="cozinha">Aqui é onde você encontra peças selecinadas com otimo design.</h4>
+
+    <!-- Bloco informativo com ícones (MANTIDO ORIGINAL) -->
+    <div class="row my-5 align-items-center">
+        <div class="col-md-6">
+            <h2 class="fw-bold">Mirna Boutique</h2>
+            <hr class="w-25">
+            <p class="mb-4">
+                Vejo o que nossa loja tem de mais moderno e variedades, cada detalhe faz a diferença. <br>
+                Padrões de alto e bom gosto, <strong>Mirna. Boutique:</strong>
+            </p>
+        </div>
+        <div class="col-md-6">
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="border p-3 h-100 rounded shadow-sm bg-white">
+                        <div class="mb-2"><i class="bi bi-building fs-3 text-dark"></i></div>
+                        <h6 class="fw-bold">Padrão industrial e acabamento superior</h6>
+                        <p class="small mb-0">Peças selecionadas absoluta na produção e acabamento impecável.</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="border p-3 h-100 rounded shadow-sm bg-white">
+                        <div class="mb-2"><i class="bi bi-layers fs-3 text-dark"></i></div>
+                        <h6 class="fw-bold">Lançamentos de Variedade</h6>
+                        <p class="small mb-0">Vestimenta do basico ao sofisticado.</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="border p-3 h-100 rounded shadow-sm bg-white">
+                        <div class="mb-2"><i class="bi bi-shield-check fs-3 text-dark"></i></div>
+                        <h6 class="fw-bold">Garantia e confiabilidade</h6>
+                        <p class="small mb-0">Garantismo a satisfação de nosso clientes.</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="border p-3 h-100 rounded shadow-sm bg-white">
+                        <div class="mb-2"><i class="bi bi-truck fs-3 text-dark"></i></div>
+                        <h6 class="fw-bold">Entrega ágil e sem surpresas</h6>
+                        <p class="small mb-0">Processos otimizados para evitar imprevistos na produção.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!--Carousel Slides - COM EFEITO HOVER NAS SETAS (MANTIDO ORIGINAL) -->
+    <div id="carrosselImagens" class="carousel slide carousel-fade mt-5 carousel-container" data-bs-ride="carousel" data-bs-interval="3000">
+        <!-- Indicadores -->
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#carrosselImagens" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#carrosselImagens" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#carrosselImagens" data-bs-slide-to="2" aria-label="Slide 3"></button>
+        </div>
+                
+        <div class="carousel-inner rounded shadow">
+            <!-- Slide 1 -->
+            <div class="carousel-item active">
+                <div class="row g-0 bg-light align-items-center" style="min-height: 400px;">
+                    <div class="col-12 col-md-6 p-4">
+                        <h3 class="fw-bold text-dark">Lançamentos</h3>
+                        <p class="text-muted">Conjunto blusa e saia longa</p>
+                    </div>
+                    <div class="col-12 col-md-6 p-3 text-center">
+                        <img src="{% static 'img/vestidoflor.jpeg' %}" class="img-fluid rounded shadow-sm" alt="Ambiente 1">
+                    </div>
+                </div>
+            </div>
+            <!-- Slide 2 -->
+            <div class="carousel-item">
+                <div class="row g-0 bg-light align-items-center" style="min-height: 400px;">
+                    <div class="col-12 col-md-6 p-4">
+                        <h3 class="fw-bold text-dark">Lançamentos</h3>
+                        <p class="text-muted">Vestido longo florido</p>
+                    </div>
+                    <div class="col-12 col-md-6 p-3 text-center">
+                        <img src="{% static 'img/vestidoflorl.jpeg' %}" class="img-fluid rounded shadow-sm" alt="Ambiente 2">
+                    </div>
+                </div>
+            </div>
+            <!-- Slide 3 -->
+            <div class="carousel-item">
+                <div class="row g-0 bg-light align-items-center" style="min-height: 400px;">
+                    <div class="col-12 col-md-6 p-4">
+                        <h3 class="fw-bold text-dark">Lançamentos</h3>
+                        <p class="text-muted">Vestido curto</p>
+                    </div>
+                    <div class="col-12 col-md-6 p-3 text-center">
+                        <img src="{% static 'img/vestidocur.jpeg' %}" class="img-fluid rounded shadow-sm" alt="Ambiente 3">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Controles (setas) - COM EFEITO HOVER -->
+        <button class="carousel-control-prev carousel-control-btn" type="button" data-bs-target="#carrosselImagens" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Anterior</span>
+        </button>
+        <button class="carousel-control-next carousel-control-btn" type="button" data-bs-target="#carrosselImagens" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Próximo</span>
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- Rodapé -->
+    <div class="bg-white p-2 rounded-2 mt-2 shadow-sm" style="border: 1px solid #dee2e6;">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">
+                Total: {{ produtos|length }} produto{{ produtos|length|pluralize }}
+            </small>
+            <small class="text-muted">
+                <i class="bi bi-clock-history me-1"></i> {% now "d/m/Y H:i" %}
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Ícones do Bootstrap -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+{% endblock %}
