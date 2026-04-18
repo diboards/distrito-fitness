@@ -9,6 +9,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev')
 
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
+
 ALLOWED_HOSTS = ['.onrender.com']
 
 CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
@@ -68,7 +69,9 @@ WSGI_APPLICATION = 'vendas_project.wsgi.application'
 
 # 🗄️ Banco (Render)
 DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+    )
 }
 
 # Senhas
