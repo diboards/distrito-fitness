@@ -15,7 +15,9 @@ ALLOWED_HOSTS = ['.onrender.com'
                 '.mirnaboutique.com',
                 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com'
+                       'https://*.mirnaboutique.com',
+                       ]
 
 # 🔐 Segurança HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
