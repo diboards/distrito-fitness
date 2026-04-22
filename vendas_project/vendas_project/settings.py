@@ -10,12 +10,12 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 
-ALLOWED_HOSTS = ['.onrender.com'
+ALLOWED_HOSTS = ['.onrender.com',
                 'mirnaboutique.com',
                 '.mirnaboutique.com',
                 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com'
+CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com',
                        'https://*.mirnaboutique.com',
                        ]
 
