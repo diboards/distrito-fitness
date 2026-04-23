@@ -1,14 +1,28 @@
 import os
 from pathlib import Path
 import dj_database_url
+import cloudinary
+
+#subir imagnes na nuvem cloudinary
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET'),
+)
+INSTALLED_APPS += [
+    'cloudinary',
+    'cloudinary_storage',
+]
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 Segurança
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev')
 
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
-
+#DEBUG = os.getenv('DEBUG', 'False') == 'True' usar no suPer user
+DEBUG = False
 
 ALLOWED_HOSTS = ['.onrender.com',
                 'mirnaboutique.com',
