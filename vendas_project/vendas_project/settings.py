@@ -3,18 +3,7 @@ from pathlib import Path
 import dj_database_url
 import cloudinary
 
-#subir imagnes na nuvem cloudinary
-cloudinary.config(
-    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
-    api_key=os.getenv('CLOUDINARY_API_KEY'),
-    api_secret=os.getenv('CLOUDINARY_API_SECRET'),
-)
-INSTALLED_APPS += [
-    'cloudinary',
-    'cloudinary_storage',
-]
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -51,7 +40,19 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'mathfilters',
     'vendas',
+
+    # ☁️ Cloudinary (gravar img no na nuvem)
+    'cloudinary',
+    'cloudinary_storage',
 ]
+# ☁️ Configuração Cloudinary
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET'),
+)
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # ⚙️ Middleware correto
 MIDDLEWARE = [
@@ -116,6 +117,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # 📁 Media
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 # 🔑 Login
 LOGIN_URL = '/login/'
