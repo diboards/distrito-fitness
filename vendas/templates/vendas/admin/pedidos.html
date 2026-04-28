@@ -1,0 +1,36 @@
+{% extends 'vendas/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+
+    <h2>Gerenciar Pedidos</h2>
+
+    {% for pedido in pedidos %}
+    <div class="card mb-3">
+        <div class="card-body">
+
+            <h5>Pedido #{{ pedido.id }} - {{ pedido.usuario.username }}</h5>
+
+            <p><strong>Pagamento:</strong> {{ pedido.status_pagamento }}</p>
+            <p><strong>Entrega:</strong> {{ pedido.status_entrega }}</p>
+
+            <form method="POST" action="{% url 'atualizar_status_entrega' pedido.id %}">
+                {% csrf_token %}
+
+                <select name="status_entrega" class="form-select mb-2">
+                    <option value="aguardando">Aguardando</option>
+                    <option value="preparando">Preparando</option>
+                    <option value="enviado">Enviado</option>
+                    <option value="entregue">Entregue</option>
+                    <option value="retirado">Retirado</option>
+                </select>
+
+                <button class="btn btn-dark">Atualizar</button>
+            </form>
+
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+{% endblock %}

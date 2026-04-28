@@ -1,0 +1,650 @@
+{% extends 'vendas/base.html' %}
+{% load static %}
+{% load mathfilters %}
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">🛒 Minha Sacola</h1>
+
+    {% if itens_carrinho %}
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Consulta de Frete (agora no topo) -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title fw-bold">📦 Calcular Frete</h6>
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control cep-input" 
+                                   placeholder="Digite seu CEP" 
+                                   maxlength="10"
+                                   oninput="formatarCEP(this)"
+                                   id="cep-principal">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-warning btn-sm w-100 consultar-frete-btn" id="btn-frete-principal">
+                                Calcular Frete
+                            </button>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <span class="badge bg-light text-dark" id="status-frete">Não calculado</span>
+                        </div>
+                    </div>
+                    <div class="mt-2 resultado-frete-principal" style="display: none;">
+                        <p class="mb-1 text-success fw-bold" id="resultado-frete-principal"></p>
+                        <p class="mb-0 text-muted small" id="prazo-entrega-principal"></p>
+                    </div>
+                    <div class="loading-frete text-center mt-2" style="display: none;">
+                        <div class="spinner-border spinner-border-sm text-warning" role="status">
+                            <span class="visually-hidden">Calculando...</span>
+                        </div>
+                        <small class="text-muted ms-2">Calculando frete...</small>
+                    </div>
+                </div>
+            </div>
+
+            {% for item in itens_carrinho %}
+            <div class="card mb-3 border-0 shadow-sm" id="cart-item-{{ item.id }}">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <!-- Imagem do produto -->
+                        <div class="col-md-2 position-relative">
+                            {% if item.imagem_selecionada %}
+                                <img src="{{ item.imagem_selecionada.url }}" 
+                                    class="img-fluid rounded" alt="{{ item.produto.nome }}" 
+                                    style="height: 100px; object-fit: cover;">
+                            {% elif item.produto.imagem %}
+                                <img src="{{ item.produto.imagem.url }}" 
+                                    class="img-fluid rounded" alt="{{ item.produto.nome }}" 
+                                    style="height: 100px; object-fit: cover;">
+                            {% else %}
+                                <img src="{% static 'vendas/images/default-product.png' %}" 
+                                    class="img-fluid rounded" alt="{{ item.produto.nome }}" 
+                                    style="height: 100px; object-fit: cover;">
+                            {% endif %}
+                        </div>
+
+                        <!-- Informações do produto -->
+                        <div class="col-md-4">
+                            <h5 class="mb-2 fw-bold">{{ item.produto.nome }}</h5>
+                            <p class="mb-1 text-muted small">Ref: #{{ item.produto.id|stringformat:"06d" }}</p>
+                            <p class="mb-1 text-muted small">Vendido por <strong>Mirna Boutique</strong></p>
+                            <p class="mb-1 text-muted small">Entregue por <strong>FULL</strong></p>
+                            <div class="mt-2">
+                                <span class="badge bg-light text-dark border">Cor: {{ item.cor_selecionada|default:"Branco" }}</span>
+                                <span class="badge bg-light text-dark border">Tamanho: {{ item.tamanho_selecionado|default:"39" }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Quantidade -->
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center justify-content-start mb-2">
+                                <p class="mb-0 me-2 small fw-bold">Quantidade:</p>
+                                <form method="POST" action="{% url 'atualizar_carrinho' item.id %}" 
+                                      class="cart-update-form d-flex align-items-center" 
+                                      data-item-id="{{ item.id }}">
+                                    {% csrf_token %}
+                                    <button type="button" class="btn btn-outline-secondary btn-sm minus-btn" 
+                                            style="width: 30px; height: 30px; border-radius: 50%;">-</button>
+                                    <input type="number" name="quantidade" value="{{ item.quantidade }}" 
+                                           min="1" class="form-control form-control-sm mx-1 text-center" 
+                                           style="width: 60px;">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm plus-btn" 
+                                            style="width: 30px; height: 30px; border-radius: 50%;">+</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Preços -->
+                        <div class="col-md-3 text-end">
+                            <!-- Botão excluir -->
+                            <div class="mb-2">
+                                <form method="POST" action="{% url 'remover_carrinho' item.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Preço normal riscado -->
+                            <p class="text-muted mb-1">
+                                <del>R$ {{ item.produto.preco|floatformat:2 }}</del>
+                            </p>
+
+                            <!-- Preço no PIX com 10% OFF -->
+                            <p class="fw-bold text-success mb-1" id="preco-pix-{{ item.id }}"></p>
+
+                            <!-- Preço parcelado -->
+                            <p class="text-primary mb-2 small" id="preco-parcela-{{ item.id }}"></p>
+
+                            <!-- Subtotal deste item -->
+                            <p class="fw-bold border-top pt-2 mt-2" id="subtotal-normal-{{ item.id }}">
+                                Subtotal: R$ {{ item.subtotal|floatformat:2 }}
+                            </p>
+                            <p class="text-success small" id="subtotal-pix-{{ item.id }}"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Resumo do pedido -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title border-bottom pb-2">Resumo da compra</h5>
+                    
+                    <!-- Subtotal -->
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span>Subtotal ({{ itens_carrinho|length }} item{{ itens_carrinho|length|pluralize }})</span>
+                        <span>R$ {{ total|floatformat:2 }}</span>
+                    </div>
+                    
+                    <!-- Frete - DINÂMICO -->
+                    <div class="d-flex justify-content-between mb-2 small" id="linha-frete">
+                        <span>Frete para <span id="cidade-frete">sua região</span></span>
+                        <span class="text-muted" id="valor-frete">Informe o CEP</span>
+                    </div>
+                    
+                    <div class="mb-3 small">
+                        <span class="text-muted" id="texto-ajuda-frete">Digite seu CEP para calcular o frete</span>
+                        <br>
+                        <span class="text-success" id="prazo-frete" style="display: none;">
+                            <strong id="texto-prazo"></strong>
+                        </span>
+                    </div>
+
+                    <!-- Cupom -->
+                    <div class="mb-3">
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" placeholder="Cupom de desconto">
+                            <button class="btn btn-outline-secondary">Adicionar</button>
+                        </div>
+                    </div>
+
+                    <hr>
+                    
+                    <!-- CÁLCULOS FINAIS -->
+                    <div class="mb-2">
+                        <strong>Total à vista no Pix:</strong>
+                        <span id="total-pix" class="text-success fw-bold">R$ {{ total|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Total parcelado (até 3x sem juros):</strong>
+                        <span id="total-parcelado" class="text-primary fw-bold">R$ {{ total|floatformat:2 }}</span>
+                    </div>
+
+                    <div class="mb-2 small text-muted">
+                        <p id="valor-parcela">3x de R$ {{ total|div:4|floatformat:2 }} sem juros</p>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="economia" checked disabled>
+                        <label class="form-check-label small" for="economia">
+                            Você está economizando <span id="economia-valor">R$ {{ total|mul:0.10|floatformat:2 }}</span>
+                        </label>
+                    </div>
+
+                    <!-- Botão finalizar compra -->
+                    <a href="{% url 'checkout' %}" class="btn btn-warning w-100 fw-bold py-2">Finalizar Compra</a>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'pagina_inicial' %}" class="btn btn-outline-secondary btn-sm">
+                            Escolher mais produtos
+                        </a>
+                    </div>
+
+                    <div class="text-center mt-3 small text-muted">
+                        <i class="bi bi-shield-check"></i> COMPRA SEGURA
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-cart-x" style="font-size: 4rem;"></i>
+        <h3 class="mt-3">Sua sacola está vazia</h3>
+        <p class="text-muted">Adicione alguns produtos incríveis!</p>
+        <a href="{% url 'pagina_inicial' %}" class="btn btn-primary">Voltar às Compras</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.card {
+    border-radius: 10px;
+}
+.btn-minus, .btn-plus {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.form-control[type="number"] {
+    text-align: center;
+}
+.badge {
+    font-size: 0.7rem;
+    padding: 0.3em 0.6em;
+}
+.small {
+    font-size: 0.85rem;
+}
+.cep-input {
+    text-align: center;
+}
+.resultado-frete-principal {
+    border-left: 3px solid #28a745;
+    padding-left: 10px;
+    background-color: #f8fff9;
+    padding: 10px;
+    border-radius: 5px;
+}
+#linha-frete {
+    background-color: #f8f9fa;
+    padding: 8px;
+    border-radius: 5px;
+}
+</style>
+
+<script>
+// Banco de dados de CEPs e regiões (simulado)
+const regioesFrete = {
+    // Distrito Federal - Região Metropolitana
+    '70000000-72799999': { cidade: 'Brasília-DF (Plano Piloto)', valor: 8.90, prazo: '2-3 dias', regiao: 'capital' },
+    '71587040-71588238': { cidade: 'Paranoá-DF', valor: 8.90, prazo: '2-3 dias', regiao: 'rmdf' },
+    '71590000-71590245': { cidade: 'Itapoã-DF', valor: 8.90, prazo: '2-3 dias', regiao: 'rmdf' },
+    '73000000-73699999': { cidade: 'Brasília-DF (Águas Claras)', valor: 9.90, prazo: '2-4 dias', regiao: 'rmdf' },
+    '72000000-72299999': { cidade: 'Taguatinga-DF', valor: 9.90, prazo: '2-4 dias', regiao: 'rmdf' },
+    '72300000-72499999': { cidade: 'Samambaia-DF', valor: 9.90, prazo: '2-4 dias', regiao: 'rmdf' },
+    '72504003-72549825': { cidade: 'Santa Maria-DF', valor: 9.90, prazo: '2-4 dias', regiao: 'rmdf' },
+    '72215000-72275684': { cidade: 'Ceilândia-DF', valor: 9.90, prazo: '2-4 dias', regiao: 'rmdf' },
+    '73300000-73399999': { cidade: 'Planaltina-DF', valor: 10.90, prazo: '3-5 dias', regiao: 'rmdf' },
+    '73200000-73299999': { cidade: 'Sobradinho-DF', valor: 10.90, prazo: '3-5 dias', regiao: 'rmdf' },
+    '73500000-73599999': { cidade: 'Brazlândia-DF', valor: 11.90, prazo: '3-5 dias', regiao: 'rmdf' },
+    
+    // Goiás - Cidades próximas
+    '74000000-74899999': { cidade: 'Goiânia-GO', valor: 12.90, prazo: '4-6 dias', regiao: 'goias' },
+    '75000000-75999999': { cidade: 'Anápolis-GO', valor: 15.90, prazo: '5-8 dias', regiao: 'interior-go' },
+    '72800000-72999999': { cidade: 'Luziânia-GO', valor: 13.90, prazo: '4-6 dias', regiao: 'goias' },
+    '73800000-73999999': { cidade: 'Formosa-GO', valor: 14.90, prazo: '5-7 dias', regiao: 'goias' },
+    
+    // Outros estados
+    '01000000-09999999': { cidade: 'São Paulo-SP', valor: 22.90, prazo: '8-12 dias', regiao: 'sul' },
+    '20000000-28999999': { cidade: 'Rio de Janeiro-RJ', valor: 24.90, prazo: '8-12 dias', regiao: 'sudeste' },
+    '30000000-39999999': { cidade: 'Belo Horizonte-MG', valor: 19.90, prazo: '7-10 dias', regiao: 'sudeste' },
+    '50000000-56999999': { cidade: 'Recife-PE', valor: 29.90, prazo: '10-15 dias', regiao: 'nordeste' },
+    '80000000-87999999': { cidade: 'Curitiba-PR', valor: 19.90, prazo: '7-10 dias', regiao: 'sul' },
+    
+    // Padrão para CEPs não mapeados
+    'default': { cidade: 'sua cidade', valor: 15.90, prazo: '5-10 dias', regiao: 'default' }
+};
+
+// Variável global para armazenar o valor do frete
+let valorFreteAtual = null;
+let cidadeFreteAtual = 'sua região';
+let prazoFreteAtual = '';
+
+function formatBR(value){
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+// Formatar CEP (XXXXX-XXX)
+function formatarCEP(input) {
+    let cep = input.value.replace(/\D/g, '');
+    
+    if (cep.length > 5) {
+        cep = cep.substring(0, 5) + '-' + cep.substring(5, 8);
+    }
+    
+    input.value = cep;
+}
+
+// Validar CEP
+function validarCEP(cep) {
+    cep = cep.replace(/\D/g, '');
+    return cep.length === 8;
+}
+
+// Função otimizada para debug
+function encontrarRegiaoPorCEP(cep) {
+    // Remove caracteres não numéricos e converte para string
+    cep = cep.replace(/\D/g, '');
+    
+    // Converte para número, mas trata como string para comparação
+    const cepNum = parseInt(cep, 10);
+    
+    // Verifica se o CEP é válido
+    if (isNaN(cepNum) || cep.length !== 8) {
+        return regioesFrete['default'];
+    }
+
+    let melhorMatch = null;
+
+    for (const faixa in regioesFrete) {
+        if (faixa === 'default') continue;
+
+        const [inicioStr, fimStr] = faixa.split('-');
+        const inicio = parseInt(inicioStr, 10);
+        const fim = parseInt(fimStr, 10);
+
+        // Debug: verificar cada faixa
+        console.log(`Verificando faixa: ${faixa}, CEP: ${cepNum}, Início: ${inicio}, Fim: ${fim}`);
+
+        if (cepNum >= inicio && cepNum <= fim) {
+            // Calcula o "tamanho" do intervalo
+            const tamanhoFaixa = fim - inicio;
+            
+            console.log(`✅ CEP ${cepNum} encontrado na faixa ${faixa}`);
+
+            if (!melhorMatch || tamanhoFaixa < melhorMatch.tamanho) {
+                melhorMatch = {
+                    dados: regioesFrete[faixa],
+                    tamanho: tamanhoFaixa
+                };
+            }
+        }
+    }
+
+    if (melhorMatch) {
+        console.log(`🎯 Melhor match: ${melhorMatch.dados.cidade}`);
+        return melhorMatch.dados;
+    } else {
+        console.log('❌ Nenhuma faixa encontrada, usando default');
+        return regioesFrete['default'];
+    }
+}
+    
+
+// Consultar frete com lógica regional
+function consultarFrete(cep) {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            const regiao = encontrarRegiaoPorCEP(cep);
+            const totalCompra = parseFloat("{{ total }}") || 0;
+            
+            // Frete grátis para compras acima de R$ 200
+            if (totalCompra > 200) {
+                regiao.valor = 0;
+                regiao.prazo = regiao.prazo.replace(/\d+-\d+/, '3-5') + ' (FRETE GRÁTIS)';
+            }
+            
+            resolve(regiao);
+        }, 1200);
+    });
+}
+
+function calcularPrecosItem(preco, quantidade) {
+    const precoPix = preco * 0.90;
+    const precoParcela = preco / 3;
+    const subtotalNormal = preco * quantidade;
+    const subtotalPix = subtotalNormal * 0.90;
+    
+    return {
+        precoPix: precoPix.toFixed(2),
+        precoParcela: precoParcela.toFixed(2),
+        subtotalNormal: subtotalNormal.toFixed(2),
+        subtotalPix: subtotalPix.toFixed(2)
+    };
+}
+
+function atualizarPrecosItens() {
+    {% for item in itens_carrinho %}
+    const precoItem{{ item.id }} = parseFloat({{ item.produto.preco }});
+    const quantidadeItem{{ item.id }} = parseInt({{ item.quantidade }});
+    
+    const calculos{{ item.id }} = calcularPrecosItem(precoItem{{ item.id }}, quantidadeItem{{ item.id }});
+    
+    const precoPixEl{{ item.id }} = document.getElementById('preco-pix-{{ item.id }}');
+    const precoParcelaEl{{ item.id }} = document.getElementById('preco-parcela-{{ item.id }}');
+    const subtotalPixEl{{ item.id }} = document.getElementById('subtotal-pix-{{ item.id }}');
+    
+    if (precoPixEl{{ item.id }}) {
+        precoPixEl{{ item.id }}.textContent = `R$ ${calculos{{ item.id }}.precoPix} (10% OFF)`;
+    }
+    if (precoParcelaEl{{ item.id }}) {
+        precoParcelaEl{{ item.id }}.textContent = `ou 3x de R$ ${calculos{{ item.id }}.precoParcela} sem juros`;
+    }
+    if (subtotalPixEl{{ item.id }}) {
+        subtotalPixEl{{ item.id }}.textContent = `PIX: R$ ${calculos{{ item.id }}.subtotalPix}`;
+    }
+    {% endfor %}
+}
+
+function atualizarResumoPedido(total, freteInfo = null) {
+    const frete = freteInfo ? freteInfo.valor : 0;
+    const totalComFrete = total + frete;
+    const totalPix = totalComFrete * 0.90;
+    const parcela = totalComFrete / 3;
+    const economia = total * 0.10;
+    
+    // Atualizar elementos do resumo
+    const totalPixEl = document.getElementById('total-pix');
+    const totalParceladoEl = document.getElementById('total-parcelado');
+    const valorParcelaEl = document.getElementById('valor-parcela');
+    const economiaEl = document.getElementById('economia-valor');
+    const valorFreteEl = document.getElementById('valor-frete');
+    const cidadeFreteEl = document.getElementById('cidade-frete');
+    const textoPrazoEl = document.getElementById('texto-prazo');
+    const prazoFreteEl = document.getElementById('prazo-frete');
+    const textoAjudaEl = document.getElementById('texto-ajuda-frete');
+    const statusFreteEl = document.getElementById('status-frete');
+    
+    if (totalPixEl) totalPixEl.textContent = formatBR(totalPix);
+    if (totalParceladoEl) totalParceladoEl.textContent = formatBR(totalComFrete);
+    if (valorParcelaEl) valorParcelaEl.textContent = `3x de ${formatBR(parcela)} sem juros`;
+    if (economiaEl) economiaEl.textContent = formatBR(economia);
+    
+    // Atualizar informações de frete
+    if (freteInfo) {
+        if (frete === 0) {
+            valorFreteEl.textContent = 'GRÁTIS';
+            valorFreteEl.className = 'text-success fw-bold';
+        } else {
+            valorFreteEl.textContent = formatBR(frete);
+            valorFreteEl.className = 'text-success';
+        }
+        
+        cidadeFreteEl.textContent = freteInfo.cidade;
+        textoPrazoEl.textContent = `Chega em ${freteInfo.prazo}`;
+        prazoFreteEl.style.display = 'block';
+        textoAjudaEl.textContent = 'Frete calculado para:';
+        statusFreteEl.textContent = 'Calculado';
+        statusFreteEl.className = 'badge bg-success';
+    } else {
+        valorFreteEl.textContent = 'Informe o CEP';
+        valorFreteEl.className = 'text-muted';
+        cidadeFreteEl.textContent = 'sua região';
+        prazoFreteEl.style.display = 'none';
+        textoAjudaEl.textContent = 'Digite seu CEP para calcular o frete';
+        statusFreteEl.textContent = 'Não calculado';
+        statusFreteEl.className = 'badge bg-light text-dark';
+    }
+}
+
+function mostrarLoadingFrete(mostrar) {
+    const loadingEl = document.querySelector('.loading-frete');
+    const btnPrincipal = document.getElementById('btn-frete-principal');
+    
+    if (loadingEl) loadingEl.style.display = mostrar ? 'block' : 'none';
+    if (btnPrincipal) {
+        if (mostrar) {
+            btnPrincipal.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Calculando...';
+            btnPrincipal.disabled = true;
+        } else {
+            btnPrincipal.innerHTML = 'Calcular Frete';
+            btnPrincipal.disabled = false;
+        }
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Inicializar preços
+    atualizarPrecosItens();
+    const totalInitial = parseFloat("{{ total }}") || 0;
+    atualizarResumoPedido(totalInitial);
+
+    const csrftoken = getCookie('csrftoken');
+
+    // Consulta de frete principal
+    document.getElementById('btn-frete-principal').addEventListener('click', async function() {
+        const cepInput = document.getElementById('cep-principal');
+        const cep = cepInput.value.replace(/\D/g, '');
+        
+        if (!validarCEP(cep)) {
+            alert('Por favor, digite um CEP válido (8 dígitos)');
+            cepInput.focus();
+            return;
+        }
+        
+        mostrarLoadingFrete(true);
+        
+        try {
+            const resultado = await consultarFrete(cep);
+            valorFreteAtual = resultado.valor;
+            cidadeFreteAtual = resultado.cidade;
+            prazoFreteAtual = resultado.prazo;
+            
+            // Atualizar resultado principal
+            const resultadoEl = document.querySelector('.resultado-frete-principal');
+            const textoResultado = document.getElementById('resultado-frete-principal');
+            const prazoResultado = document.getElementById('prazo-entrega-principal');
+            
+            if (resultado.valor === 0) {
+                textoResultado.textContent = '🎉 FRETE GRÁTIS';
+                textoResultado.className = 'mb-1 text-success fw-bold';
+            } else {
+                textoResultado.textContent = `Frete: ${formatBR(resultado.valor)}`;
+                textoResultado.className = 'mb-1 text-success fw-bold';
+            }
+            
+            prazoResultado.textContent = `📍 ${resultado.cidade} • ⏱️ ${resultado.prazo}`;
+            resultadoEl.style.display = 'block';
+            
+            // Atualizar resumo do pedido
+            atualizarResumoPedido(totalInitial, resultado);
+            
+        } catch (error) {
+            alert('Erro ao calcular frete. Tente novamente.');
+            console.error('Erro frete:', error);
+        } finally {
+            mostrarLoadingFrete(false);
+        }
+    });
+
+    // Permitir consulta pressionando Enter
+    document.getElementById('cep-principal').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('btn-frete-principal').click();
+        }
+    });
+
+    // Botões de quantidade (mantido igual)
+    document.querySelectorAll('.plus-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = this.parentNode.querySelector('input[name="quantidade"]');
+            input.value = parseInt(input.value) + 1;
+            input.dispatchEvent(new Event('change'));
+        });
+    });
+
+    document.querySelectorAll('.minus-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = this.parentNode.querySelector('input[name="quantidade"]');
+            if (parseInt(input.value) > 1) {
+                input.value = parseInt(input.value) - 1;
+                input.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+
+    // Atualização via AJAX
+    document.querySelectorAll('.cart-update-form input[name="quantidade"]').forEach(input => {
+        input.addEventListener('change', async function() {
+            const form = this.closest('form');
+            const fd = new FormData(form);
+            
+            try {
+                const resp = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: fd
+                });
+                
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const freteInfo = valorFreteAtual !== null ? 
+                        { valor: valorFreteAtual, cidade: cidadeFreteAtual, prazo: prazoFreteAtual } : null;
+                    atualizarResumoPedido(data.total, freteInfo);
+                    setTimeout(() => location.reload(), 500);
+                }
+            } catch (err) {
+                console.error('Erro ao atualizar carrinho:', err);
+            }
+        });
+    });
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+async function calcularFretePorCEP(cep) {
+        mostrarLoadingFrete(true);
+        try {
+            const resultado = await consultarFrete(cep);
+            valorFreteAtual = resultado.valor;
+            cidadeFreteAtual = resultado.cidade;
+            prazoFreteAtual = resultado.prazo;
+
+            const totalInitial = parseFloat("{{ total }}") || 0;
+            atualizarResumoPedido(totalInitial, resultado);
+
+            // Atualizar UI principal
+            const resultadoEl = document.querySelector('.resultado-frete-principal');
+            const textoResultado = document.getElementById('resultado-frete-principal');
+            const prazoResultado = document.getElementById('prazo-entrega-principal');
+
+            if (resultado.valor === 0) {
+                textoResultado.textContent = '🎉 FRETE GRÁTIS';
+            } else {
+                textoResultado.textContent = `Frete: ${formatBR(resultado.valor)}`;
+            }
+            prazoResultado.textContent = `📍 ${resultado.cidade} • ⏱️ ${resultado.prazo}`;
+            resultadoEl.style.display = 'block';
+        } finally {
+            mostrarLoadingFrete(false);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        {% if endereco_principal %}
+            calcularFretePorCEP("{{ endereco_principal.cep|cut:"-" }}");
+        {% endif %}
+
+        document.getElementById("enderecoSelect")?.addEventListener("change", function(e) {
+            calcularFretePorCEP(e.target.value.replace(/\D/g, ""));
+        });
+    });
+</script>
+{% endblock %}

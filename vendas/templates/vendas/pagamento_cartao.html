@@ -1,0 +1,369 @@
+{% extends 'vendas/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-credit-card"></i> Pagamento com Cartão
+                    </h4>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Resumo do Pedido -->
+                    <div class="alert alert-info">
+                        <h6>Resumo do Pedido #{{ pedido.id }}</h6>
+                        <p class="mb-1"><strong>Total:</strong> R$ {{ pedido.total|floatformat:2 }}</p>
+                        <p class="mb-0"><strong>Itens:</strong> {{ pedido.itens.count }} produto(s)</p>
+                    </div>
+
+                    <!-- Formulário de Cartão -->
+                    <form type="hidden" id="tipo-doc" value="CPF" method="POST" id="form-cartao" >
+                        {% csrf_token %}
+                        
+                        <h6 class="border-bottom pb-2 mb-3">Dados do Cartão</h6>
+                        
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Número do Cartão *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+                                    <input type="text" class="form-control" name="numero_cartao" 
+                                        placeholder="0000 0000 0000 0000" maxlength="19" required
+                                        id="numero-cartao">
+                                </div>
+                                <div class="form-text">Digite apenas números</div>
+                                <div id="bandeira-cartao" class="mt-1"></div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Validade (MM/AA) *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                                    <input type="text" class="form-control" name="validade_cartao" 
+                                        placeholder="MM/AA" maxlength="5" required
+                                        id="validade-cartao">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">CVV *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input type="text" class="form-control" name="cvv_cartao" 
+                                        placeholder="123" maxlength="4" required
+                                        id="cvv-cartao">
+                                </div>
+                                <div class="form-text">3 ou 4 dígitos no verso</div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Nome no Cartão *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" name="nome_cartao" 
+                                        placeholder="Como está no cartão" required
+                                        id="nome-cartao">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">CPF do Titular *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                                    <input type="text" class="form-control" name="cpf_cartao" 
+                                        placeholder="000.000.000-00" required
+                                        id="cpf-cartao">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Parcelas</label>
+                                <select class="form-select" name="parcelas" id="parcelas">
+                                    <option value="1">1x de R$ {{ pedido.total|floatformat:2 }}</option>
+                                    <option value="2">2x de R$ {{ pedido.total|divisibleby:2|floatformat:2 }}</option>
+                                    <option value="3">3x de R$ {{ pedido.total|divisibleby:3|floatformat:2 }}</option>
+                                    <option value="4">4x de R$ {{ pedido.total|divisibleby:4|floatformat:2 }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Informações de Segurança -->
+                        <div class="alert alert-warning small">
+                            <i class="bi bi-shield-check"></i>
+                            <strong>Pagamento 100% seguro:</strong> Seus dados são criptografados e tokenizados diretamente pelo Mercado Pago. Nossa loja não armazena informações do seu cartão.
+                        </div>
+
+                        <!-- Status do Processamento -->
+                        <div id="status-processamento" class="alert alert-info" style="display: none;">
+                            <i class="bi bi-arrow-repeat spinner"></i>
+                            <span id="status-text">Processando pagamento...</span>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg" id="btn-pagar">
+                                <i class="bi bi-lock-fill"></i> Pagar R$ {{ pedido.total|floatformat:2 }}
+                            </button>
+                            <a href="{% url 'checkout' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Voltar ao Checkout
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://sdk.mercadopago.com/js/v2">
+// Detectar bandeira do cartão
+function detectarBandeira(numero) {
+    const num = numero.replace(/\s/g, '');
+    const mp = new MercadoPago("{{ mp_public_key }}");
+    
+    if (/^4/.test(num)) return { nome: 'Visa', cor: '#1a1f71' };
+    if (/^(5[1-5]|222[1-9]|22[3-9]|2[3-6]|27[0-1]|2720)/.test(num)) return { nome: 'Mastercard', cor: '#eb001b' };
+    if (/^3[47]/.test(num)) return { nome: 'American Express', cor: '#2e77bc' };
+    if (/^(636368|438935|504175|451416|636297|5067|4576|4011)/.test(num)) return { nome: 'Elo', cor: '#00A4E0' };
+    if (/^(606282|3841)/.test(num)) return { nome: 'Hipercard', cor: '#C31230' };
+    
+    return { nome: 'Cartão', cor: '#6c757d' };
+}
+
+// Atualizar display da bandeira
+function atualizarBandeira() {
+    const numero = document.getElementById('numero-cartao').value;
+    const bandeiraDiv = document.getElementById('bandeira-cartao');
+    
+    if (numero.replace(/\s/g, '').length >= 6) {
+        const bandeira = detectarBandeira(numero);
+        bandeiraDiv.innerHTML = `
+            <span class="badge" style="background-color: ${bandeira.cor}; color: white;">
+                <i class="bi bi-credit-card"></i> ${bandeira.nome}
+            </span>
+        `;
+    } else {
+        bandeiraDiv.innerHTML = '';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('form-cartao');
+    const btnPagar = document.getElementById('btn-pagar');
+    const statusDiv = document.getElementById('status-processamento');
+    
+    // Detectar bandeira em tempo real
+    document.getElementById('numero-cartao').addEventListener('input', function() {
+        atualizarBandeira();
+        
+        // Máscara do número do cartão
+        let value = this.value.replace(/\D/g, '');
+        value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+        this.value = value.substring(0, 19);
+    });
+    
+    // Máscara da validade
+    const validadeCartao = document.getElementById('validade-cartao');
+    validadeCartao.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        }
+        e.target.value = value.substring(0, 5);
+    });
+    
+    // Máscara do CPF
+    const cpfCartao = document.getElementById('cpf-cartao');
+    cpfCartao.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 3) value = value.substring(0, 3) + '.' + value.substring(3);
+        if (value.length > 7) value = value.substring(0, 7) + '.' + value.substring(7);
+        if (value.length > 11) value = value.substring(0, 11) + '-' + value.substring(11, 13);
+        e.target.value = value.substring(0, 14);
+    });
+    
+    // Máscara do CVV
+    const cvvCartao = document.getElementById('cvv-cartao');
+    cvvCartao.addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
+    });
+    
+    // Calcular parcelas
+    function atualizarParcelas() {
+        const total = {{ pedido.total }};
+        const select = document.getElementById('parcelas');
+        
+        // Limpar opções exceto a primeira
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+        
+        // Adicionar opções de parcelamento (até 4x)
+        for (let i = 2; i <= 4; i++) {
+            const valorParcela = total / i;
+            const option = new Option(
+                `${i}x de R$ ${valorParcela.toFixed(2)}`, 
+                i
+            );
+            select.add(option);
+        }
+    }
+    
+    // Validação do formulário
+    const mp = new MercadoPago("{{ mp_public_key }}");
+
+const cardForm = mp.cardForm({
+    amount: "{{ pedido.total }}",
+    form: {
+        id: "form-cartao",
+        cardNumber: {
+            id: "numero-cartao"
+        },
+        expirationDate: {
+            id: "validade-cartao"
+        },
+        securityCode: {
+            id: "cvv-cartao"
+        },
+        cardholderName: {
+            id: "nome-cartao"
+        },
+        installments: {
+            id: "parcelas"
+        },
+        identificationNumber: {
+            id: "cpf-cartao"
+        },
+        identificationType: {
+            id: "tipo-doc"
+        }
+    },
+    callbacks: {
+        onSubmit: function(event) {
+            event.preventDefault();
+
+            const btn = document.getElementById('btn-pagar');
+            const statusDiv = document.getElementById('status-processamento');
+
+            btn.disabled = true;
+            btn.innerHTML = 'Processando...';
+            statusDiv.style.display = 'block';
+
+            const data = cardForm.getCardFormData();
+
+            fetch("", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    token: data.token,
+                    installments: data.installments,
+                    payment_method_id: data.paymentMethodId,
+                    issuer_id: data.issuerId,
+                    email: data.cardholderEmail
+                })
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.success) {
+                    window.location.href = response.redirect_url;
+                } else {
+                    alert("Erro: " + response.error);
+                    btn.disabled = false;
+                    btn.innerHTML = 'Pagar';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Erro no pagamento");
+            });
+        }
+    }
+});
+
+
+function validarFormCartao() {
+    const numero = document.getElementById('numero-cartao').value.replace(/\s/g, '');
+    const validade = document.getElementById('validade-cartao').value;
+    const cvv = document.getElementById('cvv-cartao').value;
+    const nome = document.getElementById('nome-cartao').value.trim();
+    const cpf = document.getElementById('cpf-cartao').value.replace(/\D/g, '');
+    
+    // Validações
+    if (numero.length < 13 || numero.length > 19) {
+        alert('Número do cartão inválido. Deve ter entre 13 e 19 dígitos.');
+        return false;
+    }
+    
+    if (!/^\d{2}\/\d{2}$/.test(validade)) {
+        alert('Formato de validade inválido. Use MM/AA (ex: 12/25)');
+        return false;
+    }
+    
+    // Verificar se a data não está expirada
+    const [mes, ano] = validade.split('/');
+    const dataAtual = new Date();
+    const anoAtual = dataAtual.getFullYear() % 100;
+    const mesAtual = dataAtual.getMonth() + 1;
+    
+    if (parseInt(ano) < anoAtual || (parseInt(ano) === anoAtual && parseInt(mes) < mesAtual)) {
+        alert('Cartão expirado. Verifique a data de validade.');
+        return false;
+    }
+    
+    if (!/^\d{3,4}$/.test(cvv)) {
+        alert('CVV inválido. Deve ter 3 ou 4 dígitos.');
+        return false;
+    }
+    
+    if (!nome) {
+        alert('Nome no cartão é obrigatório.');
+        return false;
+    }
+    
+    if (nome.length < 3) {
+        alert('Nome no cartão muito curto.');
+        return false;
+    }
+    
+    if (cpf.length !== 11) {
+        alert('CPF inválido. Deve ter 11 dígitos.');
+        return false;
+    }
+    
+    return true;
+}
+</script>
+
+<style>
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+}
+
+.card {
+    border-radius: 15px;
+}
+
+.btn-success {
+    border-radius: 10px;
+    padding: 12px;
+}
+</style>
+{% endblock %}

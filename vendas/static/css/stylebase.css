@@ -1,0 +1,135 @@
+   /*Menu com imagem*/
+        .hero-background {
+         /*ckground: url('/static/img/Banner.jpg') no-repeat center center;*/
+          background-size: cover;
+          background-attachment: scroll; /* Isso fixa a imagem */
+         
+         /*ight: 600px; /* ocupa a tela inteira */
+          position: relative;
+          z-index: 1;
+        }
+
+        .hero-overlay {
+         /* background-color: rgba(0, 0, 0, 0.2);  escurece levemente */
+          height: 100%;
+          width: 100%;
+          position: absolute;
+          top: 0;
+          left: 0;
+          z-index: 2;
+        }
+
+        .hero-content {
+          position: relative;
+          z-index: 3;
+          color: rgb(3, 3, 3);
+          text-align: center;
+          padding-top: 80px;
+        }
+        
+
+
+        .navbar-transparent {
+          background-color: rgba(0, 0, 0, 0.3);
+          transition: background-color 0.8s ease;
+        }
+        /* Mudar cor menu ao rolar para baixo*/
+        .navbar-scrolled {
+          background-color: rgba(34, 34, 34, 0.95);
+          transition: background-color 0.4s ease;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+       
+      /* Estilo para links do menu com ícones */
+      .navbar-nav .nav-link {
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem; /* Espaço entre o ícone e o texto */
+      }
+  
+      .navbar-nav .nav-link:hover {
+          color: #ffc107; /* Amarelo no hover */
+          transform: translateY(-2px); /* Leve flutuação */
+      }
+  
+      .navbar-nav .nav-link i {
+          font-size: 1.2rem;
+      }
+
+
+      /* Link especial para Orçamento */
+.orcamento-link-navbar {
+    font-weight: bold;
+    color: #bd4b00 !important;    /* cor de destaque */
+    background: rgba(180, 74, 3, 0.1);
+    border-radius: 8px;
+    padding: 6px 14px;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Efeito hover */
+.orcamento-link-navbar:hover {
+    background: #3d1901;
+    color: #fff !important;
+    transform: scale(1.05);
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+}
+/* ===========================
+   BOTÃO DO INSTAGRAM (estilo igual ao ORÇAMENTO)
+   =========================== */
+.instagram-link-filter {
+    background: linear-gradient(90deg, #ff006a, #ff7b00) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 181, 0.4) !important;
+    animation: pulse-insta 2s infinite;
+    position: relative;
+    overflow: hidden;
+    border-radius: 25px;
+    padding: 0.6rem 1.2rem !important;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.instagram-link-filter::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to bottom right,
+        rgba(255, 255, 255, 0.2),
+        rgba(255, 255, 255, 0.1),
+        rgba(255, 255, 255, 0.05),
+        transparent
+    );
+    transform: rotate(30deg);
+    animation: shine 3s infinite;
+}
+
+.instagram-link-filter:hover {
+    background: linear-gradient(90deg, #ff7b00, #ff006a) !important;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(255, 100, 150, 0.6);
+    animation: none;
+}
+
+.instagram-link-filter .bi {
+    margin-right: 0.4rem;
+    font-size: 1.1em;
+}
+
+/* Animação de pulsação suave no botão Instagram */
+@keyframes pulse-insta {
+    0% {
+        box-shadow: 0 4px 15px rgba(255, 107, 181, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 20px rgba(255, 107, 181, 0.7);
+    }
+    100% {
+        box-shadow: 0 4px 15px rgba(255, 107, 181, 0.4);
+    }
+}

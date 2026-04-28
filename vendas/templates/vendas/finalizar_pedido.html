@@ -1,0 +1,187 @@
+<!-- vendas/finalizar_pedido.html -->
+{% extends 'vendas/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Fluxo de Etapas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-center">
+                <div class="text-center mx-4">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" 
+                         style="width: 40px; height: 40px;">1</div>
+                    <div class="mt-2 small">Carrinho</div>
+                </div>
+                <div class="text-center mx-4">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" 
+                         style="width: 40px; height: 40px;">2</div>
+                    <div class="mt-2 small">Dados</div>
+                </div>
+                <div class="text-center mx-4">
+                    <div class="rounded-circle bg-light border d-inline-flex align-items-center justify-content-center" 
+                         style="width: 40px; height: 40px;">3</div>
+                    <div class="mt-2 small">Pagamento</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Formulário Único -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">👤 Dados para Finalizar Compra</h4>
+                    <small class="text-muted">Informe seus dados para criar sua conta e finalizar a compra</small>
+                </div>
+                <div class="card-body">
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Erros no formulário:</strong>
+                        <ul>
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <!-- Dados Pessoais -->
+                        <h5 class="mb-3">Dados Pessoais</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Nome Completo*</label>
+                                <input type="text" name="nome" class="form-control" value="{{ form.nome.value|default:'' }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">CPF*</label>
+                                <input type="text" name="cpf" class="form-control" value="{{ form.cpf.value|default:'' }}" placeholder="999.999.999-99" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">E-mail*</label>
+                                <input type="email" name="email" class="form-control" value="{{ form.email.value|default:'' }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Celular*</label>
+                                <input type="tel" name="celular" class="form-control" value="{{ form.celular.value|default:'' }}" placeholder="(11) 99999-9999" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Senha*</label>
+                                <input type="password" name="password1" class="form-control" minlength="6" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Confirmar Senha*</label>
+                                <input type="password" name="password2" class="form-control" minlength="6" required>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Endereço de Entrega -->
+                        <h5 class="mb-3">📍 Endereço de Entrega</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">CEP*</label>
+                                <input type="text" name="cep" class="form-control" value="{{ form.cep.value|default:'' }}" required>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label fw-bold">Rua*</label>
+                                <input type="text" name="rua" class="form-control" value="{{ form.rua.value|default:'' }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Número*</label>
+                                <input type="text" name="numero" class="form-control" value="{{ form.numero.value|default:'' }}" required>
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label class="form-label">Complemento</label>
+                                <input type="text" name="complemento" class="form-control" value="{{ form.complemento.value|default:'' }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Bairro*</label>
+                                <input type="text" name="bairro" class="form-control" value="{{ form.bairro.value|default:'' }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Cidade*</label>
+                                <input type="text" name="cidade" class="form-control" value="{{ form.cidade.value|default:'' }}" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Estado*</label>
+                                <select name="estado" class="form-select" required>
+                                    <option value="">Selecione</option>
+                                    <option value="SP" {% if form.estado.value == "SP" %}selected{% endif %}>SP</option>
+                                    <option value="RJ" {% if form.estado.value == "RJ" %}selected{% endif %}>RJ</option>
+                                    <option value="MG" {% if form.estado.value == "MG" %}selected{% endif %}>MG</option>
+                                    <!-- outros estados -->
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input type="checkbox" name="newsletter" class="form-check-input" id="newsletter" checked>
+                            <label class="form-check-label" for="newsletter">
+                                Receber novidades por e-mail
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="bi bi-check-circle"></i> Finalizar Compra e Ir para Pagamento
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumo do Pedido (mantém igual) -->
+        <div class="col-md-4">
+            <div class="card sticky-top" style="top: 100px;">
+                <div class="card-header">
+                    <h5>📦 Resumo do Pedido</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in itens_carrinho %}
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span>{{ item.produto.nome }} ({{ item.quantidade }}x)</span>
+                        <span>R$ {{ item.subtotal }}</span>
+                    </div>
+                    {% endfor %}
+                    
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong>Subtotal:</strong>
+                        <strong>R$ {{ total }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Frete:</span>
+                        <span class="text-success">Grátis</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3 fs-5">
+                        <strong>Total:</strong>
+                        <strong class="text-primary">R$ {{ total }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

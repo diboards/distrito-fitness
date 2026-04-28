@@ -1,0 +1,434 @@
+
+.container-projetos {
+    max-width: 1100px; /* ajuste conforme preferir: 1000px, 900px... */
+    margin: 0 auto;   /* centraliza */
+    background-color: #ffffff; /* opcional, para destaque */
+    
+    
+}
+
+.modal-content {
+        overflow: visible !important;
+    }
+    
+    .btn-close {
+        z-index: 1060;
+    }
+
+/* css para abrir imagens ao clicar, 
+ajustar tamanho das imagem da galeria */
+ #imagemModalSrc {
+    max-height: 70vh;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+   /* ESTILOS PARA AS SETAS DO MODAL - APENAS QUANDO ABERTO E NO HOVER */
+    .btn-modal-navigation {
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease, background-color 0.3s ease;
+        z-index: 1055;
+    }
+
+  /* css imagens Galeria ambientes*/
+  .image-container {
+    position: relative;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+.image-container img {
+    width: 100%;        /* controla a largura da imagem (80% do container) */
+    max-width: 900px;  /* opcional: largura máxima */
+    margin: 0 auto;    /* centraliza */
+    display: block;    /* garante centralização */
+    border-radius: 10px;
+}
+
+.image-container:hover {
+    transition: all 0.3s ease; /* suaviza o efeito */
+}
+.image-container img:hover {
+    filter: brightness(1.2); /* aumenta o brilho em 20% */
+    transform: scale(1.01); /* zoom suave */
+}
+
+/* Mostrar setas apenas quando o modal estiver aberto e o mouse estiver sobre a imagem */
+    .modal.show .modal-content:hover .btn-modal-navigation {
+        opacity: 0.8;
+    }
+    
+    .btn-modal-navigation:hover {
+        opacity: 1 !important;
+        background-color: rgba(0, 0, 0, 0.9);
+        color: white;
+    }
+    
+    /* ESTILOS PARA AS SETAS DO CARROSSEL - EFEITO HOVER */
+    .carousel-control-btn {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .carousel-container:hover .carousel-control-btn {
+        opacity: 0.8;
+    }
+    
+    .carousel-control-btn:hover {
+        opacity: 1 !important;
+    }
+    
+    .carousel-control-prev,
+    .carousel-control-next {
+        z-index: 1050;
+        width: 50px;
+        height: 50px;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+    }
+    
+    .carousel-control-prev {
+        left: 15px;
+    }
+    
+    .carousel-control-next {
+        right: 15px;
+    }
+    
+    .modal-body {
+        overflow: hidden;
+    }
+    
+    #imagemModalSrc {
+        max-height: 80vh;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+
+    .carousel-indicators [data-bs-target] {
+    width: 8px;              /* tamanho da bolinha */
+    height: 8px;
+    border-radius: 50%;       /* deixa redonda */
+    background-color: #703701; /* cor da bolinha */
+    border: 2px solid #fff;   /* borda branca para contraste */
+    margin: 0 6px;            /* espaçamento entre elas */
+    opacity: 0.6;
+    transition: all 0.3s ease;
+    }
+
+    .carousel-indicators .active {
+        background-color: #bd4b00;  /* cor da bolinha ativa */
+        opacity: 1;
+        transform: scale(1.2);      /* destaque quando ativa */
+    }
+
+    /* Efeito de zoom suave ao passar o mouse na imagem do modal */
+    .modal-image:hover {
+        transform: scale(1.02);
+    }
+    
+    /* Novos estilos para a galeria */
+    .gallery-img {
+        transition: transform 0.3s ease;
+        height: 250px;
+        width: 100%;
+        object-fit: cover;
+        cursor: pointer;
+    }
+    
+    .image-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .image-container:hover .image-overlay {
+        opacity: 1;
+    }
+    
+    .image-container:hover .gallery-img {
+        transform: scale(1.05);
+    }
+    
+    .btn-view-image {
+        transition: all 0.3s ease;
+    }
+    
+    .btn-view-image:hover {
+        background-color: #fff !important;
+        color: #000 !important;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    
+    /* Estilos para o carrossel */
+    .carousel {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .carousel-item {
+        transition: transform 0.6s ease-in-out;
+    }
+    
+    .carousel-fade .active.carousel-item-start,
+    .carousel-fade .active.carousel-item-end {
+        transition: opacity 0s 0.6s;
+    }
+
+/*img-fluid imagem slid*/
+.img-fluid {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
+
+
+label.orcamento-label {
+    color: #756a00 
+}
+
+.rounded-1 {
+    border-radius: 0.2rem !important;
+}
+
+.rounded-2 {
+    border-radius: 0.3rem !important;
+}
+
+.rounded-3 {
+    border-radius: 0.5rem !important;
+}
+
+@media (max-width: 768px) {
+    .img-fluid {
+        height: 200px;
+    }
+}
+
+h2.fw-bold {
+    font-size: 2rem;
+}
+hr.w-25 {
+    border: 2px solid #703701;
+    opacity: 1;
+}
+
+
+ 
+    /* ESTILOS PERSONALIZADOS PARA OS FILTROS */
+    .filters-container {
+        background: url('/static/img/Banner.jpg') no-repeat center center;
+        background-size: cover;   /* Faz a imagem ocupar toda a área */
+        background-position: center; /* Centraliza */
+        background-repeat: no-repeat; /* Garante que não repete */
+        
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2.5rem;
+        color: #fff; /* melhora contraste se a imagem for escura */
+    }
+    
+    .filters-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 2.2rem;
+        margin-bottom: 1.5rem !important;
+        position: relative;
+        display: inline-block;
+    }
+    
+    .filters-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, #bd4b00, #703701);
+        border-radius: 3px;
+    }
+    
+    .filter-list {
+        background: white;
+        padding: 0.8rem;
+        border-radius: 20px;
+        box-shadow: 0 14px 12px rgba(0, 0, 0, 0.1);
+        display: inline-flex;
+        margin-bottom: 0 !important;
+    }
+    
+    .filter-list .nav-link {
+        font-weight: 600;
+        color: #131c1d !important;
+        padding: 0.6rem 1.5rem !important;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+        margin: 0 0.3rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .filter-list .nav-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .filter-list .nav-link:hover::before {
+        left: 100%;
+    }
+    
+    .filter-list .nav-link:hover, .filter-list .nav-link.active {
+        color: white !important;
+        background: linear-gradient(90deg, #bd4b00, #703701);
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        transform: translateY(-2px);
+    }
+    
+    .filter-list .nav-link.active {
+        font-weight: 700;
+    }
+    
+    /* DESTAQUE ESPECIAL PARA O LINK Instagram*/
+.IG-link-filter {
+    background: linear-gradient(90deg, #f3cf06, #bd4b00) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(243, 207, 6, 0.4) !important;
+    animation: pulse 2s infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.IG-link-filter::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to bottom right,
+        rgba(255, 255, 255, 0.2),
+        rgba(255, 255, 255, 0.1),
+        rgba(255, 255, 255, 0.05),
+        transparent
+    );
+    transform: rotate(30deg);
+    animation: shine 3s infinite;
+}
+
+.IG-link-filter:hover {
+    background: linear-gradient(90deg, #bd4b00, #ffe865) !important;
+    transform: translateY(-2px) scale(1.05) !important;
+    box-shadow: 0 6px 20px rgba(255, 228, 107, 0.6) !important;
+    animation: none; /* Para a animação de pulsação no hover */
+}
+
+.IG-link-filter .bi {
+    margin-right: 0.5rem;
+    font-size: 1.1em;
+}
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        50% {
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.7);
+        }
+        100% {
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+    }
+    
+    @keyframes shine {
+        0% {
+            left: -50%;
+        }
+        20% {
+            left: 100%;
+        }
+        100% {
+            left: 100%;
+        }
+    }
+    
+    /* ESTILOS PERSONALIZADOS PARA OS TÍTULOS H5 */
+    .section-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 2.5rem;
+        position: relative;
+        padding-bottom: 15px;
+        margin-bottom: 2rem !important;
+    }
+    
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 180px;
+        height: 4px;
+        background: linear-gradient(90deg, #bd4b00, #501c00);
+        border-radius: 2px;
+    }
+    
+    .custom-card-title {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 1.4rem;
+        margin-bottom: 0.8rem;
+        position: relative;
+        padding-bottom: 10px;
+    }
+    
+    
+    
+    .card:hover .custom-card-title::after {
+        width: 80px;
+    }

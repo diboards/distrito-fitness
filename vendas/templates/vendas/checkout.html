@@ -1,0 +1,1274 @@
+{% extends 'vendas/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Progresso do Checkout -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-center">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="bi bi-cart-check"></i>
+                            </div>
+                            <p class="mb-0 mt-2 small">Carrinho</p>
+                        </div>
+                        <div class="flex-grow-1 mx-2">
+                            <div class="progress" style="height: 3px;">
+                                <div class="progress-bar bg-primary" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="bi bi-truck"></i>
+                            </div>
+                            <p class="mb-0 mt-2 small">Entrega</p>
+                        </div>
+                        <div class="flex-grow-1 mx-2">
+                            <div class="progress" style="height: 3px;">
+                                <div class="progress-bar bg-primary" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="bi bi-credit-card"></i>
+                            </div>
+                            <p class="mb-0 mt-2 small">Pagamento</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <form method="POST" action="{% url 'checkout' %}" id="checkout-form">
+                    {% csrf_token %}
+                    <input type="hidden" id="paymentMethodId" name="paymentMethodId">   
+                <!-- Endereços - ATUALIZADO COM MODAL -->
+                <div class="card mb-4">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-geo-alt me-2"></i>Endereço de Entrega
+                            {% if enderecos %}<span class="badge bg-primary ms-2">{{ enderecos|length }} endereço(s)</span>{% endif %}
+                        </h5>
+                        <div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#enderecoModal">
+                                <i class="bi bi-plus-circle"></i> Gerenciar Endereços
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if enderecos %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> 
+                                <strong>Frete automático:</strong> Ao selecionar um endereço, o frete será calculado automaticamente para "Entrega em Casa".
+                            </div>
+                            
+                            <div class="row" id="enderecos-container">
+                                {% for endereco in enderecos %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100 border-2 {% if endereco.principal %}border-primary{% else %}border-light{% endif %} endereco-card">
+                                        <div class="card-body">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="endereco_id" 
+                                                    value="{{ endereco.id }}" id="endereco{{ endereco.id }}" 
+                                                    {% if forloop.first %}checked{% endif %}
+                                                    required
+                                                    data-cep="{{ endereco.cep|cut:'-' }}"
+                                                    data-cidade="{{ endereco.cidade }}"
+                                                    data-endereco-completo="{{ endereco.rua }}, {{ endereco.numero }} - {{ endereco.bairro }}">
+                                                <label class="form-check-label w-100" for="endereco{{ endereco.id }}">
+                                                    <strong>{{ endereco.rua }}, {{ endereco.numero }}</strong>
+                                                    {% if endereco.complemento %}<br>Complemento: {{ endereco.complemento }}{% endif %}
+                                                    <br>{{ endereco.bairro }}
+                                                    <br>{{ endereco.cidade }}/{{ endereco.estado }}
+                                                    <br>CEP: {{ endereco.cep }}
+                                                    {% if endereco.principal %}
+                                                    <span class="badge bg-primary ms-2">Principal</span>
+                                                    {% endif %}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                        {% else %}
+                            <div class="alert alert-warning text-center">
+                                <i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i>
+                                <h5>Nenhum endereço cadastrado!</h5>
+                                <p>Você precisa cadastrar um endereço para continuar.</p>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#enderecoModal">
+                                    <i class="bi bi-plus-circle"></i> Cadastrar Endereço
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Entrega - COM CÁLCULO DE FRETE -->
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-truck me-2"></i>Opções de Entrega
+                            <span class="badge bg-success ms-2" id="status-frete">Retirada</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border-2 delivery-option" data-value="retirada">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-shop fs-1 text-primary mb-3"></i>
+                                        <h6>Retirada na Loja</h6>
+                                        <p class="text-muted small">Av. Principal, 123 - Centro</p>
+                                        <p class="text-success fw-bold">Grátis</p>
+                                        <p class="small text-muted">Disponível em 1 hora</p>
+                                        <input type="radio" name="tipo_entrega" value="retirada" id="retirada" 
+                                               class="form-check-input position-absolute top-0 end-0 m-3" checked>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border-2 delivery-option" data-value="entrega">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-house-door fs-1 text-primary mb-3"></i>
+                                        <h6>Entrega em Casa</h6>
+                                        <p class="text-muted small" id="cidade-entrega">
+                                            {% if enderecos %}Calcule automaticamente{% else %}Cadastre um endereço{% endif %}
+                                        </p>
+                                        <p class="text-success fw-bold" id="preco-frete">R$ 0,00</p>
+                                        <p class="small text-muted" id="prazo-entrega">3-7 dias úteis</p>
+                                        <input type="radio" name="tipo_entrega" value="entrega" id="entrega" 
+                                               class="form-check-input position-absolute top-0 end-0 m-3"
+                                               {% if not enderecos %}disabled{% endif %}>
+                                        {% if not enderecos %}
+                                        <div class="mt-2">
+                                            <small class="text-danger">Cadastre um endereço para habilitar</small>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Informações do frete calculado -->
+                        <div class="mt-3 p-3 border rounded bg-light" id="info-frete" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small class="text-muted">Endereço selecionado:</small>
+                                    <br>
+                                    <strong id="endereco-selecionado"></strong>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <small class="text-muted">Frete calculado para:</small>
+                                    <br>
+                                    <strong id="regiao-frete"></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagamento -->
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-credit-card me-2"></i>Forma de Pagamento</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border-2 payment-option" data-value="pix">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-qr-code fs-1 text-primary mb-3"></i>
+                                        <h6>PIX</h6>
+                                        <p class="text-success fw-bold">10% de desconto</p>
+                                        <p class="small text-muted">Pagamento instantâneo</p>
+                                        <span class="badge bg-success">Mais vantajoso</span>
+                                        <input type="radio" name="metodo_pagamento" value="pix" id="pix" 
+                                               class="form-check-input position-absolute top-0 end-0 m-3" checked>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 border-2 payment-option" data-value="cartao">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-credit-card fs-1 text-primary mb-3"></i>
+                                        <h6>Cartão de Crédito</h6>
+                                        <p class="text-muted">Até 4x sem juros</p>
+                                        <p class="small text-muted">Pagamento seguro</p>
+                                        <input type="radio" name="metodo_pagamento" value="cartao" id="cartao" 
+                                               class="form-check-input position-absolute top-0 end-0 m-3">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos do Cartão -->
+                        <div id="cartao-campos" class="mt-4 p-4 border rounded" style="display: none;">
+    <h6 class="mb-3 border-bottom pb-2">
+        <i class="bi bi-credit-card-2-front"></i> Dados do Cartão
+    </h6>
+    
+    <div class="row">
+        <div class="col-12 mb-3">
+            <label class="form-label">Número do Cartão *</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+                <input type="text" class="form-control" id="cardNumber">
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Validade *</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                <input type="text" class="form-control" id="expirationDate" placeholder="MM/AA">
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <label class="form-label">CVV *</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input type="text" class="form-control" id="securityCode">
+            </div>
+        </div>
+        
+        <div class="col-12 mb-3">
+            <label class="form-label">Nome no Cartão *</label>
+            <input type="text" class="form-control" id="cardholderName" placeholder="Como está no cartão">
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Tipo de Doc.</label>
+            <select id="docType" class="form-select"></select>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Número do CPF *</label>
+            <input type="text" class="form-control" id="docNumber" placeholder="000.000.000-00">
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Banco Emissor</label>
+            <select id="issuer" class="form-select"></select>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Parcelas</label>
+            <select id="installments" class="form-select"></select>
+        </div>
+    </div>
+</div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-success btn-lg w-100 py-3" {% if not enderecos %}disabled{% endif %}>
+                                <i class="bi bi-shield-check"></i> Finalizar Pedido com Segurança
+                            </button>
+                            <p class="text-center text-muted small mt-2">
+                                <i class="bi bi-lock"></i> Seus dados estão protegidos
+                            </p>
+                            
+                            {% if not enderecos %}
+                            <div class="alert alert-warning mt-3">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Você precisa cadastrar um endereço para finalizar o pedido.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Resumo -->
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 100px;">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-receipt"></i> Resumo do Pedido</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Itens ({{ itens_carrinho|length }})</span>
+                            <span>R$ {{ total|floatformat:2 }}</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Frete:</span>
+                            <span class="text-success fw-bold" id="valor-frete-resumo">Grátis</span>
+                        </div>
+                        
+                        <div class="mb-2 small">
+                            <span class="text-muted" id="texto-ajuda-frete">Retirada na loja</span>
+                            <br>
+                            <span class="text-success" id="prazo-resumo" style="display: none;">
+                                <strong id="texto-prazo-resumo"></strong>
+                            </span>
+                        </div>
+
+                        {% if total > 200 %}
+                        <div class="alert alert-success py-2">
+                            <i class="bi bi-truck"></i> Frete grátis para compras acima de R$ 200!
+                        </div>
+                        {% endif %}
+                        
+                        <hr>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Cupom de desconto</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Digite seu cupom">
+                                <button class="btn btn-outline-secondary" type="button">Aplicar</button>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="mb-2">
+                            <strong>Total à vista no Pix:</strong>
+                            <span id="total-pix" class="text-success d-block fs-4 fw-bold">R$ {{ total|floatformat:2 }}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Total no Cartão:</strong>
+                            <span id="total-cartao" class="text-primary d-block fs-4 fw-bold">R$ {{ total|floatformat:2 }}</span>
+                        </div>
+                        
+                        <div class="alert alert-info small">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Economize 10%</strong> pagando com PIX
+                        </div>
+                        
+                        <!-- Lista de produtos -->
+                        <h6 class="border-bottom pb-2">Seus itens</h6>
+                        {% for item in itens_carrinho %}
+                        <div class="d-flex align-items-center mb-2">
+                            {% if item.produto.imagem %}
+                            <img src="{{ item.produto.imagem.url }}" alt="{{ item.produto.nome }}" 
+                                 class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                            {% else %}
+                            <img src="{% static 'vendas/images/default-product.png' %}" alt="{{ item.produto.nome }}" 
+                                 class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                <div class="small">{{ item.produto.nome }}</div>
+                                <div class="text-muted smaller">
+                                    {{ item.cor_selecionada|default:"Branco" }}, {{ item.tamanho_selecionado|default:"M" }}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="small">R$ {{ item.subtotal|floatformat:2 }}</div>
+                                <div class="text-muted smaller">Qtd: {{ item.quantidade }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Gerenciar Endereços -->
+<div class="modal fade" id="enderecoModal" tabindex="-1" aria-labelledby="enderecoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="enderecoModalLabel">
+                    <i class="bi bi-geo-alt"></i> Gerenciar Endereços
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Lista de Endereços Existentes -->
+                <div class="mb-4">
+                    <h6>Seus endereços cadastrados:</h6>
+                    <div id="lista-enderecos-modal">
+                        {% for endereco in enderecos %}
+                        <div class="card mb-2 endereco-item" data-endereco-id="{{ endereco.id }}">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ endereco.rua }}, {{ endereco.numero }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            {{ endereco.bairro }} - {{ endereco.cidade }}/{{ endereco.estado }} - CEP: {{ endereco.cep }}
+                                            {% if endereco.principal %}
+                                            <span class="badge bg-primary ms-1">Principal</span>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-outline-primary btn-sm usar-endereco-btn" 
+                                                data-endereco-id="{{ endereco.id }}">
+                                            Usar
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm excluir-endereco-btn" 
+                                                data-endereco-id="{{ endereco.id }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="alert alert-info text-center">
+                            <i class="bi bi-info-circle"></i>
+                            Nenhum endereço cadastrado.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Formulário para Novo Endereço -->
+                <div class="border-top pt-3">
+                    <h6>Adicionar novo endereço:</h6>
+                    <form id="form-novo-endereco" method="POST" action="{% url 'adicionar_endereco_checkout' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">Rua *</label>
+                                <input type="text" class="form-control" name="rua" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Número *</label>
+                                <input type="text" class="form-control" name="numero" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Complemento</label>
+                                <input type="text" class="form-control" name="complemento">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Bairro *</label>
+                                <input type="text" class="form-control" name="bairro" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Cidade *</label>
+                                <input type="text" class="form-control" name="cidade" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Estado *</label>
+                                <select class="form-select" name="estado" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="DF">Distrito Federal</option>
+                                    <option value="GO">Goiás</option>
+                                    <option value="SP">São Paulo</option>
+                                    <option value="RJ">Rio de Janeiro</option>
+                                    <option value="MG">Minas Gerais</option>
+                                    <!-- Adicione outros estados conforme necessário -->
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">CEP *</label>
+                                <input type="text" class="form-control" name="cep" 
+                                       placeholder="00000-000" maxlength="9" required
+                                       oninput="formatarCEPModal(this)">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="principal" id="endereco-principal">
+                                    <label class="form-check-label" for="endereco-principal">
+                                        Definir como endereço principal
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Adicionar Endereço
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- JavaScript ATUALIZADO com gerenciamento de endereços e tratamento de status -->
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script>
+    // POLYFILL - Garantir que Object.values existe
+if (!Object.values) {
+    Object.values = function(obj) {
+        var values = [];
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                values.push(obj[key]);
+            }
+        }
+        return values;
+    };
+}
+// Garantir que forEach existe para objetos array-like
+Array.from = Array.from || function(obj) {
+    return Array.prototype.slice.call(obj);
+};
+
+// ============================================
+// CONFIGURAÇÕES INICIAIS
+// ============================================
+// Adicione no início do seu JavaScript
+const originalConsoleError = console.error;
+console.error = function(...args) {
+    // Filtrar erros de SSL do Mercado Pago em desenvolvimento
+    if (args[0] && typeof args[0] === 'string' && args[0].includes('SSL')) {
+        console.warn("⚠️ Aviso SSL ignorado em desenvolvimento:", ...args);
+        return;
+    }
+    originalConsoleError.apply(console, args);
+};
+
+
+// Verificar se a public key existe
+
+const mpPublicKey = "{{ MERCADOPAGO_PUBLIC_KEY }}";
+console.log("🔑 Public Key:", mpPublicKey ? "Configurada" : "NÃO CONFIGURADA");
+
+if (!mpPublicKey) {
+    console.error("❌ MERCADOPAGO_PUBLIC_KEY não configurada no settings.py");
+    alert("Erro de configuração do pagamento. Contate o suporte.");
+}
+
+// Banco de dados de CEPs
+const regioesFrete = {
+    '70000000-72799999': { cidade: 'Brasília-DF (Plano Piloto)', valor: 8.90, prazo: '2-3 dias', regiao: 'capital' },
+    '71587040-71588238': { cidade: 'Paranoá-DF', valor: 8.90, prazo: '2-3 dias', regiao: 'rmdf' },
+    '71590000-71590245': { cidade: 'Itapoã-DF', valor: 8.90, prazo: '2-3 dias', regiao: 'rmdf' },
+    '73000000-73699999': { cidade: 'Brasília-DF (Águas Claras)', valor: 9.90, prazo: '2-4 dias', regiao: 'rmdf' },
+    '72000000-72299999': { cidade: 'Taguatinga-DF', valor: 9.90, prazo: '2-4 dias', regiao: 'rmdf' },
+    '72300000-72499999': { cidade: 'Samambaia-DF', valor: 9.90, prazo: '2-4 dias', regiao: 'rmdf' },
+    '72504003-72549825': { cidade: 'Santa Maria-DF', valor: 9.90, prazo: '2-4 dias', regiao: 'rmdf' },
+    '72215000-72275684': { cidade: 'Ceilândia-DF', valor: 9.90, prazo: '2-4 dias', regiao: 'rmdf' },
+    '73300000-73399999': { cidade: 'Planaltina-DF', valor: 10.90, prazo: '3-5 dias', regiao: 'rmdf' },
+    '73200000-73299999': { cidade: 'Sobradinho-DF', valor: 10.90, prazo: '3-5 dias', regiao: 'rmdf' },
+    '73500000-73599999': { cidade: 'Brazlândia-DF', valor: 11.90, prazo: '3-5 dias', regiao: 'rmdf' },
+    '74000000-74899999': { cidade: 'Goiânia-GO', valor: 12.90, prazo: '4-6 dias', regiao: 'goias' },
+    '75000000-75999999': { cidade: 'Anápolis-GO', valor: 15.90, prazo: '5-8 dias', regiao: 'interior-go' },
+    '72800000-72999999': { cidade: 'Luziânia-GO', valor: 13.90, prazo: '4-6 dias', regiao: 'goias' },
+    '73800000-73999999': { cidade: 'Formosa-GO', valor: 14.90, prazo: '5-7 dias', regiao: 'goias' },
+    '01000000-09999999': { cidade: 'São Paulo-SP', valor: 22.90, prazo: '8-12 dias', regiao: 'sul' },
+    '20000000-28999999': { cidade: 'Rio de Janeiro-RJ', valor: 24.90, prazo: '8-12 dias', regiao: 'sudeste' },
+    '30000000-39999999': { cidade: 'Belo Horizonte-MG', valor: 19.90, prazo: '7-10 dias', regiao: 'sudeste' },
+    '50000000-56999999': { cidade: 'Recife-PE', valor: 29.90, prazo: '10-15 dias', regiao: 'nordeste' },
+    '80000000-87999999': { cidade: 'Curitiba-PR', valor: 19.90, prazo: '7-10 dias', regiao: 'sul' },
+    'default': { cidade: 'sua cidade', valor: 15.90, prazo: '5-10 dias', regiao: 'default' }
+};
+
+let valorFreteAtual = 0;
+let cidadeFreteAtual = 'Retirada na loja';
+let prazoFreteAtual = '1 hora';
+let enderecoSelecionado = null;
+let mpCardForm = null;
+
+// ============================================
+// FUNÇÕES UTILITÁRIAS
+// ============================================
+
+function formatBR(value){
+    return "R$ " + value.toFixed(2).replace('.', ',');
+}
+
+function formatarCEPModal(input) {
+    let cep = input.value.replace(/\D/g, '');
+    if (cep.length > 5) {
+        cep = cep.substring(0, 5) + '-' + cep.substring(5, 8);
+    }
+    input.value = cep;
+}
+
+// ============================================
+// FUNÇÕES DE TRATAMENTO DE STATUS
+// ============================================
+
+function getMensagemStatus(motivo) {
+    const mensagens = {
+        'cc_rejected_bad_filled_date': 'Data de validade incorreta.',
+        'cc_rejected_bad_filled_other': 'Dados do cartão incorretos. Verifique e tente novamente.',
+        'cc_rejected_bad_filled_security_code': 'Código de segurança (CVV) incorreto.',
+        'cc_rejected_blacklist': 'Não foi possível processar o pagamento.',
+        'cc_rejected_call_for_authorize': 'O banco precisa de autorização para esta compra.',
+        'cc_rejected_card_disabled': 'Este cartão está bloqueado para compras online. Contate seu banco.',
+        'cc_rejected_card_error': 'Erro ao processar o cartão. Tente novamente.',
+        'cc_rejected_duplicated_payment': 'Pagamento duplicado. Já existe uma transação com este valor.',
+        'cc_rejected_high_risk': 'Pagamento recusado por segurança. Tente outro cartão.',
+        'cc_rejected_insufficient_amount': 'Saldo insuficiente. Use outro cartão.',
+        'cc_rejected_invalid_installments': 'Número de parcelas não aceito pelo cartão.',
+        'cc_rejected_max_attempts': 'Limite de tentativas excedido. Tente mais tarde.',
+        'cc_rejected_other_reason': 'Pagamento recusado. Verifique os dados ou use outro cartão.'
+    };
+    
+    return mensagens[motivo] || 'Pagamento recusado. Verifique os dados do cartão.';
+}
+
+function getMensagemStatusPending(motivo) {
+    const mensagens = {
+        'pending_waiting_payment': 'Aguardando pagamento.',
+        'pending_contingency': 'Pagamento em análise. Aguarde a confirmação.',
+        'pending_review_manual': 'Pagamento em revisão manual. Aguarde.'
+    };
+    
+    return mensagens[motivo] || 'Pagamento pendente. Aguarde a confirmação.';
+}
+
+// ============================================
+// FUNÇÕES DE FRETE
+// ============================================
+
+function encontrarRegiaoPorCEP(cep) {
+    cep = cep.replace(/\D/g, '');
+    const cepNum = parseInt(cep, 10);
+    
+    if (isNaN(cepNum) || cep.length !== 8) {
+        return regioesFrete['default'];
+    }
+
+    let melhorMatch = null;
+
+    for (const faixa in regioesFrete) {
+        if (faixa === 'default') continue;
+
+        const [inicioStr, fimStr] = faixa.split('-');
+        const inicio = parseInt(inicioStr, 10);
+        const fim = parseInt(fimStr, 10);
+
+        if (cepNum >= inicio && cepNum <= fim) {
+            const tamanhoFaixa = fim - inicio;
+            if (!melhorMatch || tamanhoFaixa < melhorMatch.tamanho) {
+                melhorMatch = {
+                    dados: regioesFrete[faixa],
+                    tamanho: tamanhoFaixa
+                };
+            }
+        }
+    }
+
+    return melhorMatch ? melhorMatch.dados : regioesFrete['default'];
+}
+
+function calcularFreteAutomatico() {
+    if (!enderecoSelecionado || !enderecoSelecionado.cep) return;
+    
+    const cep = enderecoSelecionado.cep;
+    const regiao = encontrarRegiaoPorCEP(cep);
+    const totalCompra = parseFloat("{{ total }}") || 0;
+    
+    if (totalCompra > 200) {
+        regiao.valor = 0;
+        regiao.prazo = '3-5 dias (FRETE GRÁTIS)';
+    }
+    
+    valorFreteAtual = regiao.valor;
+    cidadeFreteAtual = regiao.cidade;
+    prazoFreteAtual = regiao.prazo;
+}
+
+function atualizarDisplayFrete() {
+    const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked');
+    if (!tipoEntrega) return;
+    
+    const statusFrete = document.getElementById('status-frete');
+    const infoFrete = document.getElementById('info-frete');
+    
+    if (tipoEntrega.value === 'retirada') {
+        valorFreteAtual = 0;
+        cidadeFreteAtual = 'Retirada na loja';
+        prazoFreteAtual = '1 hora';
+        
+        document.getElementById('valor-frete-resumo').textContent = 'Grátis';
+        document.getElementById('texto-ajuda-frete').textContent = 'Retirada na loja';
+        document.getElementById('prazo-resumo').style.display = 'none';
+        if (statusFrete) {
+            statusFrete.textContent = 'Retirada';
+            statusFrete.className = 'badge bg-success';
+        }
+        if (infoFrete) infoFrete.style.display = 'none';
+        
+    } else {
+        if (enderecoSelecionado && enderecoSelecionado.cep) {
+            calcularFreteAutomatico();
+            
+            document.getElementById('cidade-entrega').textContent = cidadeFreteAtual;
+            document.getElementById('preco-frete').textContent = 
+                valorFreteAtual === 0 ? 'Grátis' : formatBR(valorFreteAtual);
+            document.getElementById('prazo-entrega').textContent = prazoFreteAtual;
+            
+            document.getElementById('valor-frete-resumo').textContent = 
+                valorFreteAtual === 0 ? 'Grátis' : formatBR(valorFreteAtual);
+            document.getElementById('texto-ajuda-frete').textContent = `Entrega em ${cidadeFreteAtual}`;
+            document.getElementById('texto-prazo-resumo').textContent = prazoFreteAtual;
+            document.getElementById('prazo-resumo').style.display = 'block';
+            
+            if (document.getElementById('endereco-selecionado')) {
+                document.getElementById('endereco-selecionado').textContent = 
+                    `${enderecoSelecionado.rua || ''}, ${enderecoSelecionado.bairro || ''}`;
+            }
+            if (document.getElementById('regiao-frete')) {
+                document.getElementById('regiao-frete').textContent = cidadeFreteAtual;
+            }
+            if (infoFrete) infoFrete.style.display = 'block';
+            
+            if (statusFrete) {
+                statusFrete.textContent = valorFreteAtual === 0 ? 'Frete Grátis' : 'Entrega';
+                statusFrete.className = valorFreteAtual === 0 ? 'badge bg-success' : 'badge bg-warning';
+            }
+        }
+    }
+    
+    calcularTotais();
+}
+
+// ============================================
+// FUNÇÕES DE CÁLCULO
+// ============================================
+
+function calcularTotais() {
+    const precoBase = parseFloat("{{ total }}");
+    const metodoPagamento = document.querySelector('input[name="metodo_pagamento"]:checked');
+    const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked');
+    
+    if (!metodoPagamento || !tipoEntrega) return;
+    
+    let frete = 0;
+    if (tipoEntrega.value === 'entrega') {
+        frete = valorFreteAtual;
+    }
+    
+    const totalSemDesconto = precoBase + frete;
+    
+    if (metodoPagamento.value === 'pix') {
+        const descontoPix = totalSemDesconto * 0.10;
+        const totalPix = totalSemDesconto - descontoPix;
+        
+        document.getElementById("total-pix").textContent = formatBR(totalPix);
+        document.getElementById("total-cartao").textContent = formatBR(totalSemDesconto);
+    } else {
+        document.getElementById("total-pix").textContent = formatBR(totalSemDesconto);
+        document.getElementById("total-cartao").textContent = formatBR(totalSemDesconto);
+    }
+}
+
+function toggleCamposCartao() {
+    const metodoPagamento = document.querySelector('input[name="metodo_pagamento"]:checked');
+    const camposCartao = document.getElementById('cartao-campos');
+    
+    if (metodoPagamento && metodoPagamento.value === 'cartao') {
+        camposCartao.style.display = 'block';
+    } else {
+        camposCartao.style.display = 'none';
+    }
+}
+
+// ============================================
+// INICIALIZAÇÃO DO MERCADO PAGO
+// ============================================
+
+function inicializarMercadoPago() {
+    if (!mpPublicKey) {
+        console.error("❌ Public Key não configurada");
+        return;
+    }
+    
+    try {
+        const mp = new MercadoPago(mpPublicKey);
+        
+        // NÃO usar autoMount - vamos montar manualmente quando necessário
+        mpCardForm = mp.cardForm({
+            amount: "{{ total|floatformat:2 }}".replace(',', '.'),
+            autoMount: false, // ← MUDAR PARA FALSE
+            form: {
+                id: "checkout-form",
+                cardNumber: { id: "cardNumber" },
+                expirationDate: { id: "expirationDate" },
+                securityCode: { id: "securityCode" },
+                cardholderName: { id: "cardholderName" },
+                issuer: { id: "issuer" },
+                installments: { id: "installments" },
+                identificationType: { id: "docType" },
+                identificationNumber: { id: "docNumber" },
+            },
+            callbacks: {
+                // ... todos os callbacks permanecem iguais ...
+                onFormMounted: error => {
+                    if (error) {
+                        console.error("❌ Erro ao montar formulário:", error);
+                    } else {
+                        console.log("✅ Formulário de cartão carregado!");
+                    }
+                },
+                onError: (error) => {
+                    console.error("❌ ERRO NO CARTÃO:", error);
+                    let mensagem = "Erro no cartão:\n";
+                    if (error.cause) {
+                        error.cause.forEach(c => {
+                            mensagem += `- ${c.description || c.message}\n`;
+                        });
+                    } else {
+                        mensagem += error.message || "Erro desconhecido";
+                    }
+                    alert(mensagem);
+                },
+                onPaymentMethodsReceived: (error, paymentMethods) => {
+                    if (error) return;
+                    const paymentMethodInput = document.getElementById('paymentMethodId');
+                    if (paymentMethodInput && paymentMethods.length > 0) {
+                        paymentMethodInput.value = paymentMethods[0].id;
+                    }
+                },
+                onIssuersReceived: (error, issuers) => {
+                    if (error) {
+                        console.error("❌ Erro ao receber bancos:", error);
+                        return;
+                    }
+                    const issuerSelect = document.getElementById('issuer');
+                    if (!issuerSelect) return;
+                    issuerSelect.innerHTML = '<option value="">Selecione o banco</option>';
+                    issuerSelect.disabled = false;
+                    let bancosArray = [];
+                    if (Array.isArray(issuers)) {
+                        bancosArray = issuers;
+                    } else if (issuers?.issuers && Array.isArray(issuers.issuers)) {
+                        bancosArray = issuers.issuers;
+                    } else if (issuers && typeof issuers === 'object') {
+                        bancosArray = Object.values(issuers).filter(v => v && v.id);
+                    }
+                    bancosArray.forEach(issuer => {
+                        if (issuer && issuer.id) {
+                            const option = document.createElement('option');
+                            option.value = issuer.id;
+                            option.text = issuer.name;
+                            issuerSelect.appendChild(option);
+                        }
+                    });
+                },
+                onInstallmentsReceived: (error, installments) => {
+                    if (error) {
+                        console.error("❌ Erro ao receber parcelas:", error);
+                        return;
+                    }
+                    const installmentSelect = document.getElementById('installments');
+                    if (!installmentSelect) return;
+                    installmentSelect.innerHTML = '<option value="">Selecione as parcelas</option>';
+                    installmentSelect.disabled = false;
+                    const adicionarOpcao = (valor, texto) => {
+                        const option = document.createElement('option');
+                        option.value = valor;
+                        option.text = texto;
+                        installmentSelect.appendChild(option);
+                    };
+                    let parcelasArray = [];
+                    if (installments) {
+                        if (installments.payer_costs && Array.isArray(installments.payer_costs)) {
+                            parcelasArray = installments.payer_costs;
+                        } else if (Array.isArray(installments)) {
+                            parcelasArray = installments;
+                        } else if (Array.isArray(installments) && installments[0]?.payer_costs) {
+                            parcelasArray = installments[0].payer_costs;
+                        } else if (typeof installments === 'object') {
+                            const valores = Object.values(installments);
+                            for (let val of valores) {
+                                if (val && val.payer_costs && Array.isArray(val.payer_costs)) {
+                                    parcelasArray = val.payer_costs;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (parcelasArray.length > 0) {
+                        parcelasArray.forEach(item => {
+                            const numParcelas = item.installments || item.installment || 1;
+                            const valorParcela = item.installment_amount || (item.total_amount / numParcelas) || item.amount;
+                            if (numParcelas && valorParcela) {
+                                adicionarOpcao(numParcelas, `${numParcelas}x de R$ ${valorParcela.toFixed(2)}` + (numParcelas === 1 ? ' (à vista)' : ''));
+                            }
+                        });
+                    }
+                },
+                onSubmit: async (event) => {
+                    event.preventDefault();
+                    
+                    const metodoPagamentoRadio = document.querySelector('input[name="metodo_pagamento"]:checked');
+                    const metodoPagamento = metodoPagamentoRadio?.value;
+                    
+                    console.log("🔍 Método selecionado:", metodoPagamento);
+                    
+                    // ========== PIX: ENVIAR FORMULÁRIO NORMAL ==========
+                    if (metodoPagamento === 'pix') {
+                        console.log("💰 PIX selecionado - enviando formulário normalmente");
+                        
+                        const enderecoRadio = document.querySelector('input[name="endereco_id"]:checked');
+                        if (!enderecoRadio) {
+                            alert("Por favor, selecione um endereço de entrega.");
+                            return;
+                        }
+                        
+                        // Remover o event listener do cardForm antes de submeter
+                        const form = document.getElementById('checkout-form');
+                        
+                        // Enviar formulário diretamente
+                        form.submit();
+                        return;
+                    }
+                    
+                    // ========== CARTÃO: CONTINUAR ==========
+                    console.log("💳 Processando Cartão...");
+                    
+                    const enderecoRadio = document.querySelector('input[name="endereco_id"]:checked');
+                    if (!enderecoRadio) {
+                        alert("Por favor, selecione um endereço de entrega.");
+                        return;
+                    }
+                    const enderecoId = enderecoRadio.value;
+                    
+                    const tipoEntregaRadio = document.querySelector('input[name="tipo_entrega"]:checked');
+                    if (!tipoEntregaRadio) {
+                        alert("Por favor, selecione o tipo de entrega.");
+                        return;
+                    }
+                    const tipoEntrega = tipoEntregaRadio.value;
+                    
+                    const submitBtn = document.querySelector('#checkout-form button[type="submit"]');
+                    const originalText = submitBtn.innerHTML;
+                    
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spinner"></i> Processando...';
+                    
+                    try {
+                        const formData = mpCardForm.getCardFormData();
+                        
+                        if (!formData.token) {
+                            throw new Error("Preencha todos os dados do cartão corretamente.");
+                        }
+                        
+                        console.log("✅ Token gerado:", formData.token.substring(0, 20) + "...");
+                        
+                        const formElement = document.getElementById('checkout-form');
+                        const formDataPedido = new FormData(formElement);
+                        
+                        formDataPedido.set('endereco_id', enderecoId);
+                        formDataPedido.set('metodo_pagamento', 'cartao');
+                        formDataPedido.set('tipo_entrega', tipoEntrega);
+                        
+                        const pedidoResponse = await fetch(formElement.action, {
+                            method: 'POST',
+                            body: formDataPedido,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                            }
+                        });
+                        
+                        if (!pedidoResponse.ok) {
+                            throw new Error(`Erro ao criar pedido (${pedidoResponse.status})`);
+                        }
+                        
+                        const pedidoData = await pedidoResponse.json();
+                        
+                        if (!pedidoData.success || !pedidoData.pedido_id) {
+                            throw new Error(pedidoData.erro || "Não foi possível criar o pedido");
+                        }
+                        
+                        console.log("✅ Pedido criado:", pedidoData.pedido_id);
+                        
+                        submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spinner"></i> Processando pagamento...';
+                        
+                        const pagamentoUrl = `/processar-pagamento-cartao/${pedidoData.pedido_id}/`;
+                        
+                        const pagamentoResponse = await fetch(pagamentoUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                token: formData.token,
+                                payment_method_id: formData.paymentMethodId,
+                                installments: parseInt(formData.installments) || 1,
+                                issuer_id: formData.issuerId || null,
+                                transaction_amount: pedidoData.total || "{{ total|floatformat:2 }}".replace(',', '.'),
+                                description: `Pedido #${pedidoData.pedido_id}`,
+                                payer: {
+                                    email: "{{ request.user.email }}",
+                                    identification: {
+                                        type: "CPF",
+                                        number: document.getElementById('docNumber')?.value.replace(/\D/g, '') || "12345678909"
+                                    }
+                                }
+                            })
+                        });
+                        
+                        const resultado = await pagamentoResponse.json();
+                        console.log("📡 Resultado:", resultado);
+                        
+                        if (resultado.status === 'approved') {
+                            window.location.href = `/pedido/confirmado/${pedidoData.pedido_id}/`;
+                        } else if (resultado.status === 'rejected') {
+                            const motivo = resultado.message || resultado.status_detail || 'cc_rejected_other_reason';
+                            throw new Error(getMensagemStatus(motivo));
+                        } else if (resultado.status === 'pending' || resultado.status === 'in_process') {
+                            window.location.href = `/pedido/pendente/${pedidoData.pedido_id}/`;
+                        } else {
+                            throw new Error(resultado.message || 'Erro ao processar pagamento');
+                        }
+                        
+                    } catch (error) {
+                        console.error("❌ Erro:", error);
+                        alert("Erro: " + error.message);
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                }
+            }
+        });
+        
+        // MONTAR O FORMULÁRIO APENAS QUANDO CARTÃO FOR SELECIONADO
+        const metodoPagamentoRadio = document.querySelector('input[name="metodo_pagamento"]:checked');
+        if (metodoPagamentoRadio && metodoPagamentoRadio.value === 'cartao') {
+            mpCardForm.mount();
+        }
+        
+        
+        // Adicionar listener para quando mudar o método de pagamento
+        document.querySelectorAll('input[name="metodo_pagamento"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'cartao') {
+                    console.log("🎯 Montando formulário de cartão...");
+                    if (mpCardForm) {
+                        mpCardForm.mount();
+                    }
+                } else if (this.value === 'pix') {
+                    console.log("🧹 Desmontando formulário de cartão...");
+                    if (mpCardForm) {
+                        try {
+                            mpCardForm.unmount();
+                        } catch (e) {
+                            console.warn("Erro ao desmontar:", e);
+                        }
+                    }
+                }
+            });
+        });
+
+        // Verificar método inicial
+        const metodoPagamentoInicial = document.querySelector('input[name="metodo_pagamento"]:checked');
+        if (metodoPagamentoInicial && metodoPagamentoInicial.value === 'cartao') {
+            console.log("🎯 Montando formulário inicial...");
+            mpCardForm.mount();
+        }
+        
+        // Adicionar listener para quando mudar o método de pagamento
+        document.querySelectorAll('input[name="metodo_pagamento"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'cartao') {
+                    console.log("🎯 Montando formulário de cartão...");
+                    if (mpCardForm) {
+                        mpCardForm.mount();
+                    }
+                } else if (this.value === 'pix') {
+                    console.log("🧹 Desmontando formulário de cartão...");
+                    if (mpCardForm) {
+                        try {
+                            mpCardForm.unmount();
+                            // Limpar campos do cartão
+                            document.getElementById('cardNumber').value = '';
+                            document.getElementById('expirationDate').value = '';
+                            document.getElementById('securityCode').value = '';
+                            document.getElementById('cardholderName').value = '';
+                            document.getElementById('docNumber').value = '';
+                        } catch (e) {
+                            console.warn("Erro ao desmontar:", e);
+                        }
+                    }
+                }
+            });
+        });
+        
+        console.log("✅ Mercado Pago inicializado com sucesso!");
+        
+    } catch (error) {
+        console.error("❌ Erro ao inicializar Mercado Pago:", error);
+    }
+}
+
+// ============================================
+// INICIALIZAÇÃO DA PÁGINA
+// ============================================
+
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("🚀 Inicializando checkout...");
+    
+    if (mpPublicKey) {
+        inicializarMercadoPago();
+    }
+    
+    document.querySelectorAll('input[name="endereco_id"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const label = this.closest('.form-check')?.querySelector('label');
+            if (label) {
+                const enderecoText = label.textContent.split('\n');
+                
+                enderecoSelecionado = {
+                    cep: this.getAttribute('data-cep'),
+                    cidade: this.getAttribute('data-cidade'),
+                    rua: enderecoText[0]?.replace('Principal', '').trim() || '',
+                    bairro: enderecoText[2]?.trim() || '',
+                    numero: enderecoText[0]?.match(/, (\d+)/)?.[1] || ''
+                };
+                
+                console.log('Endereço selecionado:', enderecoSelecionado);
+                
+                const entregaOption = document.getElementById('entrega');
+                if (entregaOption) {
+                    entregaOption.disabled = false;
+                }
+                
+                const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked');
+                if (tipoEntrega && tipoEntrega.value === 'entrega') {
+                    atualizarDisplayFrete();
+                }
+            }
+        });
+    });
+    
+    const primeiroEndereco = document.querySelector('input[name="endereco_id"]');
+    if (primeiroEndereco) {
+        primeiroEndereco.checked = true;
+        primeiroEndereco.dispatchEvent(new Event('change'));
+    }
+    
+    document.querySelectorAll('input[name="metodo_pagamento"], input[name="tipo_entrega"]').forEach(input => {
+        input.addEventListener('change', function() {
+            if (this.name === 'tipo_entrega') {
+                atualizarDisplayFrete();
+            }
+            calcularTotais();
+            if (this.name === 'metodo_pagamento') {
+                toggleCamposCartao();
+            }
+        });
+    });
+    
+    calcularTotais();
+    toggleCamposCartao();
+    
+    console.log("✅ Checkout inicializado!");
+});
+</script>
+
+<style>
+.sticky-top {
+    position: sticky;
+    z-index: 1000;
+}
+
+.card {
+    border: 1px solid #dee2e6;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    border-bottom: 1px solid #dee2e6;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.delivery-option, .payment-option {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.delivery-option:hover, .payment-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+#cartao-campos {
+    background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+    border: 2px dashed #dee2e6;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.smaller {
+    font-size: 0.75rem;
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+}
+
+.badge {
+    font-size: 0.7em;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border-right: none;
+}
+
+.form-control:focus + .input-group-text {
+    border-color: #86b7fe;
+    background-color: #fff;
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+<style>
+.endereco-card:hover {
+    border-color: #0d6efd !important;
+    cursor: pointer;
+}
+.endereco-item {
+    transition: all 0.3s ease;
+}
+.endereco-item:hover {
+    background-color: #f8f9fa;
+}
+.modal-content {
+    border-radius: 15px;
+}
+</style>
+{% endblock %}
