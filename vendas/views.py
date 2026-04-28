@@ -20,6 +20,7 @@ from django.utils import timezone
 from django.contrib.admin.views.decorators import staff_member_required
 
 
+
 from collections import OrderedDict
 from django.http import HttpResponseBadRequest
 from django.views.decorators.http import require_POST
@@ -1197,7 +1198,7 @@ def atualizar_status_entrega(request, pedido_id):
     return JsonResponse({'success': False})
 
 # Views lista todos pedidos
-from django.contrib.admin.views.decorators import staff_member_required
+
 
 @staff_member_required
 def gerenciar_pedidos(request):
