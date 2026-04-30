@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.forms import UserCreationForm
-from django.db.models import Sum, Count, F
+from django.db.models import Sum, Count
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils.dateparse import parse_date
@@ -18,7 +18,6 @@ from django.views.generic import TemplateView
 from django.http import JsonResponse
 from django.utils import timezone
 from django.contrib.admin.views.decorators import staff_member_required
-
 
 
 from collections import OrderedDict
@@ -130,7 +129,12 @@ def detalhes_produto(request, produto_id):
 def adicionar_carrinho(request, produto_id):
     if request.method == 'POST':
         produto = get_object_or_404(Produto, id=produto_id)
-        quantidade = int(request.POST.get('quantidade', 1))
+
+        try:
+            quantidade = int(request.POST.get('quantidade', 1))
+        except:
+            quantidade = 1
+
         cor = request.POST.get('cor', '')
         tamanho = request.POST.get('tamanho', '')
         action = request.POST.get('action', 'carrinho')
@@ -146,12 +150,14 @@ def adicionar_carrinho(request, produto_id):
             return redirect('login')
 
         if request.user.is_authenticated:
-            # tenta localizar a variação exata
             variacao = Produto.objects.filter(
                 nome=produto.nome, cor=cor, tamanho=tamanho, ativo=True
             ).first()
 
-            imagem = variacao.imagem if variacao and variacao.imagem else produto.imagem
+            imagem = (
+                variacao.imagem if variacao and variacao.imagem
+                else produto.imagem
+            )
 
             item, created = CarrinhoItem.objects.get_or_create(
                 usuario=request.user,
@@ -166,21 +172,40 @@ def adicionar_carrinho(request, produto_id):
 
             if not created:
                 item.quantidade += quantidade
-                item.imagem_selecionada = imagem  # atualiza caso usuário troque a cor
+                item.imagem_selecionada = imagem
                 item.save()
 
             messages.success(request, f'{produto.nome} adicionado ao carrinho!')
 
             if action == 'comprar':
                 return redirect('visualizar_carrinho')
-            else:
-                return redirect('detalhes_produto', produto_id=produto_id)
+            return redirect('detalhes_produto', produto_id=produto_id)
 
     return redirect('pagina_inicial')
 
 def carrinho_count_api(request):
-    count = CarrinhoItem.objects.filter(usuario=request.user).count()
-    return JsonResponse({'count': count})
+    try:
+        # usuário logado → usa banco
+        if request.user.is_authenticated:
+            count = CarrinhoItem.objects.filter(usuario=request.user).count()
+            return JsonResponse({'count': count})
+
+        # usuário NÃO logado → usa sessão
+        carrinho = request.session.get('carrinho', {})
+
+        if not isinstance(carrinho, dict):
+            return JsonResponse({'count': 0})
+
+        total = 0
+        for item in carrinho.values():
+            if isinstance(item, dict):
+                total += int(item.get('quantidade', 0))
+
+        return JsonResponse({'count': total})
+
+    except Exception as e:
+        print('ERRO carrinho_count_api:', str(e))
+        return JsonResponse({'count': 0})
 
 @login_required
 def visualizar_carrinho(request):
@@ -1103,20 +1128,6 @@ def atualizar_status_pedido(pedido):
         print(f"Erro: {e}")
         return False
 
-@login_required
-def verificar_status_pagamento(request, pedido_id):
-    pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
-
-    if not pedido.id_mercado_pago:
-        return JsonResponse({'status': 'error'})
-
-    atualizar_status_pedido(pedido)
-
-    return JsonResponse({
-        'status': 'success',
-        'status_pagamento': pedido.status_pagamento,
-        'status_entrega': pedido.status_entrega
-    })
 
 @login_required
 def diagnostico_pagamento(request, pedido_id):
@@ -1156,7 +1167,7 @@ def pagamento_sucesso(request, pedido_id):
 
     if pedido.status_pagamento != 'aprovado':
         pedido.status_pagamento = 'aprovado'
-        pedido.status_pedido = 'pago'
+        pedido.status = 'aprovado'  # ✅ corrigido
         pedido.save()
 
     CarrinhoItem.objects.filter(usuario=request.user).delete()
@@ -1167,8 +1178,8 @@ def pagamento_sucesso(request, pedido_id):
 def pagamento_falha(request, pedido_id):
     pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
 
-    pedido.status_pagamento = 'cancelado'
-    pedido.status_pedido = 'cancelado'
+    pedido.status_pagamento = 'rejeitado'  # melhor que "cancelado"
+    pedido.status = 'cancelado'  # ✅ corrigido
     pedido.save()
 
     return render(request, 'vendas/pagamento_falha.html', {'pedido': pedido})
@@ -1178,7 +1189,7 @@ def pagamento_pendente(request, pedido_id):
     pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
 
     pedido.status_pagamento = 'pendente'
-    pedido.status_pedido = 'novo'
+    pedido.status = 'pendente'
     pedido.save()
 
     return render(request, 'vendas/pagamento_pendente.html', {'pedido': pedido})    
@@ -1189,23 +1200,39 @@ def atualizar_status_entrega(request, pedido_id):
         pedido = get_object_or_404(Pedido, id=pedido_id)
 
         novo_status = request.POST.get('status_entrega')
-
         pedido.status_entrega = novo_status
         pedido.save()
 
-        return JsonResponse({'success': True})
+        return redirect('gerenciar_pedidos')
 
-    return JsonResponse({'success': False})
+    return redirect('gerenciar_pedidos')
 
 # Views lista todos pedidos
 
-
-@staff_member_required
+@login_required
 def gerenciar_pedidos(request):
-    pedidos = Pedido.objects.all().select_related('usuario').prefetch_related('itens_pedido')
+    if not request.user.is_superuser:
+        return redirect('pagina_inicial')
+
+    pedidos = Pedido.objects.all().order_by('-id')
 
     return render(request, 'vendas/admin/pedidos.html', {
         'pedidos': pedidos
+    })
+
+@login_required
+def verificar_status_pagamento(request, pedido_id):
+    pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
+
+    if not pedido.id_mercado_pago:
+        return JsonResponse({'status': 'error'})
+
+    atualizar_status_pedido(pedido)
+
+    return JsonResponse({
+        'status': 'success',
+        'status_pagamento': pedido.status_pagamento,
+        'status_entrega': pedido.status_entrega
     })
 
 # Função para verificar se o usuário é superusuário

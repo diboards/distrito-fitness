@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev')
 
 #DEBUG = os.getenv('DEBUG', 'False') == 'True' usar no suPer user
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['.onrender.com',
                 'mirnaboutique.com',
@@ -21,6 +21,7 @@ ALLOWED_HOSTS = ['.onrender.com',
 CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com',
                        'https://*.mirnaboutique.com',
                        ]
+
 
 # 🔐 Segurança HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -71,7 +72,7 @@ ROOT_URLCONF = 'vendas_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -84,6 +85,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'vendas_project.wsgi.application'
 
@@ -114,6 +116,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+
 # 📁 Media
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -123,6 +126,21 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# ⏱️ Tempo de expiração do link de reset de senha (em segundos)
+PASSWORD_RESET_TIMEOUT = 3600  # 1 hora
+
+# Recuperação de senha
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'mirnaboutique851@gmail.com'
+EMAIL_HOST_PASSWORD = 'idbfhhwnjavyvmie'  # senha de app
+
+DEFAULT_FROM_EMAIL = 'mirnaboutique851@gmail.com'
 
 # 💳 Mercado Pago (NUNCA hardcoded)
 MERCADOPAGO_ACCESS_TOKEN = os.getenv('MP_ACCESS_TOKEN')

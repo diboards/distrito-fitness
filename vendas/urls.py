@@ -20,10 +20,40 @@ urlpatterns = [
     path('registrar-com-endereco/', views.registrar_com_endereco, name='registrar_com_endereco'),
     path('registrar/', views.registrar_usuario, name='registrar'),
     path('orcamento/', views.solicitar_orcamento, name='orcamento'),
+
+    # RESET DE SENHA
+    path('password_reset/', auth_views.PasswordResetView.as_view(
+    template_name='vendas/auth/password_reset.html',
+    email_template_name='vendas/auth/password_reset_email.txt',  # versão texto
+    html_email_template_name='vendas/auth/password_reset_email.html',  # HTML real
+    subject_template_name='vendas/auth/password_reset_subject.txt'
+    ), name='password_reset'),
+
+    path('password_reset_done/',
+     auth_views.PasswordResetDoneView.as_view(
+         template_name='vendas/auth/password_reset_done.html'
+     ),
+     name='password_reset_done'),
+
+    path('reset/<uidb64>/<token>/',
+     auth_views.PasswordResetConfirmView.as_view(
+         template_name='vendas/auth/password_reset_confirm.html'
+     ),
+     name='password_reset_confirm'),
+
+    path('reset_done/',
+     auth_views.PasswordResetCompleteView.as_view(
+         template_name='vendas/auth/password_reset_complete.html'
+     ),
+     name='password_reset_complete'),
     
     path('estoque/', views.estoque, name='estoque'),
     path('estoque/editar/<int:produto_id>/', views.editar_produto, name='editar_produto'),
     path('estoque/cadastrar/', views.cadastrar_produto, name='cadastrar_produto'),
+
+    # URLs do seu sistema (fora do admin padrão)
+    path('painel/pedidos/', views.gerenciar_pedidos, name='gerenciar_pedidos'),
+    path('painel/pedido/<int:pedido_id>/status/', views.atualizar_status_entrega, name='atualizar_status_entrega'),
     
     # URLs do carrinho e produtos
     path('produto/<int:produto_id>/', views.detalhes_produto, name='detalhes_produto'),
@@ -41,11 +71,6 @@ urlpatterns = [
     path('excluir-endereco/<int:endereco_id>/', views.excluir_endereco, name='excluir_endereco'),
     path('finalizar-pedido/', views.finalizar_pedido, name='finalizar_pedido'),
     path('pagamento/', views.pagamento, name='pagamento'),
-    path('meus-pedidos/', views.meus_pedidos, name='meus_pedidos'),
-
-    #Urls Gerenciar pedidos
-    path('admin/pedidos/', views.gerenciar_pedidos, name='gerenciar_pedidos'),
-    path('admin/pedido/<int:pedido_id>/status/', views.atualizar_status_entrega, name='atualizar_status_entrega'),
 
     path('processar-pagamento-cartao/<int:pedido_id>/', views.processar_pagamento_cartao, name='processar_pagamento_cartao'),
     
@@ -59,7 +84,7 @@ urlpatterns = [
     path('pagamento/falha/<int:pedido_id>/', views.pagamento_falha, name='pagamento_falha'),
     path('pagamento/pendente/<int:pedido_id>/', views.pagamento_pendente, name='pagamento_pendente'),
 
-    path('meus_pedidos/', views.meus_pedidos, name='meus_pedidos'), 
+    path('meus-pedidos/', views.meus_pedidos, name='meus_pedidos'), 
     path('pedido/<int:pedido_id>/', views.detalhes_pedido, name='detalhes_pedido'),
   
     # webhooks para receber confirmações de pagamento:
