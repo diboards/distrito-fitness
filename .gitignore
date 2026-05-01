@@ -1,8 +1,21 @@
-venv/
-db.sqlite3
-*.crt
-*.key
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+venv/
 .env
+
+# Banco local
+db.sqlite3
+
+# Arquivos do sistema
+
+
+# Media (opcional)
+media/
+
+# Static collect
 staticfiles/

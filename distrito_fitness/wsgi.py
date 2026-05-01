@@ -1,5 +1,5 @@
 """
-WSGI config for vendas_project project.
+WSGI config for distrito_fitness project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vendas_project.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'distrito_fitness.settings')
 
 application = get_wsgi_application()

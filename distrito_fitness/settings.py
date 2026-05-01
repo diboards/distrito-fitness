@@ -67,7 +67,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'vendas_project.urls'
+ROOT_URLCONF = 'distrito_fitness.urls'
 
 TEMPLATES = [
     {
@@ -87,7 +87,7 @@ TEMPLATES = [
 ]
 
 
-WSGI_APPLICATION = 'vendas_project.wsgi.application'
+WSGI_APPLICATION = 'distrito_fitness.wsgi.application'
 
 # 🗄️ Banco (Render)
 DATABASES = {
