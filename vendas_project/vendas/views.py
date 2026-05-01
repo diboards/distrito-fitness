@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.forms import UserCreationForm
-from django.db.models import Sum, Count, F
+from django.db.models import Sum, Count
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils.dateparse import parse_date
@@ -17,7 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.http import JsonResponse
 from django.utils import timezone
-
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 from collections import OrderedDict
@@ -129,7 +129,12 @@ def detalhes_produto(request, produto_id):
 def adicionar_carrinho(request, produto_id):
     if request.method == 'POST':
         produto = get_object_or_404(Produto, id=produto_id)
-        quantidade = int(request.POST.get('quantidade', 1))
+
+        try:
+            quantidade = int(request.POST.get('quantidade', 1))
+        except:
+            quantidade = 1
+
         cor = request.POST.get('cor', '')
         tamanho = request.POST.get('tamanho', '')
         action = request.POST.get('action', 'carrinho')
@@ -145,12 +150,14 @@ def adicionar_carrinho(request, produto_id):
             return redirect('login')
 
         if request.user.is_authenticated:
-            # tenta localizar a variação exata
             variacao = Produto.objects.filter(
                 nome=produto.nome, cor=cor, tamanho=tamanho, ativo=True
             ).first()
 
-            imagem = variacao.imagem if variacao and variacao.imagem else produto.imagem
+            imagem = (
+                variacao.imagem if variacao and variacao.imagem
+                else produto.imagem
+            )
 
             item, created = CarrinhoItem.objects.get_or_create(
                 usuario=request.user,
@@ -165,21 +172,40 @@ def adicionar_carrinho(request, produto_id):
 
             if not created:
                 item.quantidade += quantidade
-                item.imagem_selecionada = imagem  # atualiza caso usuário troque a cor
+                item.imagem_selecionada = imagem
                 item.save()
 
             messages.success(request, f'{produto.nome} adicionado ao carrinho!')
 
             if action == 'comprar':
                 return redirect('visualizar_carrinho')
-            else:
-                return redirect('detalhes_produto', produto_id=produto_id)
+            return redirect('detalhes_produto', produto_id=produto_id)
 
     return redirect('pagina_inicial')
 
 def carrinho_count_api(request):
-    count = CarrinhoItem.objects.filter(usuario=request.user).count()
-    return JsonResponse({'count': count})
+    try:
+        # usuário logado → usa banco
+        if request.user.is_authenticated:
+            count = CarrinhoItem.objects.filter(usuario=request.user).count()
+            return JsonResponse({'count': count})
+
+        # usuário NÃO logado → usa sessão
+        carrinho = request.session.get('carrinho', {})
+
+        if not isinstance(carrinho, dict):
+            return JsonResponse({'count': 0})
+
+        total = 0
+        for item in carrinho.values():
+            if isinstance(item, dict):
+                total += int(item.get('quantidade', 0))
+
+        return JsonResponse({'count': total})
+
+    except Exception as e:
+        print('ERRO carrinho_count_api:', str(e))
+        return JsonResponse({'count': 0})
 
 @login_required
 def visualizar_carrinho(request):
@@ -1066,114 +1092,43 @@ def webhook_mercadopago(request):
     return JsonResponse({'status': 'invalid_method'}, status=405)
 
 def atualizar_status_pedido(pedido):
-    """Função para atualizar status do pedido consultando Mercado Pago"""
     try:
         sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
         payment_info = sdk.payment().get(pedido.id_mercado_pago)
-        
+
         if payment_info['status'] == 200:
             payment = payment_info['response']
             status_mp = payment['status']
-            status_detail = payment.get('status_detail', '')
-            
-            print(f"Status MP: {status_mp}, Detail: {status_detail}")
-            
-            # Mapear status do Mercado Pago para nosso sistema
+
             status_map = {
                 'pending': 'pendente',
-                'approved': 'aprovado', 
-                'authorized': 'aguardando_aprovacao',
-                'in_process': 'aguardando_aprovacao',
-                'in_mediation': 'aguardando_aprovacao',
-                'rejected': 'cancelado',
-                'cancelled': 'cancelado',
-                'refunded': 'cancelado',
-                'charged_back': 'cancelado'
+                'approved': 'aprovado',
+                'rejected': 'rejeitado',
+                'cancelled': 'rejeitado'
             }
-            
-            novo_status = status_map.get(status_mp, 'pendente')
-            status_anterior = pedido.status
-            
-            # Atualizar pedido se status mudou
-            if pedido.status != novo_status:
-                pedido.status = novo_status
-                
-                # Se foi aprovado, registrar data de pagamento
-                if novo_status == 'aprovado':
-                    from django.utils import timezone
+
+            novo_status_pagamento = status_map.get(status_mp, 'pendente')
+
+            if pedido.status_pagamento != novo_status_pagamento:
+                pedido.status_pagamento = novo_status_pagamento
+
+                if novo_status_pagamento == 'aprovado':
                     pedido.data_pagamento = timezone.now()
-                    
-                    # Limpar carrinho do usuário
+
+                    # 🔥 IMPORTANTE: inicia fluxo logístico
+                    pedido.status_entrega = 'preparando'
+
                     CarrinhoItem.objects.filter(usuario=pedido.usuario).delete()
-                    
-                    print(f"✅ Pagamento aprovado! Carrinho limpo para usuário {pedido.usuario.username}")
-                
+
                 pedido.save()
-                
-                print(f"🔄 Status atualizado: {status_anterior} -> {novo_status}")
-                
-                return JsonResponse({
-                    'status': 'success',
-                    'pedido_id': pedido.id,
-                    'status_anterior': status_anterior,
-                    'novo_status': novo_status,
-                    'mp_status': status_mp
-                })
-            else:
-                print(f"ℹ️  Status não mudou: {novo_status}")
-                return JsonResponse({
-                    'status': 'no_change',
-                    'pedido_id': pedido.id,
-                    'status_atual': novo_status
-                })
-        else:
-            error_msg = payment_info.get('response', {}).get('message', 'Erro desconhecido')
-            print(f"❌ Erro ao consultar Mercado Pago: {error_msg}")
-            return JsonResponse({'status': 'error', 'message': error_msg}, status=400)
-            
+
+        return True
+
     except Exception as e:
-        print(f"💥 ERRO AO ATUALIZAR STATUS: {str(e)}")
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        print(f"Erro: {e}")
+        return False
 
-@login_required
-def verificar_status_pagamento(request, pedido_id):
-    pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
 
-    if not pedido.id_mercado_pago:
-        return JsonResponse({'status': 'error', 'message': 'Pedido sem ID MP'})
-
-    sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
-
-    pagamento = sdk.payment().get(pedido.id_mercado_pago)
-    dados = pagamento["response"]
-
-    status_mp = dados.get("status")
-
-    status_map = {
-        'approved': 'aprovado',
-        'pending': 'pendente',
-        'in_process': 'aguardando_aprovacao',
-        'rejected': 'cancelado',
-    }
-
-    novo_status = status_map.get(status_mp, pedido.status)
-
-    atualizado = False
-
-    if pedido.status != novo_status:
-        pedido.status = novo_status
-
-        if novo_status == 'aprovado':
-            pedido.data_pagamento = timezone.now()
-
-        pedido.save()
-        atualizado = True
-
-    return JsonResponse({
-        'status': 'success',
-        'atualizado': atualizado,
-        'pedido_status': pedido.status
-    })
 @login_required
 def diagnostico_pagamento(request, pedido_id):
     """Página de diagnóstico para verificar status do pagamento"""
@@ -1209,31 +1164,76 @@ def diagnostico_pagamento(request, pedido_id):
 @login_required
 def pagamento_sucesso(request, pedido_id):
     pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
-    
-    # Atualizar status do pedido
-    if pedido.status == 'pendente':
-        pedido.status = 'pago'
+
+    if pedido.status_pagamento != 'aprovado':
+        pedido.status_pagamento = 'aprovado'
+        pedido.status = 'aprovado'  # ✅ corrigido
         pedido.save()
-        
-        # Limpar carrinho
-        CarrinhoItem.objects.filter(usuario=request.user).delete()
-    
+
+    CarrinhoItem.objects.filter(usuario=request.user).delete()
+
     return render(request, 'vendas/pagamento_sucesso.html', {'pedido': pedido})
 
 @login_required
 def pagamento_falha(request, pedido_id):
     pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
+
+    pedido.status_pagamento = 'rejeitado'  # melhor que "cancelado"
+    pedido.status = 'cancelado'  # ✅ corrigido
+    pedido.save()
+
     return render(request, 'vendas/pagamento_falha.html', {'pedido': pedido})
 
 @login_required
 def pagamento_pendente(request, pedido_id):
     pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
-    pedido.status = 'processando'
+
+    pedido.status_pagamento = 'pendente'
+    pedido.status = 'pendente'
     pedido.save()
-    
+
     return render(request, 'vendas/pagamento_pendente.html', {'pedido': pedido})    
 
-# Views de Estoque
+@staff_member_required
+def atualizar_status_entrega(request, pedido_id):
+    if request.method == 'POST':
+        pedido = get_object_or_404(Pedido, id=pedido_id)
+
+        novo_status = request.POST.get('status_entrega')
+        pedido.status_entrega = novo_status
+        pedido.save()
+
+        return redirect('gerenciar_pedidos')
+
+    return redirect('gerenciar_pedidos')
+
+# Views lista todos pedidos
+
+@login_required
+def gerenciar_pedidos(request):
+    if not request.user.is_superuser:
+        return redirect('pagina_inicial')
+
+    pedidos = Pedido.objects.all().order_by('-id')
+
+    return render(request, 'vendas/admin/pedidos.html', {
+        'pedidos': pedidos
+    })
+
+@login_required
+def verificar_status_pagamento(request, pedido_id):
+    pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
+
+    if not pedido.id_mercado_pago:
+        return JsonResponse({'status': 'error'})
+
+    atualizar_status_pedido(pedido)
+
+    return JsonResponse({
+        'status': 'success',
+        'status_pagamento': pedido.status_pagamento,
+        'status_entrega': pedido.status_entrega
+    })
 
 # Função para verificar se o usuário é superusuário
 def superuser_required(view_func):
@@ -1326,10 +1326,11 @@ def cadastrar_produto(request):
 
     return render(request, 'vendas/cadastrar_produto.html', {'form': form})
 
-@login_required
 def meus_pedidos(request):
-    pedidos = Pedido.objects.filter(usuario=request.user).order_by('-data_criacao')
-    
+    pedidos = Pedido.objects.filter(usuario=request.user)\
+        .prefetch_related('itens_pedido__produto')\
+        .order_by('-data_criacao')
+
     return render(request, 'vendas/meus_pedidos.html', {
         'pedidos': pedidos
     })

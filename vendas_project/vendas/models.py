@@ -112,51 +112,83 @@ class EnderecoEntrega(models.Model):
         verbose_name_plural = "Endereços de Entrega"
 
 class Pedido(models.Model):
+
     METODO_PAGAMENTO_CHOICES = [
         ('pix', 'PIX'),
         ('cartao', 'Cartão de Crédito'),
     ]
-        
+
     TIPO_ENTREGA_CHOICES = [
         ('retirada', 'Retirada na Loja'),
         ('entrega', 'Entrega'),
     ]
-        
+
     STATUS_CHOICES = [
-        ('pendente', 'Pendente'),           # Aguardando pagamento
-        ('aguardando_aprovacao', 'Aguardando Aprovação'),  # Pagamento feito, aguardando confirmação
-        ('aprovado', 'Aprovado'),           # Pagamento confirmado
-        ('processando', 'Processando'),     # Em preparação
-        ('enviado', 'Enviado'),             # Enviado para entrega
-        ('entregue', 'Entregue'),           # Entregue
-        ('cancelado', 'Cancelado'),         # Cancelado
+        ('pendente', 'Pendente'),
+        ('aguardando_aprovacao', 'Aguardando Aprovação'),
+        ('aprovado', 'Aprovado'),
+        ('processando', 'Processando'),
+        ('enviado', 'Enviado'),
+        ('entregue', 'Entregue'),
+        ('cancelado', 'Cancelado'),
     ]
-        
+
+    # 🔥 NOVOS (não quebram nada)
+    STATUS_PAGAMENTO_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('aprovado', 'Aprovado'),
+        ('rejeitado', 'Rejeitado'),
+    ]
+
+    STATUS_ENTREGA_CHOICES = [
+        ('aguardando', 'Aguardando'),
+        ('preparando', 'Preparando'),
+        ('enviado', 'Enviado'),
+        ('entregue', 'Entregue'),
+        ('retirado', 'Retirado'),
+    ]
+
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     data_criacao = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+
+    # ✅ NOVOS CAMPOS
+    status_pagamento = models.CharField(
+        max_length=20,
+        choices=STATUS_PAGAMENTO_CHOICES,
+        default='pendente'
+    )
+
+    status_entrega = models.CharField(
+        max_length=20,
+        choices=STATUS_ENTREGA_CHOICES,
+        default='aguardando'
+    )
+
     endereco_entrega = models.ForeignKey('EnderecoEntrega', on_delete=models.SET_NULL, null=True, blank=True)
     metodo_pagamento = models.CharField(max_length=20, choices=METODO_PAGAMENTO_CHOICES, default='pix')
     tipo_entrega = models.CharField(max_length=20, choices=TIPO_ENTREGA_CHOICES, default='retirada')
     frete = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+
     id_mercado_pago = models.CharField(max_length=100, blank=True, null=True)
-    qr_code = models.TextField(blank=True, null=True)  # URL do QR Code
-    qr_code_base64 = models.TextField(blank=True, null=True)  # QR Code em base64
-    numero_cartao = models.CharField(max_length=4, blank=True, null=True)  # Últimos 4 dígitos
+
+    qr_code = models.TextField(blank=True, null=True)
+    qr_code_base64 = models.TextField(blank=True, null=True)
+
+    numero_cartao = models.CharField(max_length=4, blank=True, null=True)
     validade_cartao = models.CharField(max_length=5, blank=True, null=True)
     nome_cartao = models.CharField(max_length=100, blank=True, null=True)
 
-        
-            
     def __str__(self):
-            return f"Pedido #{self.id} - {self.usuario.username}"
-        
-    class Meta:
-            ordering = ['-data_criacao']
+        return f"Pedido #{self.id} - {self.usuario.username}"
 
-    class EmailUserManager(BaseUserManager):
-        def create_user(self, email, password=None, **extra_fields):
+    class Meta:
+        ordering = ['-data_criacao']
+
+class EmailUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
             if not email:
                 raise ValueError('O email é obrigatório')
             email = self.normalize_email(email)
@@ -165,7 +197,7 @@ class Pedido(models.Model):
             user.save(using=self._db)
             return user
 
-        def create_superuser(self, email, password=None, **extra_fields):
+    def create_superuser(self, email, password=None, **extra_fields):
             extra_fields.setdefault('is_staff', True)
             extra_fields.setdefault('is_superuser', True)
             return self.create_user(email, password, **extra_fields)
