@@ -69,18 +69,22 @@ class ProdutoForm(forms.ModelForm):
     
     def clean_imagem(self):
         imagem = self.cleaned_data.get('imagem')
-        if imagem:
-            # Verifica o tamanho do arquivo (máximo 5MB)
-            if imagem.size > 5 * 1024 * 1024:
-                raise forms.ValidationError("A imagem deve ter menos de 5MB.")
-            
-            # Verifica a extensão do arquivo
-            extensoes_validas = ['jpg', 'jpeg', 'png', 'gif']
-            extensao = imagem.name.split('.')[-1].lower()
-            if extensao not in extensoes_validas:
-                raise forms.ValidationError("Formato de arquivo não suportado. Use JPG, PNG ou GIF.")
-        
-        return imagem
+
+        # Se não enviou nova imagem → mantém a atual
+        if not imagem:
+            return imagem
+
+        # 🔥 Se for upload novo (arquivo mesmo)
+        if hasattr(imagem, 'size'):
+            if imagem.size > 2 * 1024 * 1024:
+                raise forms.ValidationError("Imagem muito grande (máx 2MB).")
+
+        # 🔥 Se for Cloudinary (edição de produto)
+        elif hasattr(imagem, 'public_id'):
+            # objeto do Cloudinary → NÃO tem size
+            return imagem
+
+        return imagem   
 
 class VendaForm(forms.ModelForm):
     class Meta:

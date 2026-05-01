@@ -1326,10 +1326,11 @@ def cadastrar_produto(request):
 
     return render(request, 'vendas/cadastrar_produto.html', {'form': form})
 
-@login_required
 def meus_pedidos(request):
-    pedidos = Pedido.objects.filter(usuario=request.user).order_by('-data_criacao')
-    
+    pedidos = Pedido.objects.filter(usuario=request.user)\
+        .prefetch_related('itens_pedido__produto')\
+        .order_by('-data_criacao')
+
     return render(request, 'vendas/meus_pedidos.html', {
         'pedidos': pedidos
     })

@@ -1,36 +1,95 @@
 {% extends 'vendas/base.html' %}
 
 {% block content %}
+
 <div class="container mt-5">
 
-    <h2>Gerenciar Pedidos</h2>
+```
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Gerenciar Pedidos</h2>
+    <span class="badge bg-secondary">{{ pedidos|length }} pedidos</span>
+</div>
 
-    {% for pedido in pedidos %}
-    <div class="card mb-3">
-        <div class="card-body">
+{% for pedido in pedidos %}
+<div class="card shadow-sm mb-4 border-0">
+    <div class="card-body">
 
-            <h5>Pedido #{{ pedido.id }} - {{ pedido.usuario.username }}</h5>
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="mb-0">Pedido #{{ pedido.id }}</h5>
+                <small class="text-muted">
+                    Cliente: {{ pedido.usuario.username }} • {{ pedido.data_criacao|date:"d/m/Y H:i" }}
+                </small>
+            </div>
 
-            <p><strong>Pagamento:</strong> {{ pedido.status_pagamento }}</p>
-            <p><strong>Entrega:</strong> {{ pedido.status_entrega }}</p>
+            <div class="text-end">
+                <div>
+                    <span class="badge 
+                        {% if pedido.status_pagamento == 'aprovado' %}bg-success
+                        {% elif pedido.status_pagamento == 'pendente' %}bg-warning text-dark
+                        {% else %}bg-danger
+                        {% endif %}">
+                        {{ pedido.get_status_pagamento_display }}
+                    </span>
+                </div>
 
-            <form method="POST" action="{% url 'atualizar_status_entrega' pedido.id %}">
-                {% csrf_token %}
-
-                <select name="status_entrega" class="form-select mb-2">
-                    <option value="aguardando">Aguardando</option>
-                    <option value="preparando">Preparando</option>
-                    <option value="enviado">Enviado</option>
-                    <option value="entregue">Entregue</option>
-                    <option value="retirado">Retirado</option>
-                </select>
-
-                <button class="btn btn-dark">Atualizar</button>
-            </form>
-
+                <div class="mt-1">
+                    <span class="badge 
+                        {% if pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}bg-success
+                        {% elif pedido.status_entrega == 'enviado' %}bg-primary
+                        {% elif pedido.status_entrega == 'preparando' %}bg-info text-dark
+                        {% else %}bg-secondary
+                        {% endif %}">
+                        {{ pedido.get_status_entrega_display }}
+                    </span>
+                </div>
+            </div>
         </div>
+
+        <!-- RESUMO -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <small class="text-muted">Total</small>
+                <div class="fw-bold">R$ {{ pedido.total }}</div>
+            </div>
+
+            <div class="col-md-4">
+                <small class="text-muted">Pagamento</small>
+                <div>{{ pedido.get_metodo_pagamento_display }}</div>
+            </div>
+
+            <div class="col-md-4">
+                <small class="text-muted">Entrega</small>
+                <div>{{ pedido.get_tipo_entrega_display }}</div>
+            </div>
+        </div>
+
+        <!-- FORM -->
+        <form method="POST" action="{% url 'atualizar_status_entrega' pedido.id %}" class="d-flex gap-2">
+            {% csrf_token %}
+
+            <select name="status_entrega" class="form-select">
+                <option value="aguardando" {% if pedido.status_entrega == 'aguardando' %}selected{% endif %}>Aguardando</option>
+                <option value="preparando" {% if pedido.status_entrega == 'preparando' %}selected{% endif %}>Preparando</option>
+                <option value="enviado" {% if pedido.status_entrega == 'enviado' %}selected{% endif %}>Enviado</option>
+                <option value="entregue" {% if pedido.status_entrega == 'entregue' %}selected{% endif %}>Entregue</option>
+                <option value="retirado" {% if pedido.status_entrega == 'retirado' %}selected{% endif %}>Retirado</option>
+            </select>
+
+            <button class="btn btn-dark">
+                Atualizar
+            </button>
+        </form>
+
     </div>
-    {% endfor %}
+</div>
+{% empty %}
+    <div class="alert alert-info">
+        Nenhum pedido encontrado.
+    </div>
+{% endfor %}
+```
 
 </div>
 {% endblock %}
