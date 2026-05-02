@@ -4,4 +4,5 @@ pip install -r requirements.txt
 
 python manage.py migrate
 
-python manage.py createsuperuser --noinput || true
+# criar usuario adm ativar se for o caso
+#python manage.py createsuperuser --noinput || true
