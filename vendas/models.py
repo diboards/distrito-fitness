@@ -68,7 +68,7 @@ class CarrinhoItem(models.Model):
     tamanho_selecionado = models.CharField(max_length=10, blank=True, null=True)
 
     # ⚠️ IMPORTANTE: também precisa ser Cloudinary
-    imagem_selecionada = CloudinaryField('imagem', blank=True, null=True)
+    imagem = CloudinaryField('imagem', blank=True, null=True)
 
     data_adicionado = models.DateTimeField(auto_now_add=True)
     

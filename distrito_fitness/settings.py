@@ -52,6 +52,11 @@ cloudinary.config(
     api_key=os.getenv('CLOUDINARY_API_KEY'),
     api_secret=os.getenv('CLOUDINARY_API_SECRET'),
 )
+CLOUDINARY_STORAGE = {
+    'UPLOAD_OPTIONS': {
+        'folder': 'distrito_fitness/produtos'
+    }
+}
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
