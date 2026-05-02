@@ -92,7 +92,8 @@ WSGI_APPLICATION = 'distrito_fitness.wsgi.application'
 # 🗄️ Banco (Render)
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+        default=f"sqlite:///{str(BASE_DIR / 'db.sqlite3')}",
+        conn_max_age=600
     )
 }
 
