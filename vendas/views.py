@@ -33,15 +33,7 @@ from django.conf import settings
 
 from .utils import get_itens_carrinho
 
-from django.contrib.auth.models import User
-
-def criar_admin():
-    if not User.objects.filter(username='admin').exists():
-        User.objects.create_superuser(
-            username='admin',
-            email='admin@email.com',
-            password='123456'
-        )
+#teste
 
 @login_required
 def testar_conexao_mp(request):
@@ -1345,9 +1337,6 @@ def meus_pedidos(request):
 
 # Página inicial
 def pagina_inicial(request):
-    
-    criar_admin()
-
     categoria_selecionada = request.GET.get('categoria', '')
     
     if categoria_selecionada:
