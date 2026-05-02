@@ -92,8 +92,8 @@ WSGI_APPLICATION = 'distrito_fitness.wsgi.application'
 # 🗄️ Banco (Render)
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{str(BASE_DIR / 'db.sqlite3')}",
-        conn_max_age=600
+        conn_max_age=600,
+        ssl_require=True
     )
 }
 
@@ -138,10 +138,10 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = 'mirnaboutique851@gmail.com'
-EMAIL_HOST_PASSWORD = 'idbfhhwnjavyvmie'  # senha de app
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
-DEFAULT_FROM_EMAIL = 'mirnaboutique851@gmail.com'
+DEFAULT_FROM_EMAIL = 'distritofitness@gmail.com'
 
 # 💳 Mercado Pago (NUNCA hardcoded)
 MERCADOPAGO_ACCESS_TOKEN = os.getenv('MP_ACCESS_TOKEN')
