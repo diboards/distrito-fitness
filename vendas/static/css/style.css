@@ -272,11 +272,24 @@ ajustar tamanho das imagem da galeria */
     }
     
     /* Estilos para o carrossel */
-    .carousel-img {
-        width: 100%;
-        max-height: 300px;
-        object-fit: cover;
-    }
+    .carousel-banner {
+    position: relative;
+    height: 520px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #fff7ed, #ffedd5);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 👇 CONTROLE DE TAMANHO REAL */
+.carousel-img {
+    max-width: 80%;   /* controla largura */
+    max-height: 85%;  /* controla altura */
+    object-fit: contain;
+}
     .carousel {
         border-radius: 12px;
         overflow: hidden;
