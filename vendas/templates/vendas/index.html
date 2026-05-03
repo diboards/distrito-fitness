@@ -39,7 +39,6 @@
     </div>
 
     <!-- LOGO -->
-    
     <section class="hero-banner">
         <div class="hero-content">
             <h1>Distrito Fitness</h1>
@@ -48,62 +47,36 @@
         </div>
     </section>
 
-
-
     <!-- 🎯 CAROUSEL -->
     {% if not categoria_selecionada %}
     <div id="carouselProdutos" class="carousel slide carousel-fade mb-5" data-bs-ride="carousel">
-
-    <div class="carousel-inner">
-
-        {% for produto in produtos|slice:":3" %}
-        <div class="carousel-item {% if forloop.first %}active{% endif %}">
-
-            <div class="carousel-banner">
-
-                <!-- IMAGEM -->
-                {% if produto.imagem %}
-                    <img src="{{ produto.imagem.url }}" class="carousel-img">
-                {% else %}
-                    <img src="{% static 'vendas/images/default-product.png' %}" class="carousel-img">
-                {% endif %}
-
-                <!-- OVERLAY -->
-                <div class="carousel-overlay"></div>
-
-                <!-- TEXTO -->
-                <div class="carousel-content">
-
-                    <h2 class="carousel-title">
-                        {{ produto.nome }}
-                    </h2>
-
-                    <p class="carousel-old-price">
-                        <del>R$ {{ produto.preco }}</del>
-                    </p>
-
-                    <p class="carousel-price">
-                        R$ {{ produto.preco_pix }} no PIX
-                    </p>
-
-                    <p class="carousel-parcelado">
-                        ou 3x de R$ {{ produto.preco_parcela }}
-                    </p>
-
-                    <a href="{% url 'detalhes_produto' produto.id %}"
-                       class="btn btn-carousel">
-                        Ver Produto
-                    </a>
-
+        <div class="carousel-inner">
+            {% for produto in produtos|slice:":3" %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div class="carousel-banner">
+                    <!-- IMAGEM -->
+                    {% if produto.imagem %}
+                        <img src="{{ produto.imagem.url }}" class="carousel-img">
+                    {% else %}
+                        <img src="{% static 'vendas/images/default-product.png' %}" class="carousel-img">
+                    {% endif %}
+                    <!-- OVERLAY -->
+                    <div class="carousel-overlay"></div>
+                    <!-- TEXTO -->
+                    <div class="carousel-content">
+                        <h2 class="carousel-title">{{ produto.nome }}</h2>
+                        <p class="carousel-old-price"><del>R$ {{ produto.preco }}</del></p>
+                        <p class="carousel-price">R$ {{ produto.preco_pix }} no PIX</p>
+                        <p class="carousel-parcelado">ou 3x de R$ {{ produto.preco_parcela }}</p>
+                        <a href="{% url 'detalhes_produto' produto.id %}" class="btn btn-carousel">Ver Produto</a>
+                    </div>
                 </div>
-
             </div>
-
+            {% endfor %}
         </div>
-        {% endfor %}
+    </div>
+    {% endif %}
 
-    </div>
-    </div>
     <!-- 🛍️ TÍTULO -->
     <h2 class="text-center fw-bold mb-4">
         {% if categoria_selecionada %}
@@ -113,92 +86,56 @@
         {% endif %}
     </h2>
 
-
-    
     <!-- 🧾 LISTA DE PRODUTOS -->
     <div class="row g-4">
-
         {% for produto in produtos %}
         <div class="col-md-6 col-lg-4">
-
             <div class="card product-card h-100 border-0">
-
                 <!-- IMAGEM -->
                 <a href="{% url 'detalhes_produto' produto.id %}">
                     {% if produto.imagem %}
-                        
-                        <img src="{{ produto.imagem.url }}" class="carousel-img rounded">
-                    
+                        <img src="{{ produto.imagem.url }}" class="card-img-top rounded">
                     {% else %}
                         <img src="{% static 'vendas/images/default-product.png' %}" class="card-img-top">
                     {% endif %}
                 </a>
-
                 <!-- INFO -->
                 <div class="card-body text-center">
-
                     <h5 class="fw-bold">{{ produto.nome }}</h5>
-
-                    <p class="text-muted mb-1">
-                        <del>R$ {{ produto.preco }}</del>
-                    </p>
-
-                    <p class="text-success fw-bold mb-1">
-                        R$ {{ produto.preco_pix }} no PIX
-                    </p>
-
-                    <p class="text-primary small">
-                        ou 3x de R$ {{ produto.preco_parcela }}
-                    </p>
-
+                    <p class="text-muted mb-1"><del>R$ {{ produto.preco }}</del></p>
+                    <p class="text-success fw-bold mb-1">R$ {{ produto.preco_pix }} no PIX</p>
+                    <p class="text-primary small">ou 3x de R$ {{ produto.preco_parcela }}</p>
                     <!-- BOTÕES -->
                     <div class="d-grid gap-2 mt-3">
-
-                        <a href="{% url 'detalhes_produto' produto.id %}"
-                           class="btn btn-outline-dark btn-sm">
-                            Ver detalhes
-                        </a>
-
+                        <a href="{% url 'detalhes_produto' produto.id %}" class="btn btn-outline-dark btn-sm">Ver detalhes</a>
                         <form method="POST" action="{% url 'adicionar_carrinho' produto.id %}">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-dark btn-sm w-100">
-                                <i class="bi bi-cart"></i> Adicionar
-                            </button>
+                            <button type="submit" class="btn btn-dark btn-sm w-100"><i class="bi bi-cart"></i> Adicionar</button>
                         </form>
-
                     </div>
-
                 </div>
             </div>
-
         </div>
         {% empty %}
         <div class="col-12 text-center">
-            <div class="alert alert-warning">
-                Nenhum produto encontrado.
-            </div>
+            <div class="alert alert-warning">Nenhum produto encontrado.</div>
         </div>
-
-        
-        
         {% endfor %}
-
     </div>
-    
-<!-- 👇 FORA DO LOOP -->
-{% if not categoria_selecionada %}
+
+    <!-- 👇 FORA DO LOOP -->
+    {% if not categoria_selecionada %}
     <!-- Bloco informativo -->
+    <h4 class="section-title text-center mt-5 mb-4" id="cozinha">Aqui é onde você encontra peças selecionadas com ótimo design.</h4>
 
-    <h4 class="section-title text-center mt-5 mb-4" id="cozinha">Aqui é onde você encontra peças selecinadas com otimo design.</h4>
-
-    <!-- Bloco informativo com ícones (MANTIDO ORIGINAL) -->
+    <!-- Bloco informativo com ícones -->
     <div class="row my-5 align-items-center">
         <div class="col-md-6">
             <h2 class="fw-bold">Distrito Fitness</h2>
             <hr class="w-25">
             <p class="mb-4">
-                Vejo o que nossa loja tem de mais moderno e variedades, cada detalhe faz a diferença. <br>
-                Padrões de alto e bom gosto, <strong>Distrito. Fitness:</strong>
+                Veja o que nossa loja tem de mais moderno e variedades, cada detalhe faz a diferença. <br>
+                Padrões de alto e bom gosto, <strong>Distrito Fitness:</strong>
             </p>
         </div>
         <div class="col-md-6">
@@ -207,21 +144,21 @@
                     <div class="border p-3 h-100 rounded shadow-sm bg-white">
                         <div class="mb-2"><i class="bi bi-building fs-3 text-dark"></i></div>
                         <h6 class="fw-bold">Padrão industrial e acabamento superior</h6>
-                        <p class="small mb-0">Peças selecionadas absoluta na produção e acabamento impecável.</p>
+                        <p class="small mb-0">Peças selecionadas com absoluta produção e acabamento impecável.</p>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="border p-3 h-100 rounded shadow-sm bg-white">
                         <div class="mb-2"><i class="bi bi-layers fs-3 text-dark"></i></div>
-                        <h6 class="fw-bold">Lançamentos de Variedade</h6>
-                        <p class="small mb-0">Vestimenta do basico ao sofisticado.</p>
+                        <h6 class="fw-bold">Lançamentos e Variedade</h6>
+                        <p class="small mb-0">Vestimenta do básico ao sofisticado.</p>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="border p-3 h-100 rounded shadow-sm bg-white">
                         <div class="mb-2"><i class="bi bi-shield-check fs-3 text-dark"></i></div>
                         <h6 class="fw-bold">Garantia e confiabilidade</h6>
-                        <p class="small mb-0">Garantismo a satisfação de nosso clientes.</p>
+                        <p class="small mb-0">Garantimos a satisfação de nossos clientes.</p>
                     </div>
                 </div>
                 <div class="col-6">
@@ -234,18 +171,14 @@
             </div>
         </div>
     </div>
-     <!-- Bloco informativo -->
     {% endif %}
-   </div>
 
     <!-- 🔻 RODAPÉ -->
     <div class="text-center mt-5">
-        <small class="text-muted">
-            {{ produtos|length }} produto{{ produtos|length|pluralize }}
-        </small>
+        <small class="text-muted">{{ produtos|length }} produto{{ produtos|length|pluralize }}</small>
     </div>
 
-
+</div>
 
 <!-- 🎨 ESTILO -->
 <style>
@@ -258,9 +191,6 @@
     position: relative;
     z-index: 2;
 }
-    
-
-
 .menu-item {
     padding: 10px 18px;
     border-radius: 30px;
@@ -269,16 +199,13 @@
     font-weight: 500;
     transition: all 0.3s ease;
 }
-
 .menu-item:hover {
     background: #f1f5f9;
 }
-
 .menu-item.active {
     background: linear-gradient(135deg, #92400e, #78350f);
     color: #fff;
 }
-
 .menu-instagram {
     padding: 10px 18px;
     border-radius: 30px;
@@ -291,27 +218,20 @@
     gap: 6px;
     transition: 0.3s;
 }
-
 .menu-instagram:hover {
     transform: scale(1.05);
 }
-
-    
-    
 .product-card {
     border-radius: 12px;
     transition: all 0.3s ease;
 }
-
 .product-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
-
 .product-card img {
     transition: transform 0.4s ease;
 }
-
 .product-card:hover img {
     transform: scale(1.05);
 }
