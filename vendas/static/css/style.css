@@ -46,6 +46,53 @@
         z-index: 1060;
     }
 
+    /*Logo*/
+.hero-banner {
+    width: 100%;
+    height: 400px; /* pode ajustar */
+    background: url("{% static 'img/banner.jpg' %}") no-repeat center center;
+    background-size: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.hero-banner::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4); /* overlay escuro */
+    top: 0;
+    left: 0;
+}
+
+.hero-content {
+    position: relative;
+    color: #fff;
+    text-align: center;
+    z-index: 2;
+}
+
+.hero-content h1 {
+    font-size: 48px;
+    font-weight: bold;
+}
+
+.hero-content p {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+.btn-hero {
+    background: #ff6600;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
 /* css para abrir imagens ao clicar, 
 ajustar tamanho das imagem da galeria */
  #imagemModalSrc {
