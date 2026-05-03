@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+set -o errexit
 
 pip install -r requirements.txt
 
+python manage.py migrate vendas 0004 --fake
 python manage.py migrate
 
-# criar usuario adm ativar se for o caso
-#python manage.py createsuperuser --noinput || true
+python manage.py collectstatic --noinput
