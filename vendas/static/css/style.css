@@ -341,33 +341,40 @@ hr.w-25 {
 }
 
 /*LISTA DE PRODUTOS */
-.produtos-wrapper {
+.produtos-scroll-container {
     position: relative;
+    margin-bottom: 40px;
 }
 
+/* Área de scroll */
 .produtos-scroll {
     display: flex;
     gap: 20px;
     overflow-x: auto;
-    padding: 10px;
+    padding: 10px 5px;
+
+    scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
 }
 
-/* esconder scrollbar */
+/* Remove barra de rolagem */
 .produtos-scroll::-webkit-scrollbar {
     display: none;
 }
 .produtos-scroll {
+    -ms-overflow-style: none;
     scrollbar-width: none;
 }
 
-/* card */
+/* Card */
 .produto-card {
     flex: 0 0 240px;
     background: #fff;
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 12px;
     text-align: center;
+
+    scroll-snap-align: start;
 
     transition: 0.3s;
     box-shadow: 0 5px 15px rgba(0,0,0,0.05);
@@ -375,17 +382,18 @@ hr.w-25 {
 
 .produto-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
+/* Imagem */
 .produto-card img {
     width: 100%;
     height: 260px;
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: 10px;
 }
 
-/* info */
+/* Texto */
 .produto-info h6 {
     font-weight: 600;
     margin-top: 10px;
@@ -395,11 +403,13 @@ hr.w-25 {
     text-decoration: line-through;
     color: #999;
     font-size: 14px;
+    margin: 5px 0 0;
 }
 
 .price {
     color: #16a34a;
     font-weight: bold;
+    margin: 2px 0;
 }
 
 .parcelado {
@@ -407,48 +417,7 @@ hr.w-25 {
     color: #555;
 }
 
-/* botão carrinho */
-.btn-add {
-    margin-top: 8px;
-    width: 100%;
-    border: none;
-    padding: 8px;
-    border-radius: 8px;
-    background: #111;
-    color: #fff;
-    transition: 0.3s;
-}
-
-.btn-add:hover {
-    background: #333;
-}
-
-/* botões laterais */
-.scroll-btn {
-    position: absolute;
-    top: 40%;
-    transform: translateY(-50%);
-    z-index: 10;
-
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: white;
-
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    cursor: pointer;
-}
-
-.scroll-btn.left {
-    left: -10px;
-}
-
-.scroll-btn.right {
-    right: -10px;
-}
-
-/* mobile */
+/* Mobile */
 @media (max-width: 768px) {
     .produto-card {
         flex: 0 0 180px;
@@ -456,10 +425,6 @@ hr.w-25 {
 
     .produto-card img {
         height: 200px;
-    }
-
-    .scroll-btn {
-        display: none;
     }
 }
 /*LISTA DE PRODUTOS */
