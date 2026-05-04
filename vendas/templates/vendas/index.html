@@ -87,35 +87,33 @@
     </h2>
 
     <!-- 🧾 LISTA DE PRODUTOS -->
-    <div id="carouselListaProdutos" class="carousel slide" data-bs-ride="carousel">
-    <div class="carousel-inner">
+    <div class="produtos-scroll-container">
+    <div class="produtos-scroll">
 
         {% for produto in produtos %}
-        {% if forloop.counter0|divisibleby:4 %}
-        <div class="carousel-item {% if forloop.first %}active{% endif %}">
-            <div class="row justify-content-center">
-        {% endif %}
+        <div class="produto-card">
 
-                <div class="col-md-3">
-                    <div class="card product-card border-0 text-center">
-                        <a href="{% url 'detalhes_produto' produto.id %}">
-                            <img src="{{ produto.imagem.url }}" class="img-fluid rounded">
-                        </a>
+            <a href="{% url 'detalhes_produto' produto.id %}">
+                {% if produto.imagem %}
+                    <img src="{{ produto.imagem.url }}" alt="{{ produto.nome }}">
+                {% else %}
+                    <img src="{% static 'vendas/images/default-product.png' %}">
+                {% endif %}
+            </a>
 
-                        <div class="mt-2">
-                            <h6 class="fw-semibold">{{ produto.nome }}</h6>
-                            <p class="fw-bold mb-0">R$ {{ produto.preco }}</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="produto-info">
+                <h6>{{ produto.nome }}</h6>
 
-        {% if forloop.counter|divisibleby:4 or forloop.last %}
+                <p class="old-price">R$ {{ produto.preco }}</p>
+                <p class="price">R$ {{ produto.preco_pix }} no PIX</p>
+                <p class="parcelado">3x de R$ {{ produto.preco_parcela }}</p>
             </div>
+
         </div>
-        {% endif %}
         {% endfor %}
 
     </div>
+</div>
 
     <!-- Controles -->
     <button class="carousel-control-prev" type="button" data-bs-target="#carouselListaProdutos" data-bs-slide="prev">
