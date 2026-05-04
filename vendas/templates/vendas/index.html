@@ -240,8 +240,9 @@
 }
     <script>
 function scrollProdutos(direction) {
-    const container = document.getElementById('scrollProdutos');
-    const scrollAmount = 300;
+    const container = document.querySelector('.produtos-scroll');
+
+    const scrollAmount = 300; // controla a distância
 
     container.scrollBy({
         left: direction * scrollAmount,
