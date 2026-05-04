@@ -343,7 +343,7 @@ hr.w-25 {
 /*LISTA DE PRODUTOS overflow-x + flex */
 .produtos-scroll-container {
     position: relative;
-    margin-bottom: 0 40px;
+    padding: 0 40px; /* espaço pras setas */
 }
 
 /* Área de scroll */
