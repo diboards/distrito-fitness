@@ -87,41 +87,45 @@
     </h2>
 
     <!-- 🧾 LISTA DE PRODUTOS -->
-    <div class="row g-4">
+    <div id="carouselListaProdutos" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+
         {% for produto in produtos %}
-        <div class="col-md-6 col-lg-4">
-            <div class="card product-card h-100 border-0">
-                <!-- IMAGEM -->
-                <a href="{% url 'detalhes_produto' produto.id %}">
-                    {% if produto.imagem %}
-                        <img src="{{ produto.imagem.url }}" class="card-img-top rounded">
-                    {% else %}
-                        <img src="{% static 'vendas/images/default-product.png' %}" class="card-img-top">
-                    {% endif %}
-                </a>
-                <!-- INFO -->
-                <div class="card-body text-center">
-                    <h5 class="fw-bold">{{ produto.nome }}</h5>
-                    <p class="text-muted mb-1"><del>R$ {{ produto.preco }}</del></p>
-                    <p class="text-success fw-bold mb-1">R$ {{ produto.preco_pix }} no PIX</p>
-                    <p class="text-primary small">ou 3x de R$ {{ produto.preco_parcela }}</p>
-                    <!-- BOTÕES -->
-                    <div class="d-grid gap-2 mt-3">
-                        <a href="{% url 'detalhes_produto' produto.id %}" class="btn btn-outline-dark btn-sm">Ver detalhes</a>
-                        <form method="POST" action="{% url 'adicionar_carrinho' produto.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-dark btn-sm w-100"><i class="bi bi-cart"></i> Adicionar</button>
-                        </form>
+        {% if forloop.counter0|divisibleby:4 %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <div class="row justify-content-center">
+        {% endif %}
+
+                <div class="col-md-3">
+                    <div class="card product-card border-0 text-center">
+                        <a href="{% url 'detalhes_produto' produto.id %}">
+                            <img src="{{ produto.imagem.url }}" class="img-fluid rounded">
+                        </a>
+
+                        <div class="mt-2">
+                            <h6 class="fw-semibold">{{ produto.nome }}</h6>
+                            <p class="fw-bold mb-0">R$ {{ produto.preco }}</p>
+                        </div>
                     </div>
                 </div>
+
+        {% if forloop.counter|divisibleby:4 or forloop.last %}
             </div>
         </div>
-        {% empty %}
-        <div class="col-12 text-center">
-            <div class="alert alert-warning">Nenhum produto encontrado.</div>
-        </div>
+        {% endif %}
         {% endfor %}
+
     </div>
+
+    <!-- Controles -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselListaProdutos" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+    </button>
+
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselListaProdutos" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+    </button>
+</div>
 
     <!-- 👇 FORA DO LOOP -->
     {% if not categoria_selecionada %}
