@@ -64,11 +64,13 @@
                     <div class="carousel-overlay"></div>
                     <!-- TEXTO -->
                     <div class="carousel-content">
-                        <h2 class="carousel-title">{{ produto.nome }}</h2>
-                        <p class="carousel-old-price"><del>R$ {{ produto.preco }}</del></p>
-                        <p class="carousel-price">R$ {{ produto.preco_pix }} no PIX</p>
+                        <p class="carousel-tag">Destaque</p>
+<h2 class="carousel-title">{{ produto.nome }}</h2>
+<p class="carousel-price">R$ {{ produto.preco_pix }} no PIX</p>
                         <p class="carousel-parcelado">ou 3x de R$ {{ produto.preco_parcela }}</p>
-                        <a href="{% url 'detalhes_produto' produto.id %}" class="btn btn-carousel">Ver Produto</a>
+                        <a href="{% url 'detalhes_produto' produto.id %}" class="btn-carousel">
+    Comprar agora
+</a>
                     </div>
                 </div>
             </div>
