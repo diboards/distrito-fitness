@@ -166,15 +166,14 @@ def adicionar_carrinho(request, produto_id):
                 tamanho_selecionado=tamanho,
                 defaults={
                     'quantidade': quantidade,
-                    'imagem_selecionada': imagem
+                    'imagem': imagem
                 }
             )
 
             if not created:
                 item.quantidade += quantidade
-                item.imagem_selecionada = imagem
+                item.imagem = imagem
                 item.save()
-
             messages.success(request, f'{produto.nome} adicionado ao carrinho!')
 
             if action == 'comprar':
