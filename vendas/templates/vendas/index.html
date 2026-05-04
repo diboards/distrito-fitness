@@ -87,8 +87,15 @@
     </h2>
 
     <!-- 🧾 LISTA DE PRODUTOS -->
-    <div class="produtos-scroll-container">
-    <div class="produtos-scroll">
+    <div class="produtos-wrapper">
+
+    <!-- BOTÃO ESQUERDA -->
+    <button class="scroll-btn left" onclick="scrollProdutos(-1)">
+        <i class="bi bi-chevron-left"></i>
+    </button>
+
+    <!-- SCROLL -->
+    <div class="produtos-scroll" id="scrollProdutos">
 
         {% for produto in produtos %}
         <div class="produto-card">
@@ -107,22 +114,25 @@
                 <p class="old-price">R$ {{ produto.preco }}</p>
                 <p class="price">R$ {{ produto.preco_pix }} no PIX</p>
                 <p class="parcelado">3x de R$ {{ produto.preco_parcela }}</p>
+
+                <form method="POST" action="{% url 'adicionar_carrinho' produto.id %}">
+                    {% csrf_token %}
+                    <button class="btn-add">
+                        <i class="bi bi-cart"></i> Adicionar
+                    </button>
+                </form>
             </div>
 
         </div>
         {% endfor %}
 
-    
-</div>
+    </div>
 
-    <!-- Controles -->
-    <button class="carousel-control-prev" type="button" data-bs-target="#carouselListaProdutos" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon"></span>
+    <!-- BOTÃO DIREITA -->
+    <button class="scroll-btn right" onclick="scrollProdutos(1)">
+        <i class="bi bi-chevron-right"></i>
     </button>
 
-    <button class="carousel-control-next" type="button" data-bs-target="#carouselListaProdutos" data-bs-slide="next">
-        <span class="carousel-control-next-icon"></span>
-    </button>
 </div>
 
     <!-- 👇 FORA DO LOOP -->
