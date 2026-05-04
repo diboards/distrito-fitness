@@ -343,7 +343,7 @@ hr.w-25 {
 /*LISTA DE PRODUTOS */
 .produtos-scroll-container {
     position: relative;
-    margin-bottom: 40px;
+    margin-bottom: 0 40px;
 }
 
 /* Área de scroll */
@@ -426,6 +426,30 @@ hr.w-25 {
     .produto-card img {
         height: 200px;
     }
+}
+.scroll-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: none;
+
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+
+    cursor: pointer;
+}
+
+.scroll-btn.left { left: 5px; }
+.scroll-btn.right { right: 5px; }
+
+.scroll-btn:hover {
+    background: #111;
+    color: #fff;
 }
 /*LISTA DE PRODUTOS */
  
