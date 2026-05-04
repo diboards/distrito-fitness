@@ -149,70 +149,80 @@ ajustar tamanho das imagem da galeria */
         background-color: rgba(0, 0, 0, 0.9);
         color: white;
     }
-    
-    /* ESTILOS PARA AS SETAS DO CARROSSEL - EFEITO HOVER */
-    .carousel-control-btn {
-        opacity: 0;
-        transition: opacity 0.3s ease;
+
+/* ESTILOS CARROSSEL - */
+    .carousel-overlay { /*padrão de e-commerce (texto legível + imagem bonita)*/
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to right,
+        rgba(0,0,0,0.6),
+        rgba(0,0,0,0.2),
+        transparent
+    );
     }
-    
-    .carousel-container:hover .carousel-control-btn {
-        opacity: 0.8;
-    }
-    
-    .carousel-control-btn:hover {
-        opacity: 1 !important;
-    }
-    
-    .carousel-control-prev,
-    .carousel-control-next {
-        z-index: 1050;
-        width: 50px;
-        height: 50px;
+        .carousel-content {
+        position: absolute;
         top: 50%;
+        left: 8%;
         transform: translateY(-50%);
-        background-color: rgba(0, 0, 0, 0.5);
-        border-radius: 50%;
+        color: #fff;
+        max-width: 400px;
     }
     
-    .carousel-control-prev {
-        left: 15px;
+    .carousel-tag {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #facc15;
     }
     
-    .carousel-control-next {
-        right: 15px;
+    .carousel-title {
+        font-size: 40px;
+        font-weight: 700;
+        margin: 10px 0;
     }
     
-    .modal-body {
-        overflow: hidden;
-    }
-    
-    #imagemModalSrc {
-        max-height: 80vh;
-        object-fit: contain;
-        transition: transform 0.3s ease;
+    .carousel-price {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 15px;
     }
 
-    .carousel-indicators [data-bs-target] {
-    width: 8px;              /* tamanho da bolinha */
-    height: 8px;
-    border-radius: 50%;       /* deixa redonda */
-    background-color: #703701; /* cor da bolinha */
-    border: 2px solid #fff;   /* borda branca para contraste */
-    margin: 0 6px;            /* espaçamento entre elas */
-    opacity: 0.6;
-    transition: all 0.3s ease;
+   /*Botao mais chamativo carousel*/
+    .btn-carousel {
+        background: #fff;
+        color: #000;
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    
+    .btn-carousel:hover {
+        background: #000;
+        color: #fff;
     }
 
-    .carousel-indicators .active {
-        background-color: #bd4b00;  /* cor da bolinha ativa */
-        opacity: 1;
-        transform: scale(1.2);      /* destaque quando ativa */
+/*Altura constistente*/
+    .carousel-banner {
+        position: relative;
+        height: 500px;
+    }
+    
+    .carousel-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     /* Efeito de zoom suave ao passar o mouse na imagem do modal */
     .modal-image:hover {
         transform: scale(1.02);
+    }
+    .carousel-item {
+        transition: transform 0.6s ease, opacity 0.6s ease;
     }
     
     /* Novos estilos para a galeria */
@@ -269,19 +279,7 @@ ajustar tamanho das imagem da galeria */
         box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
     }
     
-    /* Estilos para o carrossel */
-    .carousel-banner {
-    position: relative;
-    height: 520px;
-    border-radius: 20px;
-    overflow: hidden;
-    background: linear-gradient(135deg, #fff7ed, #ffedd5);
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
+   
 /* 👇 CONTROLE DE TAMANHO REAL */
 .carousel-img {
     max-width: 80%;   /* controla largura */
