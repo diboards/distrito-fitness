@@ -340,7 +340,7 @@ hr.w-25 {
     opacity: 1;
 }
 
-/*LISTA DE PRODUTOS */
+/*LISTA DE PRODUTOS overflow-x + flex */
 .produtos-scroll-container {
     position: relative;
     margin-bottom: 0 40px;
