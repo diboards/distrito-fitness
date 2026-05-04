@@ -169,7 +169,7 @@ def adicionar_carrinho(request, produto_id):
                     'imagem': imagem
                 }
             )
-
+ 
             if not created:
                 item.quantidade += quantidade
                 item.imagem = imagem
