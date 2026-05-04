@@ -239,13 +239,10 @@
     transform: scale(1.05);
 }
 <script>
-function scrollProdutos(direction) {
+window.scrollProdutos = function(direction) {
     const container = document.querySelector('.produtos-scroll');
 
-    if (!container) {
-        console.log("Container não encontrado");
-        return;
-    }
+    if (!container) return;
 
     const card = container.querySelector('.produto-card');
     const gap = 20;
