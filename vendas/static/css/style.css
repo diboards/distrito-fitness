@@ -206,24 +206,13 @@ ajustar tamanho das imagem da galeria */
     }
 
 /*Altura constistente*/
-    .carousel-banner {
-    position: relative;
-    height: 500px;
-    display: flex;
-    align-items: center;
-    overflow: hidden;
+    .carousel-img {
+    object-position: center right;
 }
     
-    .carousel-img {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-
-    height: 100%;
-    width: auto;
-
-    object-fit: cover;
+    .carousel-banner {
+    justify-content: space-between;
+    padding: 0 5%;
 }
 
     /* Efeito de zoom suave ao passar o mouse na imagem do modal */
