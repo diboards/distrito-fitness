@@ -340,7 +340,23 @@ hr.w-25 {
     opacity: 1;
 }
 
+/*LISTA DE PRODUTOS */
+.product-card {
+    padding: 10px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    background: #fff;
+}
 
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+.product-card img {
+    height: 260px;
+    object-fit: cover;
+}
+/*LISTA DE PRODUTOS */
  
     /* ESTILOS PERSONALIZADOS PARA OS FILTROS */
     .filters-container {
