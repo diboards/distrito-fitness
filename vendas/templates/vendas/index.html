@@ -247,6 +247,17 @@
 .product-card:hover img {
     transform: scale(1.05);
 }
+    <script>
+function scrollProdutos(direction) {
+    const container = document.getElementById('scrollProdutos');
+    const scrollAmount = 300;
+
+    container.scrollBy({
+        left: direction * scrollAmount,
+        behavior: 'smooth'
+    });
+}
+</script>
 </style>
 
 {% endblock %}
