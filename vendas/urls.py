@@ -6,6 +6,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from vendas.views import (  # Agora importa da pasta
     pagina_inicial,
+    estoque,
     lista_vendas,
     cadastrar_produto,
     nova_venda,
