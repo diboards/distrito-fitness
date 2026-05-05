@@ -238,7 +238,7 @@ ajustar tamanho das imagem da galeria */
     .carousel-fade .active.carousel-item-end {
         transition: opacity 0s 0.6s;
     }
-    @media (max-width: 768px) {
+    @media (max-width: 768px) { /*Aplica essas regras somente em telas pequenas (celular/tablet)*/
     .carousel-banner {
         flex-direction: column;
         height: auto;
