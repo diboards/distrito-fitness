@@ -152,7 +152,7 @@ ajustar tamanho das imagem da galeria */
 
 /* ESTILOS CARROSSEL - */
     .carousel-overlay { /*padrão de e-commerce (texto legível + imagem bonita)*/
-    position: absolute;
+   /* position: absolute;
     inset: 0;
     background: linear-gradient(
         to right,
@@ -188,8 +188,8 @@ ajustar tamanho das imagem da galeria */
         font-weight: bold;
         margin-bottom: 15px;
     }
-
-   /*Botao mais chamativo carousel*/
+*/
+   /*Botao mais chamativo carousel
     .btn-carousel {
         background: #fff;
         color: #000;
@@ -203,17 +203,9 @@ ajustar tamanho das imagem da galeria */
     .btn-carousel:hover {
         background: #000;
         color: #fff;
-    }
+    }*/
 
-/*Altura constistente*/
-    .carousel-img {
-    object-position: center right;
-}
-    
-    .carousel-banner {
-    justify-content: space-between;
-    padding: 0 5%;
-}
+
 
     /* Efeito de zoom suave ao passar o mouse na imagem do modal */
     .modal-image:hover {
@@ -278,12 +270,17 @@ ajustar tamanho das imagem da galeria */
     }
     
    
-/* 👇 CONTROLE DE TAMANHO REAL 
-.carousel-img {
-    max-width: 80%;   
-    max-height: 85%;  
-    object-fit: contain;
-}
+/* 👇 CONTROLE DE TAMANHO REAL */
+/*Altura constistente*/
+    .carousel-banner {
+    justify-content: space-between;
+    padding: 0 5%;
+    }
+    .carousel-img {
+        max-width: 80%;   /*altura e largura*/
+        max-height: 85%;  
+        object-fit: contain;
+    }
     .carousel {
         border-radius: 12px;
         overflow: hidden;
@@ -297,7 +294,7 @@ ajustar tamanho das imagem da galeria */
     .carousel-fade .active.carousel-item-end {
         transition: opacity 0s 0.6s;
     }
-*/
+
 /*img-fluid imagem slid*/
 .img-fluid {
     width: 100%;
