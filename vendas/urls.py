@@ -27,7 +27,7 @@ urlpatterns = [
     path('endereco/editar/<int:endereco_id>/', views.editar_endereco, name='editar_endereco'),
     path('endereco/deletar/<int:endereco_id>/', views.deletar_endereco, name='deletar_endereco'),
     path('endereco/principal/<int:endereco_id>/', views.definir_endereco_principal, name='definir_endereco_principal'),
-]
+
     
     # RESET DE SENHA
     path('password_reset/', auth_views.PasswordResetView.as_view(
