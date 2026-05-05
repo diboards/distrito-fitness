@@ -111,42 +111,52 @@
 
     
 
-    <!-- 🧾 LISTA DE PRODUTOS -->
-    <div class="produtos-scroll-container">
-    <div class="produtos-scroll">
-
+   <!-- 🧾 LISTA DE PRODUTOS MELHORADA -->
+<div class="produtos-scroll-container">
+    
+    <!-- Contador de produtos (opcional) -->
+    <div class="produtos-count">
+        <i class="bi bi-grid-3x3-gap-fill"></i> {{ produtos|length }} produtos encontrados
+    </div>
+    
+    <div class="produtos-scroll" id="produtosScroll">
         {% for produto in produtos %}
-        <div class="produto-card">
-
+        <div class="produto-card" data-id="{{ produto.id }}">
             <a href="{% url 'detalhes_produto' produto.id %}">
                 {% if produto.imagem %}
-                    <img src="{{ produto.imagem.url }}" alt="{{ produto.nome }}">
+                    <img src="{{ produto.imagem.url }}" alt="{{ produto.nome }}" loading="lazy">
                 {% else %}
-                    <img src="{% static 'vendas/images/default-product.png' %}">
+                    <img src="{% static 'vendas/images/default-product.png' %}" alt="Produto" loading="lazy">
                 {% endif %}
             </a>
-
             <div class="produto-info">
-                <h6>{{ produto.nome }}</h6>
-
+                <h6 title="{{ produto.nome }}">{{ produto.nome|truncatechars:30 }}</h6>
                 <p class="old-price">R$ {{ produto.preco }}</p>
-                <p class="price">R$ {{ produto.preco_pix }} no PIX</p>
-                <p class="parcelado">3x de R$ {{ produto.preco_parcela }}</p>
+                <p class="price">R$ {{ produto.preco_pix }} <span style="font-size: 11px;">no PIX</span></p>
+                <p class="parcelado">ou 3x de R$ {{ produto.preco_parcela }} sem juros</p>
             </div>
-
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <i class="bi bi-emoji-frown" style="font-size: 48px; color: #9ca3af;"></i>
+            <p class="mt-3">Nenhum produto encontrado nesta categoria.</p>
         </div>
         {% endfor %}
-
     </div>
 
-     <!-- Controles -->
-    <button class="scroll-btn left" onclick="scrollProdutos(-1)">
+    <!-- Controles de scroll -->
+    <button class="scroll-btn left" onclick="scrollProdutos(-1)" aria-label="Ver produtos anteriores">
         <i class="bi bi-chevron-left"></i>
     </button>
     
-    <button class="scroll-btn right" onclick="scrollProdutos(1)">
+    <button class="scroll-btn right" onclick="scrollProdutos(1)" aria-label="Ver próximos produtos">
         <i class="bi bi-chevron-right"></i>
     </button>
+</div>
+
+<!-- Indicador de scroll (opcional) -->
+<div class="scroll-indicator" style="display: none;">
+    <i class="bi bi-arrow-right-circle-fill"></i> Arraste ou use as setas para ver mais
 </div>
 
 
