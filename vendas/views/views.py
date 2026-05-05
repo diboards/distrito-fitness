@@ -64,7 +64,7 @@ def pagina_inicial(request):
     }
     return render(request, 'vendas/index.html', context)
 
-@login_required
+#testar conexao
 
 @login_required
 def testar_conexao_mp(request):
