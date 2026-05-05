@@ -23,7 +23,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from collections import OrderedDict
 from django.http import HttpResponseBadRequest
 from django.views.decorators.http import require_POST
-from ..models import Produto, Venda, CarrinhoItem, EnderecoEntrega, Pedido, ItemPedido
+from vendas.models import Produto, Venda, CarrinhoItem, EnderecoEntrega, Pedido, ItemPedido
 from vendas.forms import VendaForm, ProdutoForm, OrcamentoForm, UsuarioComEnderecoForm # vendas. inserido antes de forms pq o arquivo esta na raiz ou coloca ..forms import
 
 import json, os
