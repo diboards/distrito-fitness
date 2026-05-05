@@ -34,7 +34,7 @@
     max-width: 1100px; /* ajuste conforme preferir: 1000px, 900px... */
     margin: 0 auto;   /* centraliza */
     background-color: #ffffff; /* opcional, para destaque */
-    
+    padding: 0 15px; /* 👈 adiciona isso */
     
 }
 
