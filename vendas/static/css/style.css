@@ -151,12 +151,10 @@ ajustar tamanho das imagem da galeria */
     }
 
 /* ESTILOS CARROSSEL - */
-    .carousel-overlay /*{ padrão de e-commerce (texto legível + imagem bonita)*/
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to right,rgba(0,0,0,0.6),rgba(0,0,0,0.2),transparent
-    );
+    .carousel-overlay { /*padrão de e-commerce (texto legível + imagem bonita)*/
+    position: absolute; inset: 0; background: linear-gradient( to right, rgba(0,0,0,0.6), rgba(0,0,0,0.2), transparent ); 
     }
+    
     .carousel-content {
         position: absolute;
         top: 50%;
