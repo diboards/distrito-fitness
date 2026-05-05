@@ -220,80 +220,175 @@ ajustar tamanho das imagem da galeria */
         color: white;
     }
 
-/* ESTILOS CARROSSEL - */
+/* ===== AJUSTES DO CAROUSEL ===== */
+
+/* Container principal do carousel */
 #carouselProdutos {
     max-width: 100%;
+    margin-bottom: 40px; /* Espaço após o carousel */
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
-    .carousel-overlay { 
-        position: absolute; 
-        inset: 0; 
-        background: linear-gradient( 90deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 40%, transparent 70% ); 
-    } 
+ /* Overlay do carousel */
+.carousel-overlay { 
+    position: absolute; 
+    inset: 0; 
+    background: linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
+    pointer-events: none;
+}  
     
+/* Conteúdo textual */
 .carousel-content { 
-        width: 45%; 
-        color: #fff; 
-        z-index: 2; 
-    }
+    width: 45%; 
+    color: #fff; 
+    z-index: 2;
+    position: relative;
+    animation: fadeInLeft 0.8s ease;
+}
     
-    .carousel-tag {
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        color: #facc15;
-    }
-    
-    .carousel-title {
-        font-size: 40px;
-        font-weight: 700;
-        margin: 10px 0;
-    }
+    /* Tags e textos */
+.carousel-tag {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #facc15;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.carousel-title {
+    font-size: 42px;
+    font-weight: 800;
+    margin: 15px 0;
+    line-height: 1.2;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
     
     .carousel-price {
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 15px;
-    }
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #facc15;
+}
+    .carousel-parcelado {
+    font-size: 16px;
+    margin-bottom: 25px;
+    opacity: 0.9;
+}
 
-   /*Botao mais chamativo carousel*/
-    .btn-carousel {
-        background: #fff;
-        color: #000;
-        padding: 10px 20px;
-        border-radius: 30px;
-        font-weight: bold;
-        text-decoration: none;
-        transition: 0.3s;
-    }
+   /* Botão do carousel */
+.btn-carousel {
+    background: #fff;
+    color: #000;
+    padding: 12px 28px;
+    border-radius: 40px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+}
     
     .btn-carousel:hover {
-        background: #000;
-        color: #fff;
-    }
+    background: #facc15;
+    color: #000;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+/* Imagem do carousel */
+.carousel-img {
+    height: 100%;
+    width: 50%;
+    object-fit: cover;
+    border-radius: 15px;
+    z-index: 1;
+    position: relative;
+    animation: fadeInRight 0.8s ease;
+}
+/* Setas de navegação personalizadas */
+.carousel-control-prev,
+.carousel-control-next {
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
 
-/* 👇 CONTROLE DE TAMANHO REAL */
-/*Altura constistente*/
-    .carousel-banner {
+#carouselProdutos:hover .carousel-control-prev,
+#carouselProdutos:hover .carousel-control-next {
+    opacity: 1;
+}
+
+.carousel-control-prev {
+    left: 20px;
+}
+
+.carousel-control-next {
+    right: 20px;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+    background: rgba(255,255,255,0.4);
+}
+
+/* Indicadores (bolinhas) */
+.carousel-indicators {
+    bottom: 20px;
+}
+
+.carousel-indicators button {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin: 0 5px;
+}
+
+/* Animações */
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Ajuste do banner do carousel */
+.carousel-banner {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-        
-
     height: 420px;
     padding: 0 5%;
     position: relative;
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
-    }
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+}
     
-    .carousel-img {
-    height: 100%;
-    width: 50%;
-    object-fit: cover; /* corta bonito */
-    border-radius: 10px;
-    }
+    
     .carousel {
         border-radius: 12px;
         overflow: hidden;
@@ -307,24 +402,111 @@ ajustar tamanho das imagem da galeria */
     .carousel-fade .active.carousel-item-end {
         transition: opacity 0s 0.6s;
     }
-    @media (max-width: 768px) { /*Aplica essas regras somente em telas pequenas (celular/tablet)*/
+    /* ===== RESPONSIVIDADE DO CAROUSEL ===== */
+@media (max-width: 992px) {
+    .carousel-title {
+        font-size: 32px;
+    }
+    
+    .carousel-price {
+        font-size: 24px;
+    }
+    
+    .btn-carousel {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 768px) {
     .carousel-banner {
         flex-direction: column-reverse;
         height: auto;
-        padding: 20px;
+        padding: 30px 20px;
     }
-        
+    
     .carousel-content {
         width: 100%;
         text-align: center;
-        margin-bottom: 15px;
+        margin-bottom: 25px;
     }
-
+    
     .carousel-img {
         width: 100%;
-        height: 250px;
+        height: 220px;
+        margin-bottom: 20px;
+    }
+    
+    .carousel-title {
+        font-size: 28px;
+    }
+    
+    .carousel-price {
+        font-size: 22px;
+    }
+    
+    .carousel-tag {
+        font-size: 12px;
+    }
+    
+    .carousel-control-prev,
+    .carousel-control-next {
+        opacity: 1;
+        width: 35px;
+        height: 35px;
     }
 }
+
+@media (max-width: 480px) {
+    .carousel-title {
+        font-size: 22px;
+    }
+    
+    .carousel-price {
+        font-size: 18px;
+    }
+    
+    .carousel-parcelado {
+        font-size: 14px;
+    }
+    
+    .btn-carousel {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+}
+/* ===== AJUSTE DO TÍTULO APÓS CAROUSEL ===== */
+/* Título "Todos os Produtos" ou categoria */
+.text-center.fw-bold.mb-4 {
+    margin-top: 20px;
+    margin-bottom: 30px !important;
+    font-size: 2.2rem;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+/* Linha decorativa no título */
+.text-center.fw-bold.mb-4::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, #facc15, #ff6600);
+    border-radius: 3px;
+}
+
+/* Ajuste para mobile do título */
+@media (max-width: 768px) {
+    .text-center.fw-bold.mb-4 {
+        font-size: 1.8rem;
+        margin-top: 15px;
+        margin-bottom: 25px !important;
+    }
+}
+
 
     /* Efeito de zoom suave ao passar o mouse na imagem do modal */
     .modal-image:hover {
