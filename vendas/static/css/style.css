@@ -151,6 +151,9 @@ ajustar tamanho das imagem da galeria */
     }
 
 /* ESTILOS CARROSSEL - */
+#carouselProdutos {
+    max-width: 100%;
+}
     .carousel-overlay { 
         position: absolute; 
         inset: 0; 
@@ -200,16 +203,19 @@ ajustar tamanho das imagem da galeria */
 
 /* 👇 CONTROLE DE TAMANHO REAL */
 /*Altura constistente*/
-    
     .carousel-banner {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+        
 
     height: 420px;
     padding: 0 5%;
     position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
     }
     
     .carousel-img {
