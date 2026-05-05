@@ -46,7 +46,7 @@
         z-index: 1060;
     }
 
-    /* ===== AJUSTE DE MARGEM DA LOGO/BANNER ===== */
+/* ===== AJUSTE DE MARGEM DA LOGO/BANNER ===== */
 .hero-banner {
     width: 100%;
     height: 400px;
@@ -55,43 +55,67 @@
     justify-content: center;
     position: relative;
     margin-bottom: 30px; /* 👈 Adiciona margem inferior */
-    border-radius: 20px; /* 👈 Opcional: arredonda as bordas */
+    border-radius: 20px; /* 👈 Arredonda as bordas */
     overflow: hidden;    /* 👈 Garante que a imagem não vaze */
 }
 
-.hero-banner::before {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.4); /* overlay escuro */
-    top: 0;
-    left: 0;
+/* Margem do menu container */
+.hero-header {
+    background: linear-gradient(135deg, #16bcf9, #0cb6ea);
+    border-radius: 20px;
+    padding: 15px;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+/* Espaçamento após o banner para o carousel/menu */
+.hero-banner + .carousel,
+.hero-banner + div:not(.carousel) {
+    margin-top: 10px;
 }
 
+/* Ajuste do container principal */
+.container-projetos {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+/* Ajuste fino para o conteúdo do banner */
 .hero-content {
     position: relative;
     color: #fff;
     text-align: center;
     z-index: 2;
+    padding: 20px;
 }
 
 .hero-content h1 {
     font-size: 48px;
     font-weight: bold;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
 .hero-content p {
     font-size: 18px;
-    margin: 10px 0;
+    margin: 10px 0 20px 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
 .btn-hero {
     background: #ff6600;
     color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
+    padding: 12px 24px;
+    border-radius: 30px;
     text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.btn-hero:hover {
+    background: #e05500;
+    transform: scale(1.05);
+    color: white;
 }
 /* Ajuste responsivo para mobile */
 @media (max-width: 768px) {
