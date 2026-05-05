@@ -278,10 +278,10 @@ ajustar tamanho das imagem da galeria */
     }
     
    
-/* 👇 CONTROLE DE TAMANHO REAL */
+/* 👇 CONTROLE DE TAMANHO REAL 
 .carousel-img {
-    max-width: 80%;   /* controla largura */
-    max-height: 85%;  /* controla altura */
+    max-width: 80%;   
+    max-height: 85%;  
     object-fit: contain;
 }
     .carousel {
@@ -297,7 +297,7 @@ ajustar tamanho das imagem da galeria */
     .carousel-fade .active.carousel-item-end {
         transition: opacity 0s 0.6s;
     }
-
+*/
 /*img-fluid imagem slid*/
 .img-fluid {
     width: 100%;
