@@ -57,20 +57,20 @@
 
                 <!-- TEXTO -->
                 <div class="carousel-content">
-                    <p class="carousel-tag">Destaque</p>
+                    <p class="carousel-tag">⭐ Destaque</p>
                     <h2 class="carousel-title">{{ produto.nome }}</h2>
-                    <p class="carousel-price">R$ {{ produto.preco_pix }} no PIX</p>
-                    <p class="carousel-parcelado">ou 3x de R$ {{ produto.preco_parcela }}</p>
+                    <p class="carousel-price">💰 R$ {{ produto.preco_pix }} no PIX</p>
+                    <p class="carousel-parcelado">ou 3x de R$ {{ produto.preco_parcela }} sem juros</p>
                     <a href="{% url 'detalhes_produto' produto.id %}" class="btn-carousel">
-                        Comprar agora
+                        🛒 Comprar agora →
                     </a>
                 </div>
 
                 <!-- IMAGEM -->
                 {% if produto.imagem %}
-                    <img src="{{ produto.imagem.url }}" class="carousel-img">
+                    <img src="{{ produto.imagem.url }}" class="carousel-img" alt="{{ produto.nome }}">
                 {% else %}
-                    <img src="{% static 'vendas/images/default-product.png' %}" class="carousel-img">
+                    <img src="{% static 'vendas/images/default-product.png' %}" class="carousel-img" alt="Produto">
                 {% endif %}
 
                 <!-- OVERLAY -->
@@ -80,8 +80,34 @@
         </div>
         {% endfor %}
     </div>
+    
+    <!-- Setas de navegação -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselProdutos" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Anterior</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselProdutos" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Próximo</span>
+    </button>
+    
+    <!-- Indicadores -->
+    <div class="carousel-indicators">
+        {% for produto in produtos|slice:":3" %}
+        <button type="button" data-bs-target="#carouselProdutos" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %} aria-label="Slide {{ forloop.counter }}"></button>
+        {% endfor %}
+    </div>
 </div>
 {% endif %}
+
+<!-- 🛍️ TÍTULO -->
+<h2 class="text-center fw-bold mb-4">
+    {% if categoria_selecionada %}
+        ✨ {{ categoria_selecionada|title }}
+    {% else %}
+        🛍️ Todos os Produtos
+    {% endif %}
+</h2>
 
     <!-- 🛍️ TÍTULO -->
     <h2 class="text-center fw-bold mb-4">
