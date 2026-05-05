@@ -155,14 +155,19 @@ ajustar tamanho das imagem da galeria */
     position: absolute; inset: 0; background: linear-gradient( to right, rgba(0,0,0,0.6), rgba(0,0,0,0.2), transparent ); 
     }
     
-    .carousel-content {
+   /* .carousel-content {
         position: absolute;
         top: 50%;
         left: 8%;
         transform: translateY(-50%);
         color: #fff;
         max-width: 400px;
-    }
+    }*/
+    .carousel-content {
+    width: 45%;
+    color: #fff;
+    z-index: 2;
+}
     
     .carousel-tag {
         font-size: 14px;
@@ -201,19 +206,22 @@ ajustar tamanho das imagem da galeria */
 
 /* 👇 CONTROLE DE TAMANHO REAL */
 /*Altura constistente*/
+    
     .carousel-banner {
-    height: 420px; /* controla o tamanho total */
     display: flex;
     align-items: center;
     justify-content: space-between;
+
+    height: 420px;
     padding: 0 5%;
-}
+    position: relative;
+    }
     .carousel-img {
     height: 100%;
     width: 50%;
     object-fit: cover; /* corta bonito */
     border-radius: 10px;
-}
+    }
     .carousel {
         border-radius: 12px;
         overflow: hidden;
