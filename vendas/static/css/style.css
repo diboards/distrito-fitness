@@ -208,14 +208,18 @@ ajustar tamanho das imagem da galeria */
 /* 👇 CONTROLE DE TAMANHO REAL */
 /*Altura constistente*/
     .carousel-banner {
+    height: 420px; /* controla o tamanho total */
+    display: flex;
+    align-items: center;
     justify-content: space-between;
     padding: 0 5%;
-    }
+}
     .carousel-img {
-        max-width: 80%;   /*altura e largura*/
-        max-height: 85%;  
-        object-fit: contain;
-    }
+    height: 100%;
+    width: 50%;
+    object-fit: cover; /* corta bonito */
+    border-radius: 10px;
+}
     .carousel {
         border-radius: 12px;
         overflow: hidden;
@@ -337,6 +341,7 @@ hr.w-25 {
 .produtos-scroll-container {
     position: relative;
     padding: 0 40px; /* espaço pras setas */
+    
 }
 
 /* Área de scroll */
