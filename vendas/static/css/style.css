@@ -151,29 +151,17 @@ ajustar tamanho das imagem da galeria */
     }
 
 /* ESTILOS CARROSSEL - */
-  /*  .carousel-overlay { padrão de e-commerce (texto legível + imagem bonita)
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        to right,
-        rgba(0,0,0,0.6),
-        rgba(0,0,0,0.2),
-        transparent
+    .carousel-overlay /*{ padrão de e-commerce (texto legível + imagem bonita)*/
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to right,rgba(0,0,0,0.6),rgba(0,0,0,0.2),transparent
     );
-    }*/
-        .carousel-overlay {
-            background: linear-gradient(
-                90deg,
-                rgba(0,0,0,0.7) 0%,
-                rgba(0,0,0,0.3) 50%,
-                transparent 100%
-            );
-        }
-        .carousel-content {
+    }
+    .carousel-content {
         position: absolute;
         top: 50%;
         left: 8%;
-     transform: translateY(-50%);
+        transform: translateY(-50%);
         color: #fff;
         max-width: 400px;
     }
