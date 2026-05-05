@@ -31,7 +31,7 @@ import requests
 import mercadopago
 from django.conf import settings
 
-from .utils import get_itens_carrinho
+from ..utils import get_itens_carrinho
 
 
 # Página inicial
