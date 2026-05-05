@@ -33,7 +33,38 @@ from django.conf import settings
 
 from .utils import get_itens_carrinho
 
-#teste
+
+# Página inicial
+def pagina_inicial(request):
+    categoria_selecionada = request.GET.get('categoria', '')
+    
+    if categoria_selecionada:
+        produtos = Produto.objects.filter(categoria=categoria_selecionada)
+    else:
+        produtos = Produto.objects.all()
+
+    # Montar lista com preços calculados
+    produtos_com_precos = []
+    for p in produtos:
+        preco_pix = (p.preco * Decimal("0.90")).quantize(Decimal("0.01"))  # 10% OFF no pix
+        preco_parcela = (p.preco / Decimal("3")).quantize(Decimal("0.01")) # parcelado em 3x
+        produtos_com_precos.append({
+            "id": p.id,
+            "nome": p.nome,
+            "preco": p.preco,
+            "preco_pix": preco_pix,
+            "preco_parcela": preco_parcela,
+            "imagem": p.imagem,
+            "categoria": p.categoria,
+        })
+
+    context = {
+        'produtos': produtos_com_precos,
+        'categoria_selecionada': categoria_selecionada
+    }
+    return render(request, 'vendas/index.html', context)
+
+@login_required
 
 @login_required
 def testar_conexao_mp(request):
@@ -1334,37 +1365,7 @@ def meus_pedidos(request):
         'pedidos': pedidos
     })
 
-# Página inicial
-def pagina_inicial(request):
-    categoria_selecionada = request.GET.get('categoria', '')
-    
-    if categoria_selecionada:
-        produtos = Produto.objects.filter(categoria=categoria_selecionada)
-    else:
-        produtos = Produto.objects.all()
 
-    # Montar lista com preços calculados
-    produtos_com_precos = []
-    for p in produtos:
-        preco_pix = (p.preco * Decimal("0.90")).quantize(Decimal("0.01"))  # 10% OFF no pix
-        preco_parcela = (p.preco / Decimal("3")).quantize(Decimal("0.01")) # parcelado em 3x
-        produtos_com_precos.append({
-            "id": p.id,
-            "nome": p.nome,
-            "preco": p.preco,
-            "preco_pix": preco_pix,
-            "preco_parcela": preco_parcela,
-            "imagem": p.imagem,
-            "categoria": p.categoria,
-        })
-
-    context = {
-        'produtos': produtos_com_precos,
-        'categoria_selecionada': categoria_selecionada
-    }
-    return render(request, 'vendas/index.html', context)
-
-@login_required
 def lista_vendas(request):
     vendas = Venda.objects.all().order_by('-data_venda')
     produtos = Produto.objects.all()
