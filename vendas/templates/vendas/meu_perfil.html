@@ -96,7 +96,42 @@
         </div>
     </div>
 </div>
+<style>
+    /* Estilos para a página de perfil */
+.dropdown-item {
+    cursor: pointer;
+}
 
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+.border-primary {
+    border-color: #16bcf9 !important;
+}
+
+.rounded-circle {
+    object-fit: cover;
+}
+
+/* Estilos para formulários */
+.form-control:focus, .form-select:focus {
+    border-color: #16bcf9;
+    box-shadow: 0 0 0 0.2rem rgba(22, 188, 249, 0.25);
+}
+
+/* Alertas de sucesso */
+.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+</style>
 <script>
     // Máscara para telefone
     document.querySelector('input[name="telefone"]').addEventListener('input', function(e) {
