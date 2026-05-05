@@ -3,6 +3,7 @@ from .models import Venda, Produto
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import EnderecoEntrega
+from .models import Perfil, Endereco
 
 
 class ProdutoForm(forms.ModelForm):
@@ -196,3 +197,62 @@ class OrcamentoForm(forms.Form):
         if data == '':
             raise forms.ValidationError('Escolha um orçamento.')
         return data
+
+class PerfilForm(forms.ModelForm):
+    first_name = forms.CharField(max_length=30, required=False, label="Nome")
+    last_name = forms.CharField(max_length=30, required=False, label="Sobrenome")
+    email = forms.EmailField(required=True, label="E-mail")
+    
+    class Meta:
+        model = Perfil
+        fields = ['telefone', 'cpf', 'data_nascimento', 'avatar', 'bio']
+        widgets = {
+            'data_nascimento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00'}),
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Conte um pouco sobre você...'}),
+            'avatar': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.usuario:
+            self.fields['first_name'].initial = self.instance.usuario.first_name
+            self.fields['last_name'].initial = self.instance.usuario.last_name
+            self.fields['email'].initial = self.instance.usuario.email
+    
+    def save(self, commit=True):
+        perfil = super().save(commit=False)
+        if commit:
+            perfil.save()
+            # Atualiza dados do User
+            usuario = perfil.usuario
+            usuario.first_name = self.cleaned_data['first_name']
+            usuario.last_name = self.cleaned_data['last_name']
+            usuario.email = self.cleaned_data['email']
+            usuario.save()
+        return perfil
+
+class EnderecoForm(forms.ModelForm):
+    class Meta:
+        model = Endereco
+        fields = ['tipo', 'cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'estado', 'is_principal']
+        widgets = {
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'cep': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00000-000'}),
+            'logradouro': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Rua, Avenida...'}),
+            'numero': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Número'}),
+            'complemento': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apto, Bloco...'}),
+            'bairro': forms.TextInput(attrs={'class': 'form-control'}),
+            'cidade': forms.TextInput(attrs={'class': 'form-control'}),
+            'estado': forms.Select(attrs={'class': 'form-control'}, choices=[(sigla, nome) for sigla, nome in [
+                ('AC', 'Acre'), ('AL', 'Alagoas'), ('AP', 'Amapá'), ('AM', 'Amazonas'), ('BA', 'Bahia'),
+                ('CE', 'Ceará'), ('DF', 'Distrito Federal'), ('ES', 'Espírito Santo'), ('GO', 'Goiás'),
+                ('MA', 'Maranhão'), ('MT', 'Mato Grosso'), ('MS', 'Mato Grosso do Sul'), ('MG', 'Minas Gerais'),
+                ('PA', 'Pará'), ('PB', 'Paraíba'), ('PR', 'Paraná'), ('PE', 'Pernambuco'), ('PI', 'Piauí'),
+                ('RJ', 'Rio de Janeiro'), ('RN', 'Rio Grande do Norte'), ('RS', 'Rio Grande do Sul'),
+                ('RO', 'Rondônia'), ('RR', 'Roraima'), ('SC', 'Santa Catarina'), ('SP', 'São Paulo'),
+                ('SE', 'Sergipe'), ('TO', 'Tocantins')
+            ]]),
+            'is_principal': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
