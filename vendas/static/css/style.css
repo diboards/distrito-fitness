@@ -829,7 +829,34 @@ hr.w-25 {
         transform: translateX(5px);
     }
 }
+/* Skeleton loading para produtos efeito de carregamento*/
+.produto-card.skeleton {
+    animation: pulse 1.5s ease-in-out infinite;
+}
 
+.produto-card.skeleton img {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
 /* Contador de produtos */
 .produtos-count {
     text-align: right;
