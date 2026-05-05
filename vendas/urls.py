@@ -4,6 +4,19 @@ from . import views
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
+from vendas.views import (  # Agora importa da pasta
+    pagina_inicial,
+    lista_vendas,
+    cadastrar_produto,
+    nova_venda,
+    relatorios,
+    editar_venda,
+    atualizar_venda,
+    login_view,
+    registrar_com_endereco,
+    registrar_usuario,
+    solicitar_orcamento,
+)
 
 
 urlpatterns = [
