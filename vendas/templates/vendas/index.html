@@ -275,20 +275,73 @@
 }
 </style>
 <script>
+// Scroll suave com animação
 window.scrollProdutos = function(direction) {
     const container = document.querySelector('.produtos-scroll');
-
     if (!container) return;
 
     const card = container.querySelector('.produto-card');
-    const gap = 20;
+    if (!card) return;
 
+    const gap = 25; // mesmo gap do CSS
     const scrollAmount = card.offsetWidth + gap;
-
+    
     container.scrollBy({
         left: direction * scrollAmount,
         behavior: 'smooth'
     });
 }
+
+// Scroll com wheel (roda do mouse)
+document.addEventListener('DOMContentLoaded', function() {
+    const scrollContainer = document.querySelector('.produtos-scroll');
+    if (scrollContainer) {
+        scrollContainer.addEventListener('wheel', function(e) {
+            if (e.deltaY !== 0) {
+                e.preventDefault();
+                scrollContainer.scrollLeft += e.deltaY;
+            }
+        });
+    }
+    
+    // Mostrar indicador apenas se houver scroll
+    const container = document.querySelector('.produtos-scroll');
+    const indicator = document.querySelector('.scroll-indicator');
+    
+    if (container && indicator) {
+        if (container.scrollWidth > container.clientWidth) {
+            indicator.style.display = 'block';
+        }
+    }
+});
+
+// Scroll automático com intervalo (opcional - descomente se quiser)
+/*
+let autoScrollInterval;
+const scrollContainer = document.querySelector('.produtos-scroll');
+
+function startAutoScroll() {
+    autoScrollInterval = setInterval(() => {
+        if (scrollContainer && !scrollContainer.matches(':hover')) {
+            const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+            if (scrollContainer.scrollLeft >= maxScroll) {
+                scrollContainer.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                scrollContainer.scrollBy({ left: 300, behavior: 'smooth' });
+            }
+        }
+    }, 5000);
+}
+
+function stopAutoScroll() {
+    clearInterval(autoScrollInterval);
+}
+
+if (scrollContainer) {
+    scrollContainer.addEventListener('mouseenter', stopAutoScroll);
+    scrollContainer.addEventListener('mouseleave', startAutoScroll);
+    startAutoScroll();
+}
+*/
 </script>
 {% endblock %}
