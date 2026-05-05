@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
-from .models import Perfil
-from .forms import PerfilForm
+from ..models import Perfil
+from ..forms import PerfilForm
 
 @login_required
 def meu_perfil(request):
