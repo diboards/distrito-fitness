@@ -4,6 +4,7 @@
 # Importa do views.py principal
 from .views import (
     pagina_inicial,
+    estoque,
     lista_vendas,
     cadastrar_produto,
     nova_venda,
