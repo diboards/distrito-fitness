@@ -48,36 +48,40 @@
 </section>
 
     <!-- 🎯 CAROUSEL -->
-    {% if not categoria_selecionada %}
-    <div id="carouselProdutos" class="carousel slide carousel-fade mb-5" data-bs-ride="carousel">
-        <div class="carousel-inner">
-            {% for produto in produtos|slice:":3" %}
-            <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                <div class="carousel-banner">
-                    <!-- IMAGEM -->
-                    {% if produto.imagem %}
-                        <img src="{{ produto.imagem.url }}" class="carousel-img">
-                    {% else %}
-                        <img src="{% static 'vendas/images/default-product.png' %}" class="carousel-img">
-                    {% endif %}
-                    <!-- OVERLAY -->
-                    <div class="carousel-overlay"></div>
-                    <!-- TEXTO -->
-                    <div class="carousel-content">
-                        <p class="carousel-tag">Destaque</p>
-<h2 class="carousel-title">{{ produto.nome }}</h2>
-<p class="carousel-price">R$ {{ produto.preco_pix }} no PIX</p>
-                        <p class="carousel-parcelado">ou 3x de R$ {{ produto.preco_parcela }}</p>
-                        <a href="{% url 'detalhes_produto' produto.id %}" class="btn-carousel">
-    Comprar agora
-</a>
-                    </div>
+{% if not categoria_selecionada %}
+<div id="carouselProdutos" class="carousel slide carousel-fade mb-5" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        {% for produto in produtos|slice:":3" %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <div class="carousel-banner">
+
+                <!-- TEXTO -->
+                <div class="carousel-content">
+                    <p class="carousel-tag">Destaque</p>
+                    <h2 class="carousel-title">{{ produto.nome }}</h2>
+                    <p class="carousel-price">R$ {{ produto.preco_pix }} no PIX</p>
+                    <p class="carousel-parcelado">ou 3x de R$ {{ produto.preco_parcela }}</p>
+                    <a href="{% url 'detalhes_produto' produto.id %}" class="btn-carousel">
+                        Comprar agora
+                    </a>
                 </div>
+
+                <!-- IMAGEM -->
+                {% if produto.imagem %}
+                    <img src="{{ produto.imagem.url }}" class="carousel-img">
+                {% else %}
+                    <img src="{% static 'vendas/images/default-product.png' %}" class="carousel-img">
+                {% endif %}
+
+                <!-- OVERLAY -->
+                <div class="carousel-overlay"></div>
+
             </div>
-            {% endfor %}
         </div>
+        {% endfor %}
     </div>
-    {% endif %}
+</div>
+{% endif %}
 
     <!-- 🛍️ TÍTULO -->
     <h2 class="text-center fw-bold mb-4">
