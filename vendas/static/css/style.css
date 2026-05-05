@@ -211,6 +211,7 @@ ajustar tamanho das imagem da galeria */
     
     .carousel-banner {
     display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: space-between;
 
@@ -218,6 +219,9 @@ ajustar tamanho das imagem da galeria */
     padding: 0 5%;
     position: relative;
     }
+.carousel-banner {
+    transition: all 0.4s ease;
+}
     
     .carousel-img {
     height: 100%;
@@ -240,11 +244,11 @@ ajustar tamanho das imagem da galeria */
     }
     @media (max-width: 768px) { /*Aplica essas regras somente em telas pequenas (celular/tablet)*/
     .carousel-banner {
-        flex-direction: column;
+        flex-direction: column-reverse;
         height: auto;
         padding: 20px;
     }
-
+        
     .carousel-content {
         width: 100%;
         text-align: center;
