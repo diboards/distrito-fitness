@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.contrib.auth.models import BaseUserManager
 from decimal import Decimal
 from cloudinary.models import CloudinaryField
+from django.core.validators import RegexValidator
 
 
 class Produto(models.Model):
@@ -231,3 +232,54 @@ class Venda(models.Model):
         def save(self, *args, **kwargs):
             self.total = self.quantidade * self.preco_unitario
             super().save(*args, **kwargs)
+
+class Perfil(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
+    telefone = models.CharField(
+        max_length=15, 
+        blank=True, 
+        null=True,
+        validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Número de telefone inválido")]
+    )
+    cpf = models.CharField(max_length=14, blank=True, null=True, verbose_name="CPF")
+    data_nascimento = models.DateField(blank=True, null=True)
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    bio = models.TextField(max_length=500, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Perfil"
+        verbose_name_plural = "Perfis"
+
+    def __str__(self):
+        return f"Perfil de {self.usuario.username}"
+
+class Endereco(models.Model):
+    TIPO_CHOICES = [
+        ('residencial', 'Residencial'),
+        ('comercial', 'Comercial'),
+        ('entrega', 'Entrega'),
+        ('cobranca', 'Cobrança'),
+    ]
+
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='enderecos')
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='residencial')
+    cep = models.CharField(max_length=9)
+    logradouro = models.CharField(max_length=200)
+    numero = models.CharField(max_length=10)
+    complemento = models.CharField(max_length=100, blank=True, null=True)
+    bairro = models.CharField(max_length=100)
+    cidade = models.CharField(max_length=100)
+    estado = models.CharField(max_length=2)
+    is_principal = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Endereço"
+        verbose_name_plural = "Endereços"
+        ordering = ['-is_principal', '-created_at']
+
+    def __str__(self):
+        return f"{self.tipo}: {self.logradouro}, {self.numero} - {self.cidade}/{self.estado}"
