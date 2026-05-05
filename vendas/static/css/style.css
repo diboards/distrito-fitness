@@ -152,15 +152,14 @@ ajustar tamanho das imagem da galeria */
 
 /* ESTILOS CARROSSEL - */
     .carousel-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        90deg,
-        rgba(0,0,0,0.6) 0%,
-        rgba(0,0,0,0.2) 40%,
-        transparent 70%
-    );
-    }
+    z-index: 1;
+}
+
+.carousel-content,
+.carousel-img {
+    position: relative;
+    z-index: 2;
+}
    
     .carousel-content {
     width: 45%;
