@@ -152,7 +152,7 @@ ajustar tamanho das imagem da galeria */
 
 /* ESTILOS CARROSSEL - */
     .carousel-overlay { /*padrão de e-commerce (texto legível + imagem bonita)*/
-   /* position: absolute;
+    position: absolute;
     inset: 0;
     background: linear-gradient(
         to right,
@@ -165,7 +165,7 @@ ajustar tamanho das imagem da galeria */
         position: absolute;
         top: 50%;
         left: 8%;
-        transform: translateY(-50%);
+     transform: translateY(-50%);
         color: #fff;
         max-width: 400px;
     }
@@ -203,7 +203,7 @@ ajustar tamanho das imagem da galeria */
     .btn-carousel:hover {
         background: #000;
         color: #fff;
-    }*/
+    }
 
 
 
