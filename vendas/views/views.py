@@ -584,26 +584,9 @@ def adicionar_endereco_checkout(request):
     return JsonResponse({'success': False, 'error': 'Método não permitido'})
 
 @login_required
-def excluir_endereco(request, endereco_id):
+#def excluir_endereco(request, endereco_id):
     """View para excluir endereço via AJAX"""
-    if request.method == 'POST':
-        try:
-            endereco = get_object_or_404(EnderecoEntrega, id=endereco_id, usuario=request.user)
-            endereco.delete()
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'Endereço excluído com sucesso!'
-            })
-            
-        except Exception as e:
-            print(f"Erro ao excluir endereço: {str(e)}")
-            return JsonResponse({
-                'success': False, 
-                'error': f'Erro ao excluir endereço: {str(e)}'
-            })
-    
-    return JsonResponse({'success': False, 'error': 'Método não permitido'})
+   
 
 @login_required
 def pagamento(request):
