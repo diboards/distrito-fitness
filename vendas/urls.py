@@ -1,24 +1,9 @@
 # vendas/urls.py
 from django.urls import path
-from .import views
+from . import views
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
-from vendas.views import (  # Agora importa da pasta
-    pagina_inicial,
-    estoque,
-    lista_vendas,
-    cadastrar_produto,
-    nova_venda,
-    relatorios,
-    editar_venda,
-    atualizar_venda,
-    login_view,
-    registrar_com_endereco,
-    registrar_usuario,
-    solicitar_orcamento,
-)
-
 
 urlpatterns = [
     path('', views.pagina_inicial, name='pagina_inicial'),
@@ -37,11 +22,7 @@ urlpatterns = [
 
     # Perfil do usuário
     path('meu-perfil/', views.meu_perfil, name='meu_perfil'),
-    path('meus-enderecos/', views.meus_enderecos, name='meus_enderecos'),
-    path('endereco/editar/<int:endereco_id>/', views.editar_endereco, name='editar_endereco'),
-    path('endereco/deletar/<int:endereco_id>/', views.deletar_endereco, name='deletar_endereco'),
-    path('endereco/principal/<int:endereco_id>/', views.definir_endereco_principal, name='definir_endereco_principal'),
-
+    
     
     # RESET DE SENHA
     path('password_reset/', auth_views.PasswordResetView.as_view(
