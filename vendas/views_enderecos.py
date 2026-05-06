@@ -75,51 +75,38 @@ def adicionar_endereco(request):
         messages.error(request, f'Erro ao adicionar endereço: {str(e)}')
         return redirect('meus_enderecos')
 
+# vendas/views/enderecos.py
+
 @login_required
-@require_http_methods(["POST"])
 def editar_endereco(request, endereco_id):
-    """Edita um endereço existente"""
-    endereco = get_object_or_404(EnderecoEntrega, id=endereco_id, usuario=request.user)
+    """Edita um endereço existente via AJAX"""
+    endereco = get_object_or_404(Endereco, id=endereco_id, usuario=request.user)
     
-    try:
-        form = EnderecoEntregaForm(request.POST, instance=endereco)
-        
+    if request.method == 'POST':
+        form = EnderecoForm(request.POST, instance=endereco)
         if form.is_valid():
             endereco_atualizado = form.save(commit=False)
             
             # Se marcou como principal, remove principal dos outros
             if endereco_atualizado.principal:
-                EnderecoEntrega.objects.filter(usuario=request.user).exclude(id=endereco_id).update(principal=False)
+                Endereco.objects.filter(usuario=request.user).exclude(id=endereco_id).update(principal=False)
             
             endereco_atualizado.save()
             
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': True,
-                    'message': 'Endereço atualizado com sucesso!'
-                })
-            
-            messages.success(request, 'Endereço atualizado com sucesso!')
-            return redirect('meus_enderecos')
+                return JsonResponse({'success': True, 'message': 'Endereço atualizado com sucesso!'})
+            else:
+                messages.success(request, 'Endereço atualizado com sucesso!')
+                return redirect('meus_enderecos')
         else:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': False,
-                    'errors': form.errors
-                }, status=400)
-            
-            messages.error(request, 'Erro ao atualizar endereço.')
-            return redirect('meus_enderecos')
-            
-    except Exception as e:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': False,
-                'error': str(e)
-            }, status=500)
-        
-        messages.error(request, f'Erro ao atualizar endereço: {str(e)}')
-        return redirect('meus_enderecos')
+                return JsonResponse({'success': False, 'error': 'Erro ao atualizar endereço. Verifique os campos.'})
+            else:
+                messages.error(request, 'Erro ao atualizar endereço.')
+    else:
+        form = EnderecoForm(instance=endereco)
+    
+    return render(request, 'vendas/editar_endereco.html', {'form': form, 'endereco': endereco})
 
 @login_required
 @require_http_methods(["POST"])
