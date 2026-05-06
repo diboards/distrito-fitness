@@ -1,5 +1,1 @@
 # vendas/views/__init__.py
-from vendas.forms import PerfilForm
-# vendas/views/__init__.py
-
-from .meu_perfil import *
