@@ -104,15 +104,12 @@ urlpatterns = [
     # ... suas URLs existentes ...
     
     # Gerenciamento de Endereços
-    path('meus-enderecos/', meus_enderecos, name='meus_enderecos'),
-    path('endereco/salvar/', adicionar_ou_editar_endereco, name='salvar_endereco'),
-    path('endereco/deletar/<int:endereco_id>/', deletar_endereco, name='deletar_endereco'),
-    path('endereco/principal/<int:endereco_id>/', definir_principal, name='definir_principal'),
+    path('registrar-com-endereco/', endereco_views.registrar_com_endereco, name='registrar_com_endereco'),
     
-    # Registro
-    path('registrar-com-endereco/', registrar_com_endereco, name='registrar_com_endereco')
-
-,
+    path('meus-enderecos/', endereco_views.meus_enderecos, name='meus_enderecos'),
+    path('endereco/salvar/', endereco_views.adicionar_ou_editar_endereco, name='salvar_endereco'),
+    path('endereco/deletar/<int:endereco_id>/', endereco_views.deletar_endereco, name='deletar_endereco'),
+    path('endereco/principal/<int:endereco_id>/', endereco_views.definir_principal, name='definir_principal'),
 ]
 
 
