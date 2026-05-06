@@ -73,7 +73,7 @@ urlpatterns = [
     path('comprar-agora/<int:produto_id>/', views.comprar_agora, name='comprar_agora'),
     path('checkout/', views.checkout, name='checkout'),
     path('adicionar-endereco-checkout/', views.adicionar_endereco_checkout, name='adicionar_endereco_checkout'),
-    path('excluir-endereco/<int:endereco_id>/', views.excluir_endereco, name='excluir_endereco'),
+    
     path('finalizar-pedido/', views.finalizar_pedido, name='finalizar_pedido'),
     path('pagamento/', views.pagamento, name='pagamento'),
 
