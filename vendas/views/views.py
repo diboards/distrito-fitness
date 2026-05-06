@@ -601,7 +601,7 @@ def adicionar_endereco_checkout(request):
 
 @login_required
 #def excluir_endereco(request, endereco_id):
-    """View para excluir endereço via AJAX"""
+   
    
 
 @login_required
