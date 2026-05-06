@@ -4,7 +4,7 @@ from .import views
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
-from .meu_perfil import meu_perfil  # Importa de arquivo separado
+from vendas.views import meu_perfil  # ← Importa da pasta views
 
 urlpatterns = [
     path('', views.pagina_inicial, name='pagina_inicial'),
