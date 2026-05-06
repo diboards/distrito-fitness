@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from models import Perfil
 from forms import PerfilForm
+from vendas.models import Perfil  # ou from ..models import Perfil
 
 @login_required
 def meu_perfil(request):
