@@ -5,9 +5,9 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from vendas.views import meu_perfil  # ← Importa da pasta views
-from . import views_enderecos
+from vendas import views
 
-from vendas import views_enderecos as endereco_views  # alias
+from vendas import views_enderecos as endereco_views  # ← alias
 
 
 
@@ -104,8 +104,9 @@ urlpatterns = [
     # ... suas URLs existentes ...
     
     # Gerenciamento de Endereços
-    path('registrar-com-endereco/', endereco_views.registrar_com_endereco, name='registrar_com_endereco'),
+   path('registrar-com-endereco/', endereco_views.registrar_com_endereco, name='registrar_com_endereco'),
     
+    # Endereços
     path('meus-enderecos/', endereco_views.meus_enderecos, name='meus_enderecos'),
     path('endereco/salvar/', endereco_views.adicionar_ou_editar_endereco, name='salvar_endereco'),
     path('endereco/deletar/<int:endereco_id>/', endereco_views.deletar_endereco, name='deletar_endereco'),
