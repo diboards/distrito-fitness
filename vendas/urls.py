@@ -3,6 +3,7 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
+from vendas.views import meu_perfil
 
 # Importação correta para a pasta views (dentro da pasta)
 from vendas.views import views as views_principais
