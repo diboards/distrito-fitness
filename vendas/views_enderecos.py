@@ -4,8 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from .models import EnderecoEntrega
-from .forms import EnderecoEntregaForm
+from .models import Endereco
+from .forms import EnderecoForm
 
 @login_required
 def meus_enderecos(request):
