@@ -107,13 +107,18 @@ urlpatterns = [
     # ... suas URLs existentes ...
     
     # Gerenciamento de Endereços
-    path('meus-enderecos/', views_enderecos.meus_enderecos, name='meus_enderecos'),
-    path('endereco/salvar/', views.adicionar_ou_editar_endereco, name='salvar_endereco'),
-           
-    path('endereco/deletar/<int:endereco_id>/', views_enderecos.deletar_endereco, name='deletar_endereco'),
-    path('endereco/definir-principal/<int:endereco_id>/', views_enderecos.definir_principal, name='definir_principal'),
-    path('enderecos/api/', views_enderecos.listar_enderecos_api, name='listar_enderecos_api'),
+    path('meus-enderecos/', meus_enderecos, name='meus_enderecos'),
+    path('endereco/salvar/', adicionar_ou_editar_endereco, name='salvar_endereco'),
+    path('endereco/deletar/<int:endereco_id>/', deletar_endereco, name='deletar_endereco'),
+    path('endereco/principal/<int:endereco_id>/', definir_principal, name='definir_principal'),
+    
+    # Registro
+    path('registrar-com-endereco/', registrar_com_endereco, name='registrar_com_endereco')
+
+,
 ]
+
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
