@@ -7,6 +7,8 @@ from django.conf.urls.static import static
 from vendas.views import meu_perfil  # ← Importa da pasta views
 from . import views_enderecos
 
+from vendas import views_enderecos as endereco_views  # alias
+
 
 
 urlpatterns = [
