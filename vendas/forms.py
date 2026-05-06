@@ -3,7 +3,7 @@ from .models import Venda, Produto
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import EnderecoEntrega
-from .models import Perfil, Endereco
+from .models import Perfil
 
 
 class ProdutoForm(forms.ModelForm):
