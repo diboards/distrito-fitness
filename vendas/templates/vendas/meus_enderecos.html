@@ -38,23 +38,24 @@
                                                 {% endif %}
                                             </h6>
                                             <div class="btn-group">
-                                                <button type="button" class="btn btn-sm btn-outline-primary editar-endereco-btn" 
-                                                        data-endereco-id="{{ endereco.id }}"
-                                                        data-cep="{{ endereco.cep }}"
-                                                        data-rua="{{ endereco.rua }}"
-                                                        data-numero="{{ endereco.numero }}"
-                                                        data-complemento="{{ endereco.complemento|default:'' }}"
-                                                        data-bairro="{{ endereco.bairro }}"
-                                                        data-cidade="{{ endereco.cidade }}"
-                                                        data-estado="{{ endereco.estado }}"
-                                                        data-principal="{{ endereco.principal|yesno:'true,false' }}">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-outline-danger deletar-endereco-btn" 
-                                                        data-endereco-id="{{ endereco.id }}">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-primary editar-endereco-btn" 
+                                                    data-endereco-id="{{ endereco.id }}"
+                                                    data-action="editar"
+                                                    data-cep="{{ endereco.cep }}"
+                                                    data-rua="{{ endereco.rua }}"
+                                                    data-numero="{{ endereco.numero }}"
+                                                    data-complemento="{{ endereco.complemento|default:'' }}"
+                                                    data-bairro="{{ endereco.bairro }}"
+                                                    data-cidade="{{ endereco.cidade }}"
+                                                    data-estado="{{ endereco.estado }}"
+                                                    data-principal="{{ endereco.principal|yesno:'true,false' }}">
+                                                <i class="bi bi-pencil"></i> Editar
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger deletar-endereco-btn" 
+                                                    data-endereco-id="{{ endereco.id }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
                                         </div>
                                         {% if endereco.complemento %}
                                             <p class="mb-1 small">Complemento: {{ endereco.complemento }}</p>
