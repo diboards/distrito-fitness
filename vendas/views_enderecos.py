@@ -235,3 +235,78 @@ def adicionar_endereco_checkout(request):
             return JsonResponse({'success': False, 'error': str(e)})
     
     return JsonResponse({'success': False, 'error': 'Método não permitido'})
+
+
+def registrar_com_endereco(request):
+    # Verifica se tem email na session
+    email = request.session.get('email_cadastro')
+    print("DEBUG - Email na session:", email)
+    if not email:
+        messages.warning(request, 'Por favor, informe seu e-mail primeiro')
+        return redirect('login')
+    
+    if request.method == 'POST':
+        try:
+            # Dados do formulário
+            nome = request.POST.get('nome')
+            password1 = request.POST.get('password1')
+            password2 = request.POST.get('password2')
+            cpf = request.POST.get('cpf')
+            celular = request.POST.get('celular')
+            
+            # Dados do endereço
+            cep = request.POST.get('cep')
+            rua = request.POST.get('rua')
+            numero = request.POST.get('numero')
+            complemento = request.POST.get('complemento', '')
+            bairro = request.POST.get('bairro')
+            cidade = request.POST.get('cidade')
+            estado = request.POST.get('estado')
+            
+            # Validações
+            if password1 != password2:
+                messages.error(request, 'As senhas não coincidem')
+                return redirect('registrar_com_endereco')
+            
+            # Cria o usuário
+            user = User.objects.create_user(
+                username=email,
+                email=email,
+                password=password1,
+                first_name=nome
+            )
+            
+            # Cria o endereço
+            endereco = EnderecoEntrega(
+                usuario=user,
+                cep=cep,
+                rua=rua,
+                numero=numero,
+                complemento=complemento,
+                bairro=bairro,
+                cidade=cidade,
+                estado=estado,
+                principal=True
+            )
+            endereco.save()
+            
+            # Faz login automático
+            user = authenticate(username=email, password=password1)
+            if user:
+                login(request, user)
+                # Limpa a session
+                if 'email_cadastro' in request.session:
+                    del request.session['email_cadastro']
+                
+                messages.success(request, 'Conta criada com sucesso!')
+                return redirect('visualizar_carrinho')
+                
+        except IntegrityError:
+            messages.error(request, 'Este e-mail já está cadastrado')
+            return redirect('login')
+        except Exception as e:
+            messages.error(request, f'Erro ao criar conta: {str(e)}')
+    
+    return render(request, 'vendas/registrar_com_endereco.html', {
+        'email': email
+    })
