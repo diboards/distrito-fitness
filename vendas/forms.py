@@ -198,6 +198,7 @@ class OrcamentoForm(forms.Form):
             raise forms.ValidationError('Escolha um orçamento.')
         return data
 
+# Forms Meu perfil
 class PerfilForm(forms.ModelForm):
     first_name = forms.CharField(max_length=30, required=False, label="Nome")
     last_name = forms.CharField(max_length=30, required=False, label="Sobrenome")
@@ -233,3 +234,27 @@ class PerfilForm(forms.ModelForm):
             usuario.save()
         return perfil
 
+# Forms de Endereço
+class EnderecoEntregaForm(forms.ModelForm):
+    class Meta:
+        model = EnderecoEntrega
+        fields = ['rua', 'numero', 'complemento', 'bairro', 'cidade', 'estado', 'cep', 'principal']
+        widgets = {
+            'rua': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Rua, Avenida...'}),
+            'numero': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Número'}),
+            'complemento': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apto, Bloco...'}),
+            'bairro': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bairro'}),
+            'cidade': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Cidade'}),
+            'estado': forms.Select(attrs={'class': 'form-control'}, choices=[
+                ('', 'Selecione...'),
+                ('AC', 'Acre'), ('AL', 'Alagoas'), ('AP', 'Amapá'), ('AM', 'Amazonas'),
+                ('BA', 'Bahia'), ('CE', 'Ceará'), ('DF', 'Distrito Federal'), ('ES', 'Espírito Santo'),
+                ('GO', 'Goiás'), ('MA', 'Maranhão'), ('MT', 'Mato Grosso'), ('MS', 'Mato Grosso do Sul'),
+                ('MG', 'Minas Gerais'), ('PA', 'Pará'), ('PB', 'Paraíba'), ('PR', 'Paraná'),
+                ('PE', 'Pernambuco'), ('PI', 'Piauí'), ('RJ', 'Rio de Janeiro'), ('RN', 'Rio Grande do Norte'),
+                ('RS', 'Rio Grande do Sul'), ('RO', 'Rondônia'), ('RR', 'Roraima'), ('SC', 'Santa Catarina'),
+                ('SP', 'São Paulo'), ('SE', 'Sergipe'), ('TO', 'Tocantins')
+            ]),
+            'cep': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00000-000'}),
+            'principal': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
