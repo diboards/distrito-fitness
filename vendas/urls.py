@@ -7,6 +7,13 @@ from django.conf.urls.static import static
 from vendas.views import meu_perfil  # ← Importa da pasta views
 from . import views_enderecos
 
+from vendas.views_enderecos import (
+    meus_enderecos,
+    adicionar_ou_editar_endereco,
+    deletar_endereco,
+    definir_principal,
+    registrar_com_endereco,
+
 urlpatterns = [
     path('', views.pagina_inicial, name='pagina_inicial'),
     path('index/', views.pagina_inicial, name='index'),
