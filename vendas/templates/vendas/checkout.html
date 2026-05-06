@@ -1159,6 +1159,51 @@ document.addEventListener("DOMContentLoaded", function() {
     
     console.log("✅ Checkout inicializado!");
 });
+
+    // ========== 🔽 ADICIONE AQUI, FORA DO DOMContentLoaded 🔽 ==========
+
+// GERENCIAMENTO DE ENDEREÇOS NO MODAL
+const formNovoEndereco = document.getElementById('form-novo-endereco');
+if (formNovoEndereco) {
+    formNovoEndereco.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spinner"></i> Salvando...';
+        
+        try {
+            const formData = new FormData(this);
+            
+            const response = await fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert(data.error || 'Erro ao adicionar endereço');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro ao salvar endereço');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
+}
+    
 </script>
 
 <style>
