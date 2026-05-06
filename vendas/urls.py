@@ -49,7 +49,8 @@ urlpatterns = [
     path('calcular-frete-ajax/', views_principais.calcular_frete_ajax, name='calcular_frete_ajax'),
     path('comprar-agora/<int:produto_id>/', views_principais.comprar_agora, name='comprar_agora'),
     path('checkout/', views_principais.checkout, name='checkout'),
-    path('adicionar-endereco-checkout/', views.adicionar_endereco_checkout, name='adicionar_endereco_checkout'),
+    path('adicionar-endereco-checkout/', views_enderecos.adicionar_endereco_checkout, name='adicionar_endereco_checkout'),
+    
     path('finalizar-pedido/', views_principais.finalizar_pedido, name='finalizar_pedido'),
     path('pagamento/', views_principais.pagamento, name='pagamento'),
     path('processar-pagamento-cartao/<int:pedido_id>/', views_principais.processar_pagamento_cartao, name='processar_pagamento_cartao'),
