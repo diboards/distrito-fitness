@@ -205,7 +205,7 @@ class PerfilForm(forms.ModelForm):
     
     class Meta:
         model = Perfil
-        fields = ['telefone', 'cpf', 'data_nascimento', 'avatar', 'bio']
+        fields = ['telefone', 'cpf', 'data_nascimento', 'bio']
         widgets = {
             'data_nascimento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
