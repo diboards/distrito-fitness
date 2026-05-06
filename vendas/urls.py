@@ -67,14 +67,29 @@ urlpatterns = [
     
     # RESET DE SENHA
     path('password_reset/', auth_views.PasswordResetView.as_view(
-        template_name='vendas/auth/password_reset.html',
-        email_template_name='vendas/auth/password_reset_email.txt',
-        html_email_template_name='vendas/auth/password_reset_email.html',
-        subject_template_name='vendas/auth/password_reset_subject.txt'
+    template_name='vendas/auth/password_reset.html',
+    email_template_name='vendas/auth/password_reset_email.txt',  # versão texto
+    html_email_template_name='vendas/auth/password_reset_email.html',  # HTML real
+    subject_template_name='vendas/auth/password_reset_subject.txt'
     ), name='password_reset'),
-    path('password_reset_done/', auth_views.PasswordResetDoneView.as_view(template_name='vendas/auth/password_reset_done.html'), name='password_reset_done'),
-    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='vendas/auth/password_reset_confirm.html'), name='password_reset_confirm'),
-    path('reset_done/', auth_views.PasswordResetCompleteView.as_view(template_name='vendas/auth/password_reset_complete.html'), name='password_reset_complete'),
+
+    path('password_reset_done/',
+     auth_views.PasswordResetDoneView.as_view(
+         template_name='vendas/auth/password_reset_done.html'
+     ),
+     name='password_reset_done'),
+
+    path('reset/<uidb64>/<token>/',
+     auth_views.PasswordResetConfirmView.as_view(
+         template_name='vendas/auth/password_reset_confirm.html'
+     ),
+     name='password_reset_confirm'),
+
+    path('reset_done/',
+     auth_views.PasswordResetCompleteView.as_view(
+         template_name='vendas/auth/password_reset_complete.html'
+     ),
+     name='password_reset_complete'),
     
     # ===== VIEWS DE ENDEREÇOS (views_enderecos.py na RAIZ) =====
     path('registrar-com-endereco/', views_enderecos.registrar_com_endereco, name='registrar_com_endereco'),
