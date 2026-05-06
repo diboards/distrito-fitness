@@ -5,6 +5,7 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from vendas.views import meu_perfil  # ← Importa da pasta views
+from . import views_enderecos
 
 urlpatterns = [
     path('', views.pagina_inicial, name='pagina_inicial'),
@@ -77,7 +78,6 @@ urlpatterns = [
     path('pagamento/', views.pagamento, name='pagamento'),
 
     path('processar-pagamento-cartao/<int:pedido_id>/', views.processar_pagamento_cartao, name='processar_pagamento_cartao'),
-    
     path('processar-pagamento-pix/<int:pedido_id>/', views.processar_pagamento_pix, name='processar_pagamento_pix'),
     
     path('teste-conexao/', views.testar_conexao_mp, name='teste_conexao'),
@@ -96,6 +96,16 @@ urlpatterns = [
     path('api/verificar-pagamento/<int:pedido_id>/', views.verificar_status_pagamento, name='api_verificar_pagamento'),
     path('pedido/<int:pedido_id>/verificar-status/', views.verificar_status_pagamento, name='verificar_status_pagamento'),
     path('pedido/<int:pedido_id>/diagnostico/', views.diagnostico_pagamento, name='diagnostico_pagamento'),
+
+    # ... suas URLs existentes ...
+    
+    # Gerenciamento de Endereços
+    path('meus-enderecos/', views_enderecos.meus_enderecos, name='meus_enderecos'),
+    path('endereco/adicionar/', views_enderecos.adicionar_endereco, name='adicionar_endereco'),
+    path('endereco/editar/<int:endereco_id>/', views_enderecos.editar_endereco, name='editar_endereco'),
+    path('endereco/deletar/<int:endereco_id>/', views_enderecos.deletar_endereco, name='deletar_endereco'),
+    path('endereco/definir-principal/<int:endereco_id>/', views_enderecos.definir_principal, name='definir_principal'),
+    path('enderecos/api/', views_enderecos.listar_enderecos_api, name='listar_enderecos_api'),
 ]
 
 if settings.DEBUG:
