@@ -243,7 +243,7 @@ class Perfil(models.Model):
     )
     cpf = models.CharField(max_length=14, blank=True, null=True, verbose_name="CPF")
     data_nascimento = models.DateField(blank=True, null=True)
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    #avatar = models.ImageField(upload_to='avatars/', blank=True, null=True) foto de perfil
     bio = models.TextField(max_length=500, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
