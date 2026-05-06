@@ -529,57 +529,73 @@ def checkout(request):
          'MERCADOPAGO_PUBLIC_KEY': settings.MERCADOPAGO_PUBLIC_KEY,  # ADICIONE ESTA LINHA
     })
 
+# vendas/views/enderecos.py
+
 @login_required
 def adicionar_endereco_checkout(request):
-    """View para adicionar endereço via AJAX no checkout"""
+    """View para adicionar endereço (AJAX)"""
     if request.method == 'POST':
         try:
-            rua = request.POST.get('rua')
-            numero = request.POST.get('numero')
-            complemento = request.POST.get('complemento', '')
-            bairro = request.POST.get('bairro')
-            cidade = request.POST.get('cidade')
-            estado = request.POST.get('estado')
-            cep = request.POST.get('cep')
-            principal = request.POST.get('principal') == 'on'
+            # Verifica se é para adicionar ou editar
+            endereco_id = request.POST.get('endereco_id')
             
-            # Validações básicas
-            if not all([rua, numero, bairro, cidade, estado, cep]):
+            if endereco_id:
+                # ===== MODO EDITAR =====
+                endereco = get_object_or_404(Endereco, id=endereco_id, usuario=request.user)
+                
+                endereco.rua = request.POST.get('rua')
+                endereco.numero = request.POST.get('numero')
+                endereco.complemento = request.POST.get('complemento', '')
+                endereco.bairro = request.POST.get('bairro')
+                endereco.cidade = request.POST.get('cidade')
+                endereco.estado = request.POST.get('estado')
+                endereco.cep = request.POST.get('cep')
+                
+                principal = request.POST.get('principal') == 'on'
+                
+                if principal:
+                    # Remove principal de outros endereços
+                    Endereco.objects.filter(usuario=request.user, principal=True).update(principal=False)
+                    endereco.principal = True
+                else:
+                    endereco.principal = False
+                
+                endereco.save()
+                
                 return JsonResponse({
-                    'success': False, 
-                    'error': 'Todos os campos obrigatórios devem ser preenchidos.'
+                    'success': True,
+                    'message': 'Endereço atualizado com sucesso!'
+                })
+                
+            else:
+                # ===== MODO ADICIONAR =====
+                principal = request.POST.get('principal') == 'on'
+                
+                # Se for principal, remove principal de outros
+                if principal:
+                    Endereco.objects.filter(usuario=request.user, principal=True).update(principal=False)
+                
+                endereco = Endereco(
+                    usuario=request.user,
+                    cep=request.POST.get('cep'),
+                    rua=request.POST.get('rua'),
+                    numero=request.POST.get('numero'),
+                    complemento=request.POST.get('complemento', ''),
+                    bairro=request.POST.get('bairro'),
+                    cidade=request.POST.get('cidade'),
+                    estado=request.POST.get('estado'),
+                    principal=principal
+                )
+                endereco.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'endereco_id': endereco.id,
+                    'message': 'Endereço adicionado com sucesso!'
                 })
             
-            # Se for definir como principal, remove principal de outros endereços
-            if principal:
-                EnderecoEntrega.objects.filter(usuario=request.user, principal=True).update(principal=False)
-            
-            # Criar novo endereço
-            endereco = EnderecoEntrega(
-                usuario=request.user,
-                rua=rua,
-                numero=numero,
-                complemento=complemento,
-                bairro=bairro,
-                cidade=cidade,
-                estado=estado,
-                cep=cep,
-                principal=principal
-            )
-            endereco.save()
-            
-            return JsonResponse({
-                'success': True, 
-                'endereco_id': endereco.id,
-                'message': 'Endereço adicionado com sucesso!'
-            })
-            
         except Exception as e:
-            print(f"Erro ao adicionar endereço: {str(e)}")
-            return JsonResponse({
-                'success': False, 
-                'error': f'Erro ao adicionar endereço: {str(e)}'
-            })
+            return JsonResponse({'success': False, 'error': str(e)})
     
     return JsonResponse({'success': False, 'error': 'Método não permitido'})
 
