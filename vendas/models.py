@@ -255,31 +255,4 @@ class Perfil(models.Model):
     def __str__(self):
         return f"Perfil de {self.usuario.username}"
 
-class Endereco(models.Model):
-    TIPO_CHOICES = [
-        ('residencial', 'Residencial'),
-        ('comercial', 'Comercial'),
-        ('entrega', 'Entrega'),
-        ('cobranca', 'Cobrança'),
-    ]
 
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='enderecos')
-    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='residencial')
-    cep = models.CharField(max_length=9)
-    logradouro = models.CharField(max_length=200)
-    numero = models.CharField(max_length=10)
-    complemento = models.CharField(max_length=100, blank=True, null=True)
-    bairro = models.CharField(max_length=100)
-    cidade = models.CharField(max_length=100)
-    estado = models.CharField(max_length=2)
-    is_principal = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = "Endereço"
-        verbose_name_plural = "Endereços"
-        ordering = ['-is_principal', '-created_at']
-
-    def __str__(self):
-        return f"{self.tipo}: {self.logradouro}, {self.numero} - {self.cidade}/{self.estado}"
