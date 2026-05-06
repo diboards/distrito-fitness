@@ -101,11 +101,9 @@ urlpatterns = [
     
     # Gerenciamento de Endereços
     path('meus-enderecos/', views_enderecos.meus_enderecos, name='meus_enderecos'),
-    #path('endereco/adicionar/', views_enderecos.adicionar_endereco, name='adicionar_endereco'),
-    #path('endereco/editar/<int:endereco_id>/', views_enderecos.editar_endereco, name='editar_endereco'),
-    path('endereco/adicionar/', adicionar_endereco_checkout, name='adicionar_endereco'),
-    path('endereco/editar/<int:endereco_id>/', editar_endereco, name='editar_endereco'),
-    
+    path('endereco/adicionar/', views_enderecos.adicionar_endereco, name='adicionar_endereco'),
+    path('endereco/editar/<int:endereco_id>/', views_enderecos.editar_endereco, name='editar_endereco'),
+           
     path('endereco/deletar/<int:endereco_id>/', views_enderecos.deletar_endereco, name='deletar_endereco'),
     path('endereco/definir-principal/<int:endereco_id>/', views_enderecos.definir_principal, name='definir_principal'),
     path('enderecos/api/', views_enderecos.listar_enderecos_api, name='listar_enderecos_api'),
