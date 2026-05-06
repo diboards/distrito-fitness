@@ -25,8 +25,8 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='pagina_inicial'), name='logout'),
     path('registrar/', views_principais.registrar_usuario, name='registrar'),
     path('orcamento/', views_principais.solicitar_orcamento, name='orcamento'),
-    path('meu-perfil/', views_principais.meu_perfil, name='meu_perfil'),
     
+    path('meu-perfil/', views.meu_perfil, name='meu_perfil'),
     # Estoque
     path('estoque/', views_principais.estoque, name='estoque'),
     path('estoque/editar/<int:produto_id>/', views_principais.editar_produto, name='editar_produto'),
