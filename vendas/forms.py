@@ -233,26 +233,3 @@ class PerfilForm(forms.ModelForm):
             usuario.save()
         return perfil
 
-class EnderecoForm(forms.ModelForm):
-    class Meta:
-        model = Endereco
-        fields = ['tipo', 'cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'estado', 'is_principal']
-        widgets = {
-            'tipo': forms.Select(attrs={'class': 'form-control'}),
-            'cep': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00000-000'}),
-            'logradouro': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Rua, Avenida...'}),
-            'numero': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Número'}),
-            'complemento': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apto, Bloco...'}),
-            'bairro': forms.TextInput(attrs={'class': 'form-control'}),
-            'cidade': forms.TextInput(attrs={'class': 'form-control'}),
-            'estado': forms.Select(attrs={'class': 'form-control'}, choices=[(sigla, nome) for sigla, nome in [
-                ('AC', 'Acre'), ('AL', 'Alagoas'), ('AP', 'Amapá'), ('AM', 'Amazonas'), ('BA', 'Bahia'),
-                ('CE', 'Ceará'), ('DF', 'Distrito Federal'), ('ES', 'Espírito Santo'), ('GO', 'Goiás'),
-                ('MA', 'Maranhão'), ('MT', 'Mato Grosso'), ('MS', 'Mato Grosso do Sul'), ('MG', 'Minas Gerais'),
-                ('PA', 'Pará'), ('PB', 'Paraíba'), ('PR', 'Paraná'), ('PE', 'Pernambuco'), ('PI', 'Piauí'),
-                ('RJ', 'Rio de Janeiro'), ('RN', 'Rio Grande do Norte'), ('RS', 'Rio Grande do Sul'),
-                ('RO', 'Rondônia'), ('RR', 'Roraima'), ('SC', 'Santa Catarina'), ('SP', 'São Paulo'),
-                ('SE', 'Sergipe'), ('TO', 'Tocantins')
-            ]]),
-            'is_principal': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        }
