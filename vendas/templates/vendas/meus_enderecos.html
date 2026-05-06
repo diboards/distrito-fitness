@@ -227,32 +227,52 @@ document.querySelectorAll('.editar-endereco-btn').forEach(btn => {
 });
 
 // Resetar formulário ao abrir para novo endereço
-document.getElementById('enderecoModal').addEventListener('show.bs.modal', function(event) {
-    if (!event.relatedTarget || !event.relatedTarget.classList.contains('editar-endereco-btn')) {
-        document.getElementById('modal-title').textContent = 'Adicionar';
-        document.getElementById('form-action').value = 'adicionar';
-        document.getElementById('endereco-id').value = '';
-        document.getElementById('form-endereco').reset();
-    }
+// Variável para controlar se é edição
+let isEditing = false;
+
+// Abrir modal para ADICIONAR (botão Novo Endereço)
+document.getElementById('btn-novo-endereco').addEventListener('click', function() {
+    isEditing = false;
+    document.getElementById('modal-title').textContent = 'Adicionar Endereço';
+    document.getElementById('endereco-id').value = '';
+    document.getElementById('form-endereco').reset();
+    document.getElementById('form-endereco').action = "{% url 'adicionar_endereco' %}";
 });
 
-// Submeter formulário via AJAX
+// Abrir modal para EDITAR
+document.querySelectorAll('.editar-endereco-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        isEditing = true;
+        document.getElementById('modal-title').textContent = 'Editar Endereço';
+        document.getElementById('form-endereco').action = "{% url 'adicionar_endereco' %}";
+        document.getElementById('endereco-id').value = this.dataset.enderecoId;
+        document.getElementById('rua').value = this.dataset.rua;
+        document.getElementById('numero').value = this.dataset.numero;
+        document.getElementById('complemento').value = this.dataset.complemento;
+        document.getElementById('bairro').value = this.dataset.bairro;
+        document.getElementById('cidade').value = this.dataset.cidade;
+        document.getElementById('estado').value = this.dataset.estado;
+        document.getElementById('cep').value = this.dataset.cep;
+        document.getElementById('principal').checked = this.dataset.principal === 'true';
+        
+        const modal = new bootstrap.Modal(document.getElementById('enderecoModal'));
+        modal.show();
+    });
+});
+
+// Submeter formulário
 document.getElementById('form-endereco').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
-    const action = formData.get('action');
-    const enderecoId = formData.get('endereco_id');
-    
-    let url = action === 'adicionar' ? "{% url 'adicionar_endereco_checkout' %}" : `/endereco/editar/${enderecoId}/`;
-    
     const submitBtn = document.getElementById('btn-submit');
     const originalText = submitBtn.innerHTML;
+    
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spinner"></i> Salvando...';
     
     try {
-        const response = await fetch(url, {
+        const response = await fetch(this.action, {
             method: 'POST',
             body: formData,
             headers: {
