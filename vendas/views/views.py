@@ -238,26 +238,26 @@ def carrinho_count_api(request):
         print('ERRO carrinho_count_api:', str(e))
         return JsonResponse({'count': 0})
 
+
+
+
 @login_required
 def visualizar_carrinho(request):
-    # busca todos os itens do carrinho do usuário logado
-    itens_carrinho = CarrinhoItem.objects.filter(usuario=request.user)
-
-    # soma dos subtotais
-    total = sum(item.subtotal for item in itens_carrinho)
-
-    # pega o endereço principal
-    endereco_principal = None
-    enderecos = request.user.enderecos.all()
-    if enderecos.exists():
-        endereco_principal = enderecos.filter(principal=True).first() or enderecos.first()
-
-    return render(request, 'vendas/carrinho.html', {
-        'itens_carrinho': itens_carrinho,
+    """Visualizar carrinho de compras"""
+    # Busca itens do banco de dados
+    itens = CarrinhoItem.objects.filter(usuario=request.user)
+    
+    # Calcula totais
+    subtotal = sum(item.subtotal for item in itens)
+    total = subtotal  # + frete depois
+    
+    context = {
+        'itens_carrinho': itens,
+        'subtotal': subtotal,
         'total': total,
-        'endereco_principal': endereco_principal,
-        'enderecos': enderecos,
-    })
+        'total_itens': itens.count(),
+    }
+    return render(request, 'vendas/carrinho.html', context)
 
 @login_required
 def remover_carrinho(request, item_id):
@@ -333,30 +333,60 @@ def calcular_frete_ajax(request):
     
     return JsonResponse({'success': False, 'error': 'Requisição inválida'})
 
-@login_required
+# vendas/views/views.py
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib import messages
+from ..models import Produto, CarrinhoItem
+
+
 def comprar_agora(request, produto_id):
-    if request.method == 'POST':
-        produto = get_object_or_404(Produto, id=produto_id)
-        quantidade = int(request.POST.get('quantidade', 1))
-        cor = request.POST.get('cor', '')
-        tamanho = request.POST.get('tamanho', '')
-        
-        # Limpa o carrinho atual
-        #CarrinhoItem.objects.filter(usuario=request.user).delete()
-        
-        # Adiciona o produto ao carrinho
-        CarrinhoItem.objects.create(
+    """Adiciona produto ao carrinho (usuário logado ou anônimo)"""
+    produto = get_object_or_404(Produto, id=produto_id)
+    
+    quantidade = int(request.POST.get('quantidade', 1))
+    cor = request.POST.get('cor', '')
+    tamanho = request.POST.get('tamanho', '')
+    
+    if request.user.is_authenticated:
+        # Usuário logado: salva no banco
+        item, created = CarrinhoItem.objects.get_or_create(
             usuario=request.user,
             produto=produto,
-            quantidade=quantidade,
             cor_selecionada=cor,
-            tamanho_selecionado=tamanho
+            tamanho_selecionado=tamanho,
+            defaults={'quantidade': quantidade}
         )
+        if not created:
+            item.quantidade += quantidade
+            item.save()
+    else:
+        # Usuário anônimo: salva na sessão
+        carrinho = request.session.get('carrinho', {})
         
-        messages.success(request, f'{produto.nome} adicionado ao carrinho!')
-        return redirect('checkout')
+        produto_key = f"{produto_id}_{cor}_{tamanho}"
+        
+        if produto_key in carrinho:
+            carrinho[produto_key]['quantidade'] += quantidade
+        else:
+            carrinho[produto_key] = {
+                'id': produto_id,
+                'nome': produto.nome,
+                'preco': float(produto.preco),
+                'quantidade': quantidade,
+                'cor': cor,
+                'tamanho': tamanho,
+                'imagem': produto.imagem.url if produto.imagem else None
+            }
+        
+        request.session['carrinho'] = carrinho
+        request.session.modified = True
     
-    return redirect('detalhes_produto', produto_id=produto_id)
+    messages.success(request, f'{produto.nome} adicionado ao carrinho!')
+    
+    # Redireciona para o carrinho ou checkout
+    if 'finalizar' in request.GET:
+        return redirect('checkout')
+    return redirect('visualizar_carrinho')
 
 @login_required
 def finalizar_pedido(request):
