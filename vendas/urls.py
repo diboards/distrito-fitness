@@ -11,45 +11,7 @@ from vendas.views import views as views_principais
 # Importação correta para o arquivo views_enderecos.py (na raiz)
 
 from vendas import views_enderecos
-from vendas.views.views import (
-    pagina_inicial,
-    lista_vendas,
-    cadastrar_produto,
-    nova_venda,
-    relatorios,
-    editar_venda,
-    atualizar_venda,
-    login_view,
-    registrar_usuario,
-    solicitar_orcamento,
-    estoque,
-    editar_produto,
-    gerenciar_pedidos,
-    atualizar_status_entrega,
-    detalhes_produto,
-    adicionar_carrinho,
-    visualizar_carrinho,
-    remover_carrinho,
-    atualizar_carrinho,
-    carrinho_count_api,
-    calcular_frete_ajax,
-    comprar_agora,
-    checkout,
-    finalizar_pedido,
-    pagamento,
-    processar_pagamento_cartao,
-    processar_pagamento_pix,
-    testar_conexao_mp,
-    criar_pagamento,
-    pagamento_sucesso,
-    pagamento_falha,
-    pagamento_pendente,
-    meus_pedidos,
-    detalhes_pedido,
-    webhook_mercadopago,
-    verificar_status_pagamento,
-    diagnostico_pagamento,
-)
+
 
 urlpatterns = [
     # ===== VIEWS PRINCIPAIS (pasta views/views.py) =====
