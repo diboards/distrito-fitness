@@ -273,7 +273,11 @@ def registrar_com_endereco(request):
                 messages.error(request, 'As senhas não coincidem')
                 return redirect('registrar_com_endereco')
             
-            # Cria o usuário
+            # ===== 1. SALVAR O CARRINHO DA SESSÃO ANTES DE CRIAR O USUÁRIO =====
+            carrinho_sessao = request.session.get('carrinho', {})
+            print("DEBUG - Carrinho na sessão:", carrinho_sessao)
+            
+            # ===== 2. CRIA O USUÁRIO =====
             user = User.objects.create_user(
                 username=email,
                 email=email,
@@ -294,6 +298,32 @@ def registrar_com_endereco(request):
                 principal=True
             )
             endereco.save()
+
+            # ===== 4. TRANSFERIR O CARRINHO DA SESSÃO PARA O USUÁRIO =====
+            if carrinho_sessao:
+                from .models import Produto  # Importar aqui para evitar circular
+                
+                for produto_id, dados in carrinho_sessao.items():
+                    try:
+                        produto = Produto.objects.get(id=produto_id)
+                        # Verifica se já existe no carrinho do usuário
+                        item, created = CarrinhoItem.objects.get_or_create(
+                            usuario=user,
+                            produto=produto,
+                            cor_selecionada=dados.get('cor', ''),
+                            tamanho_selecionado=dados.get('tamanho', ''),
+                            defaults={'quantidade': dados.get('quantidade', 1)}
+                        )
+                        if not created:
+                            item.quantidade += dados.get('quantidade', 1)
+                            item.save()
+                        print(f"DEBUG - Produto {produto.nome} adicionado ao carrinho")
+                    except Produto.DoesNotExist:
+                        print(f"DEBUG - Produto {produto_id} não encontrado")
+                
+                # Limpa o carrinho da sessão
+                request.session['carrinho'] = {}
+                request.session.modified = True
             
             # Faz login automático
             user = authenticate(username=email, password=password1)
