@@ -333,11 +333,6 @@ def calcular_frete_ajax(request):
     
     return JsonResponse({'success': False, 'error': 'Requisição inválida'})
 
-# vendas/views/views.py
-from django.shortcuts import redirect, get_object_or_404
-from django.contrib import messages
-from ..models import Produto, CarrinhoItem
-
 
 def comprar_agora(request, produto_id):
     """Adiciona produto ao carrinho (usuário logado ou anônimo)"""
