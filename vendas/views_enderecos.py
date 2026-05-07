@@ -334,6 +334,11 @@ def registrar_com_endereco(request):
                     del request.session['email_cadastro']
                 
                 messages.success(request, 'Conta criada com sucesso!')
+
+                # Verifica se o carrinho foi transferido
+                itens_carrinho = CarrinhoItem.objects.filter(usuario=user)
+                print(f"DEBUG - Itens no carrinho após transferência: {itens_carrinho.count()}")
+                
                 return redirect('visualizar_carrinho')
                 
         except IntegrityError:
