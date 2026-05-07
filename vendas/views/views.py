@@ -342,7 +342,7 @@ def comprar_agora(request, produto_id):
         tamanho = request.POST.get('tamanho', '')
         
         # Limpa o carrinho atual
-        CarrinhoItem.objects.filter(usuario=request.user).delete()
+        #CarrinhoItem.objects.filter(usuario=request.user).delete()
         
         # Adiciona o produto ao carrinho
         CarrinhoItem.objects.create(
