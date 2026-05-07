@@ -244,7 +244,7 @@ document.querySelectorAll('.editar-endereco-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         isEditing = true;
         document.getElementById('modal-title').textContent = 'Editar Endereço';
-        document.getElementById('form-endereco').action = "{% url 'adicionar_endereco' %}";
+        document.getElementById('form-endereco').action = "{% url 'salvar_endereco' %}";
         document.getElementById('endereco-id').value = this.dataset.enderecoId;
         document.getElementById('rua').value = this.dataset.rua;
         document.getElementById('numero').value = this.dataset.numero;
