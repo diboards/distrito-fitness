@@ -236,7 +236,7 @@ document.getElementById('btn-novo-endereco').addEventListener('click', function(
     document.getElementById('modal-title').textContent = 'Adicionar Endereço';
     document.getElementById('endereco-id').value = '';
     document.getElementById('form-endereco').reset();
-    document.getElementById('form-endereco').action = "{% url 'adicionar_endereco' %}";
+    document.getElementById('form-endereco').action = "{% url 'salvar_endereco' %}";
 });
 
 // Abrir modal para EDITAR
