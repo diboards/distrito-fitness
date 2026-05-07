@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from .models import EnderecoEntrega
 from .forms import EnderecoEntregaForm
+from django.db import IntegrityError
 
 
 @login_required
