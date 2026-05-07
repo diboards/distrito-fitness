@@ -9,7 +9,7 @@ from vendas.views.meu_perfil import meu_perfil
 from vendas.views import views as views_principais
 
 # Importação correta para o arquivo views_enderecos.py (na raiz)
-from vendas.views import views
+
 from vendas import views_enderecos
 from vendas.views.views import (
     pagina_inicial,
@@ -61,11 +61,11 @@ urlpatterns = [
     path('relatorios/', views_principais.relatorios, name='relatorios'),
     path('editar/<int:venda_id>/', views_principais.editar_venda, name='editar_venda'),
     path('venda/atualizar/<int:venda_id>/', views_principais.atualizar_venda, name='atualizar_venda'),
-    path('login/', vendas_views.login_view, name='login'),
-    #path('login/', views_principais.login_view, name='login'),
+    
+    # CORRIGIDO: use views_principais em vez de vendas_views
+    path('login/', views_principais.login_view, name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='pagina_inicial'), name='logout'),
-    path('registrar/', vendas_views.registrar_usuario, name='registrar'),
-    #path('registrar/', views_principais.registrar_usuario, name='registrar'),
+    path('registrar/', views_principais.registrar_usuario, name='registrar'),
     path('orcamento/', views_principais.solicitar_orcamento, name='orcamento'),
     
     path('meu-perfil/', meu_perfil, name='meu_perfil'),
@@ -81,8 +81,8 @@ urlpatterns = [
     # Carrinho e produtos
     path('produto/<int:produto_id>/', views_principais.detalhes_produto, name='detalhes_produto'),
     path('carrinho/adicionar/<int:produto_id>/', views_principais.adicionar_carrinho, name='adicionar_carrinho'),
-    path('carrinho/', vendas_views.visualizar_carrinho, name='visualizar_carrinho'),
-    #path('carrinho/', views_principais.visualizar_carrinho, name='visualizar_carrinho'),
+   
+    path('carrinho/', views_principais.visualizar_carrinho, name='visualizar_carrinho'),
     path('carrinho/remover/<int:item_id>/', views_principais.remover_carrinho, name='remover_carrinho'),
     path('carrinho/atualizar/<int:item_id>/', views_principais.atualizar_carrinho, name='atualizar_carrinho'),
     path('carrinho/count/', views_principais.carrinho_count_api, name='carrinho_count_api'),
