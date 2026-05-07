@@ -9,6 +9,7 @@ from vendas.views.meu_perfil import meu_perfil
 from vendas.views import views as views_principais
 
 # Importação correta para o arquivo views_enderecos.py (na raiz)
+from vendas.views import views
 from vendas import views_enderecos
 from vendas.views.views import (
     pagina_inicial,
