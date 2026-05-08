@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from .models import EnderecoEntrega
+from .models import EnderecoEntrega, CarrinhoItem
 from .forms import EnderecoEntregaForm
 from django.db import IntegrityError
 
