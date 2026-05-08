@@ -248,7 +248,7 @@ def visualizar_carrinho(request):
 
     # soma dos subtotais
     total = sum(item.subtotal for item in itens_carrinho)
-    total = subtotal
+    
 
     # pega o endereço principal
     endereco_principal = None
