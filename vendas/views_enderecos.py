@@ -334,13 +334,19 @@ def registrar_com_endereco(request):
                     del request.session['email_cadastro']
                 
                 messages.success(request, 'Conta criada com sucesso!')
-                
+
                 # Verifica se o carrinho foi transferido
                 itens_carrinho = CarrinhoItem.objects.filter(usuario=user)
                 print(f"DEBUG - Itens no carrinho após transferência: {itens_carrinho.count()}")
                 
-                # Se tiver itens, vai para o carrinho; senão, vai para a loja
-                if itens_carrinho.exists():
-                    return redirect('visualizar_carrinho')
-                else:
-                    return redirect('pagina_inicial')
+                return redirect('visualizar_carrinho')
+                
+        except IntegrityError:
+            messages.error(request, 'Este e-mail já está cadastrado')
+            return redirect('login')
+        except Exception as e:
+            messages.error(request, f'Erro ao criar conta: {str(e)}')
+    
+    return render(request, 'vendas/registrar_com_endereco.html', {
+        'email': email
+    })
