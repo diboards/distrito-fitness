@@ -435,9 +435,6 @@ function atualizarResumoPedido(total, freteInfo = null) {
     const prazoFreteEl = document.getElementById('prazo-frete');
     const textoAjudaEl = document.getElementById('texto-ajuda-frete');
     const statusFreteEl = document.getElementById('status-frete');
-    const cidadeEntregaEl = document.getElementById('cidade-entrega');
-    const precoFreteEl = document.getElementById('preco-frete');
-    const prazoEntregaEl = document.getElementById('prazo-entrega');
     
     if (totalPixEl) totalPixEl.textContent = formatBR(totalPix);
     if (totalParceladoEl) totalParceladoEl.textContent = formatBR(totalComFrete);
@@ -446,41 +443,28 @@ function atualizarResumoPedido(total, freteInfo = null) {
     
     // Atualizar informações de frete
     if (freteInfo) {
-        if (valorFreteEl) {
-            if (frete === 0) {
-                valorFreteEl.textContent = 'GRÁTIS';
-                valorFreteEl.className = 'text-success fw-bold';
-            } else {
-                valorFreteEl.textContent = formatBR(frete);
-                valorFreteEl.className = 'text-success';
-            }
+        if (frete === 0) {
+            valorFreteEl.textContent = 'GRÁTIS';
+            valorFreteEl.className = 'text-success fw-bold';
+        } else {
+            valorFreteEl.textContent = formatBR(frete);
+            valorFreteEl.className = 'text-success';
         }
         
-        if (cidadeFreteEl) cidadeFreteEl.textContent = freteInfo.cidade;
-        if (cidadeEntregaEl) cidadeEntregaEl.textContent = freteInfo.cidade;
-        if (precoFreteEl) precoFreteEl.textContent = frete === 0 ? 'Grátis' : formatBR(frete);
-        if (prazoEntregaEl) prazoEntregaEl.textContent = freteInfo.prazo;
-        if (textoPrazoEl) textoPrazoEl.textContent = `Chega em ${freteInfo.prazo}`;
-        if (prazoFreteEl) prazoFreteEl.style.display = 'block';
-        if (textoAjudaEl) textoAjudaEl.textContent = 'Frete calculado para:';
-        if (statusFreteEl) {
-            statusFreteEl.textContent = 'Calculado';
-            statusFreteEl.className = 'badge bg-success';
-        }
+        cidadeFreteEl.textContent = freteInfo.cidade;
+        textoPrazoEl.textContent = `Chega em ${freteInfo.prazo}`;
+        prazoFreteEl.style.display = 'block';
+        textoAjudaEl.textContent = 'Frete calculado para:';
+        statusFreteEl.textContent = 'Calculado';
+        statusFreteEl.className = 'badge bg-success';
     } else {
-        if (valorFreteEl) {
-            valorFreteEl.textContent = 'Informe o CEP';
-            valorFreteEl.className = 'text-muted';
-        }
-        if (cidadeFreteEl) cidadeFreteEl.textContent = 'sua região';
-        if (cidadeEntregaEl) cidadeEntregaEl.textContent = 'sua região';
-        if (precoFreteEl) precoFreteEl.textContent = 'R$ 0,00';
-        if (prazoFreteEl) prazoFreteEl.style.display = 'none';
-        if (textoAjudaEl) textoAjudaEl.textContent = 'Digite seu CEP para calcular o frete';
-        if (statusFreteEl) {
-            statusFreteEl.textContent = 'Não calculado';
-            statusFreteEl.className = 'badge bg-light text-dark';
-        }
+        valorFreteEl.textContent = 'Informe o CEP';
+        valorFreteEl.className = 'text-muted';
+        cidadeFreteEl.textContent = 'sua região';
+        prazoFreteEl.style.display = 'none';
+        textoAjudaEl.textContent = 'Digite seu CEP para calcular o frete';
+        statusFreteEl.textContent = 'Não calculado';
+        statusFreteEl.className = 'badge bg-light text-dark';
     }
 }
 
@@ -641,42 +625,26 @@ async function calcularFretePorCEP(cep) {
             const textoResultado = document.getElementById('resultado-frete-principal');
             const prazoResultado = document.getElementById('prazo-entrega-principal');
 
-            if (resultadoEl) resultadoEl.style.display = 'block';
-            if (textoResultado) {
-                if (resultado.valor === 0) {
-                    textoResultado.textContent = '🎉 FRETE GRÁTIS';
-                } else {
-                    textoResultado.textContent = `Frete: ${formatBR(resultado.valor)}`;
-                }
+            if (resultado.valor === 0) {
+                textoResultado.textContent = '🎉 FRETE GRÁTIS';
+            } else {
+                textoResultado.textContent = `Frete: ${formatBR(resultado.valor)}`;
             }
-            if (prazoResultado) {
-                prazoResultado.textContent = `📍 ${resultado.cidade} • ⏱️ ${resultado.prazo}`;
-            }
-        } catch (error) {
-            console.error('Erro ao calcular frete:', error);
+            prazoResultado.textContent = `📍 ${resultado.cidade} • ⏱️ ${resultado.prazo}`;
+            resultadoEl.style.display = 'block';
         } finally {
             mostrarLoadingFrete(false);
+        }
     }
-}
 
     document.addEventListener("DOMContentLoaded", function() {
-    // Inicializar preços
-    atualizarPrecosItens();
-    const totalInitial = parseFloat("{{ total }}") || 0;
-    atualizarResumoPedido(totalInitial);
+        {% if endereco_principal %}
+            calcularFretePorCEP("{{ endereco_principal.cep|cut:"-" }}");
+        {% endif %}
 
-    // Verificar se existe endereço principal antes de chamar
-    const enderecoPrincipal = "{{ endereco_principal.cep|default:'' }}";
-    if (enderecoPrincipal) {
-        calcularFretePorCEP(enderecoPrincipal.replace(/-/g, ''));
-    }
-
-    const enderecoSelect = document.getElementById("enderecoSelect");
-    if (enderecoSelect) {
-        enderecoSelect.addEventListener("change", function(e) {
+        document.getElementById("enderecoSelect")?.addEventListener("change", function(e) {
             calcularFretePorCEP(e.target.value.replace(/\D/g, ""));
         });
-    }
-});
+    });
 </script>
 {% endblock %}
