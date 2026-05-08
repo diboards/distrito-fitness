@@ -158,6 +158,8 @@ def detalhes_produto(request, produto_id):
     return render(request, 'vendas/detalhes_produto.html', context)
 
     
+# vendas/views/views.py
+
 def adicionar_carrinho(request, produto_id):
     if request.method == 'POST':
         produto = get_object_or_404(Produto, id=produto_id)
@@ -171,41 +173,54 @@ def adicionar_carrinho(request, produto_id):
         tamanho = request.POST.get('tamanho', '')
         action = request.POST.get('action', 'carrinho')
 
-        if not request.user.is_authenticated and action == 'comprar':
-            request.session['compra_rapida'] = {
-                'produto_id': produto_id,
-                'quantidade': quantidade,
-                'cor': cor,
-                'tamanho': tamanho,
-                'action': action
-            }
-            return redirect('login')
+        # ===== SE NÃO ESTÁ LOGADO =====
+        if not request.user.is_authenticated:
+            # Recupera ou cria o carrinho na sessão
+            carrinho = request.session.get('carrinho', {})
+            
+            # Chave única para o produto com suas variações
+            produto_key = f"{produto_id}_{cor}_{tamanho}"
+            
+            if produto_key in carrinho:
+                carrinho[produto_key]['quantidade'] += quantidade
+            else:
+                carrinho[produto_key] = {
+                    'id': produto_id,
+                    'nome': produto.nome,
+                    'preco': float(produto.preco),
+                    'quantidade': quantidade,
+                    'cor': cor,
+                    'tamanho': tamanho,
+                    'imagem': produto.imagem.url if produto.imagem else None
+                }
+            
+            # Salva na sessão
+            request.session['carrinho'] = carrinho
+            request.session.modified = True
+            
+            print(f"DEBUG - Carrinho salvo na sessão: {request.session.get('carrinho')}")
+            
+            # Se for compra rápida, redireciona para login
+            if action == 'comprar':
+                return redirect('login')
+            else:
+                messages.success(request, f'{produto.nome} adicionado ao carrinho!')
+                return redirect('detalhes_produto', produto_id=produto_id)
 
+        # ===== SE ESTÁ LOGADO =====
         if request.user.is_authenticated:
-            variacao = Produto.objects.filter(
-                nome=produto.nome, cor=cor, tamanho=tamanho, ativo=True
-            ).first()
-
-            imagem = (
-                variacao.imagem if variacao and variacao.imagem
-                else produto.imagem
-            )
-
             item, created = CarrinhoItem.objects.get_or_create(
                 usuario=request.user,
                 produto=produto,
                 cor_selecionada=cor,
                 tamanho_selecionado=tamanho,
-                defaults={
-                    'quantidade': quantidade,
-                    'imagem': imagem
-                }
+                defaults={'quantidade': quantidade}
             )
  
             if not created:
                 item.quantidade += quantidade
-                item.imagem = imagem
                 item.save()
+            
             messages.success(request, f'{produto.nome} adicionado ao carrinho!')
 
             if action == 'comprar':
@@ -364,6 +379,21 @@ def comprar_agora(request, produto_id):
     
     return redirect('detalhes_produto', produto_id=produto_id)
 
+#redirecionar não-logados para o login com produto na sessão:
+def comprar_agora_anonimo(request, produto_id):
+    """Para usuários não logados - salva produto na sessão e redireciona para login"""
+    produto = get_object_or_404(Produto, id=produto_id)
+    
+    # Salva o produto na sessão
+    request.session['produto_compra'] = {
+        'id': produto_id,
+        'quantidade': int(request.GET.get('quantidade', 1)),
+        'cor': request.GET.get('cor', ''),
+        'tamanho': request.GET.get('tamanho', '')
+    }
+    request.session.modified = True
+    
+    return redirect('login')
 
 @login_required
 def finalizar_pedido(request):
