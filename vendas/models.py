@@ -112,7 +112,7 @@ class EnderecoEntrega(models.Model):
             # Se este endereço está sendo marcado como principal
             if self.principal:
                 # Remove principal de todos os outros endereços do mesmo usuário
-                EnderecoEntrega.objects.filter(usuario=self.usuario, principal=True).update(principal=False)
+               EnderecoEntrega.objects.filter(usuario=self.usuario, principal=True).exclude(id=self.id).update(principal=False)
             super().save(*args, **kwargs)
     
     def __str__(self):
