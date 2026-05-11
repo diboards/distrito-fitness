@@ -303,23 +303,38 @@ def registrar_com_endereco(request):
             if carrinho_sessao:
                 from .models import Produto  # Importar aqui para evitar circular
                 
-                for produto_id, dados in carrinho_sessao.items():
+                for chave, dados in carrinho_sessao.items():
                     try:
-                        produto = Produto.objects.get(id=produto_id)
-                        # Verifica se já existe no carrinho do usuário
-                        item, created = CarrinhoItem.objects.get_or_create(
-                            usuario=user,
-                            produto=produto,
-                            cor_selecionada=dados.get('cor', ''),
-                            tamanho_selecionado=dados.get('tamanho', ''),
-                            defaults={'quantidade': dados.get('quantidade', 1)}
-                        )
-                        if not created:
-                            item.quantidade += dados.get('quantidade', 1)
-                            item.save()
-                        print(f"DEBUG - Produto {produto.nome} adicionado ao carrinho")
+                        # Extrai o ID do produto da chave (formato: "3_Vermelho_M")
+                        # ou pega diretamente do dicionário
+                        produto_id = dados.get('id')  # ← PEGA O ID DO DICIONÁRIO
+                        
+                        if not produto_id:
+                            # Tenta extrair da chave como fallback
+                            produto_id = int(chave.split('_')[0]) if chave.split('_')[0].isdigit() else None
+                        
+                        if produto_id:
+                            produto = Produto.objects.get(id=produto_id)
+                            
+                            # Verifica se já existe no carrinho do usuário
+                            item, created = CarrinhoItem.objects.get_or_create(
+                                usuario=user,
+                                produto=produto,
+                                cor_selecionada=dados.get('cor', ''),
+                                tamanho_selecionado=dados.get('tamanho', ''),
+                                defaults={'quantidade': dados.get('quantidade', 1)}
+                            )
+                            if not created:
+                                item.quantidade += dados.get('quantidade', 1)
+                                item.save()
+                            print(f"DEBUG - Produto {produto.nome} adicionado ao carrinho")
+                        else:
+                            print(f"DEBUG - Não foi possível extrair ID do produto da chave: {chave}")
+                            
                     except Produto.DoesNotExist:
-                        print(f"DEBUG - Produto {produto_id} não encontrado")
+                        print(f"DEBUG - Produto não encontrado: {dados.get('id')}")
+                    except Exception as e:
+                        print(f"DEBUG - Erro ao processar produto: {str(e)}")
                 
                 # Limpa o carrinho da sessão
                 request.session['carrinho'] = {}
