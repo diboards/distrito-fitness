@@ -288,36 +288,52 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // ===== DELETAR ENDEREÇO =====
-    document.querySelectorAll('.deletar-endereco-btn').forEach(btn => {
-        btn.addEventListener('click', async function() {
-            const enderecoId = this.dataset.enderecoId;
-            
-            if (!confirm('Tem certeza que deseja excluir este endereço?')) return;
-            
-            try {
-                const response = await fetch(`/endereco/deletar/${enderecoId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showAlert(data.message, 'success');
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    showAlert(data.error || 'Erro ao excluir endereço', 'danger');
+    // ===== DEFINIR ENDEREÇO PRINCIPAL =====
+document.querySelectorAll('.definir-principal-btn').forEach(btn => {
+    btn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        const enderecoId = this.dataset.enderecoId;
+        
+        console.log("Definir principal - ID:", enderecoId);
+        
+        if (!confirm('Deseja definir este endereço como principal?')) return;
+        
+        // Mostrar loading no botão
+        const originalHtml = this.innerHTML;
+        this.innerHTML = '<i class="bi bi-arrow-repeat spinner"></i>';
+        this.disabled = true;
+        
+        try {
+            const response = await fetch(`/endereco/principal/${enderecoId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json'
                 }
-            } catch (error) {
-                console.error('Erro:', error);
-                showAlert('Erro ao excluir endereço', 'danger');
+            });
+            
+            const data = await response.json();
+            console.log("Resposta:", data);
+            
+            if (data.success) {
+                showAlert(data.message, 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                showAlert(data.error || 'Erro ao definir endereço principal', 'danger');
+                this.innerHTML = originalHtml;
+                this.disabled = false;
             }
-        });
+        } catch (error) {
+            console.error('Erro:', error);
+            showAlert('Erro ao definir endereço principal', 'danger');
+            this.innerHTML = originalHtml;
+            this.disabled = false;
+        }
     });
+});
     
     // ===== DEFINIR ENDEREÇO PRINCIPAL =====
     document.querySelectorAll('.definir-principal-btn').forEach(btn => {
