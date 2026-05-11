@@ -10,7 +10,7 @@
                     <h4 class="mb-0">
                         <i class="bi bi-geo-alt"></i> Meus Endereços
                     </h4>
-                    <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#enderecoModal">
+                    <button type="button" id="btn-novo-endereco" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#enderecoModal">
                         <i class="bi bi-plus-circle"></i> Novo Endereço
                     </button>
                 </div>
@@ -182,18 +182,6 @@ function formatarCEP(input) {
     input.value = cep;
 }
 
-function formatarTelefone(input) {
-    let tel = input.value.replace(/\D/g, '');
-    if (tel.length > 10) {
-        tel = tel.substring(0, 2) + ' ' + tel.substring(2, 7) + '-' + tel.substring(7, 11);
-    } else if (tel.length > 6) {
-        tel = tel.substring(0, 2) + ' ' + tel.substring(2, 6) + '-' + tel.substring(6, 10);
-    } else if (tel.length > 2) {
-        tel = tel.substring(0, 2) + ' ' + tel.substring(2);
-    }
-    input.value = tel;
-}
-
 function showAlert(message, type = 'success') {
     const alertDiv = document.getElementById('modal-alert');
     alertDiv.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
@@ -206,61 +194,41 @@ function showAlert(message, type = 'success') {
     }, 3000);
 }
 
-// Abrir modal para editar
-document.querySelectorAll('.editar-endereco-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.getElementById('modal-title').textContent = 'Editar';
-        document.getElementById('form-action').value = 'editar';
-        document.getElementById('endereco-id').value = this.dataset.enderecoId;
-        document.getElementById('rua').value = this.dataset.rua;
-        document.getElementById('numero').value = this.dataset.numero;
-        document.getElementById('complemento').value = this.dataset.complemento;
-        document.getElementById('bairro').value = this.dataset.bairro;
-        document.getElementById('cidade').value = this.dataset.cidade;
-        document.getElementById('estado').value = this.dataset.estado;
-        document.getElementById('cep').value = this.dataset.cep;
-        document.getElementById('principal').checked = this.dataset.principal === 'true';
-        
-        const modal = new bootstrap.Modal(document.getElementById('enderecoModal'));
-        modal.show();
-    });
+// ===== RESETAR MODAL PARA NOVO ENDEREÇO =====
+const enderecoModal = document.getElementById('enderecoModal');
+
+enderecoModal.addEventListener('show.bs.modal', function(event) {
+    // Verifica se o botão que abriu o modal é o de novo endereço
+    const button = event.relatedTarget;
+    const isNewButton = button && button.id === 'btn-novo-endereco';
+    
+    if (isNewButton || !button || !button.classList.contains('editar-endereco-btn')) {
+        // Modo Adicionar
+        document.getElementById('modal-title').textContent = 'Adicionar Endereço';
+        document.getElementById('endereco-id').value = '';
+        document.getElementById('form-endereco').reset();
+        document.getElementById('principal').checked = false;
+    }
 });
 
-// Resetar formulário ao abrir para novo endereço
-// Variável para controlar se é edição
-let isEditing = false;
-
-// Abrir modal para ADICIONAR (botão Novo Endereço)
-document.getElementById('btn-novo-endereco').addEventListener('click', function() {
-    isEditing = false;
-    document.getElementById('modal-title').textContent = 'Adicionar Endereço';
-    document.getElementById('endereco-id').value = '';
-    document.getElementById('form-endereco').reset();
-    document.getElementById('form-endereco').action = "{% url 'salvar_endereco' %}";
-});
-
-// Abrir modal para EDITAR
+// ===== ABRIR MODAL PARA EDITAR =====
 document.querySelectorAll('.editar-endereco-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-        isEditing = true;
+        // Modo Editar
         document.getElementById('modal-title').textContent = 'Editar Endereço';
-        document.getElementById('form-endereco').action = "{% url 'salvar_endereco' %}";
         document.getElementById('endereco-id').value = this.dataset.enderecoId;
         document.getElementById('rua').value = this.dataset.rua;
         document.getElementById('numero').value = this.dataset.numero;
-        document.getElementById('complemento').value = this.dataset.complemento;
+        document.getElementById('complemento').value = this.dataset.complemento || '';
         document.getElementById('bairro').value = this.dataset.bairro;
         document.getElementById('cidade').value = this.dataset.cidade;
         document.getElementById('estado').value = this.dataset.estado;
         document.getElementById('cep').value = this.dataset.cep;
         document.getElementById('principal').checked = this.dataset.principal === 'true';
-        
-        const modal = new bootstrap.Modal(document.getElementById('enderecoModal'));
-        modal.show();
     });
 });
 
-// Submeter formulário
+// ===== SUBMETER FORMULÁRIO (ADICIONAR/EDITAR) =====
 document.getElementById('form-endereco').addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -272,7 +240,7 @@ document.getElementById('form-endereco').addEventListener('submit', async functi
     submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spinner"></i> Salvando...';
     
     try {
-        const response = await fetch(this.action, {
+        const response = await fetch("{% url 'salvar_endereco' %}", {
             method: 'POST',
             body: formData,
             headers: {
@@ -294,13 +262,14 @@ document.getElementById('form-endereco').addEventListener('submit', async functi
             submitBtn.innerHTML = originalText;
         }
     } catch (error) {
+        console.error('Erro:', error);
         showAlert('Erro ao processar requisição', 'danger');
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
     }
 });
 
-// Deletar endereço
+// ===== DELETAR ENDEREÇO =====
 document.querySelectorAll('.deletar-endereco-btn').forEach(btn => {
     btn.addEventListener('click', async function() {
         const enderecoId = this.dataset.enderecoId;
@@ -319,22 +288,19 @@ document.querySelectorAll('.deletar-endereco-btn').forEach(btn => {
             const data = await response.json();
             
             if (data.success) {
-                const enderecoElement = document.querySelector(`.endereco-item[data-endereco-id="${enderecoId}"]`);
-                if (enderecoElement) {
-                    enderecoElement.remove();
-                }
-                showAlert('Endereço removido com sucesso!', 'success');
+                showAlert(data.message, 'success');
                 setTimeout(() => location.reload(), 1000);
             } else {
                 showAlert(data.error || 'Erro ao excluir endereço', 'danger');
             }
         } catch (error) {
+            console.error('Erro:', error);
             showAlert('Erro ao excluir endereço', 'danger');
         }
     });
 });
 
-// Definir endereço principal
+// ===== DEFINIR ENDEREÇO PRINCIPAL =====
 document.querySelectorAll('.definir-principal-btn').forEach(btn => {
     btn.addEventListener('click', async function() {
         const enderecoId = this.dataset.enderecoId;
@@ -351,19 +317,20 @@ document.querySelectorAll('.definir-principal-btn').forEach(btn => {
             const data = await response.json();
             
             if (data.success) {
-                showAlert('Endereço principal definido com sucesso!', 'success');
+                showAlert(data.message, 'success');
                 setTimeout(() => location.reload(), 1000);
             } else {
                 showAlert(data.error || 'Erro ao definir endereço principal', 'danger');
             }
         } catch (error) {
+            console.error('Erro:', error);
             showAlert('Erro ao definir endereço principal', 'danger');
         }
     });
 });
 
-// Fechar modal ao clicar fora
-document.getElementById('enderecoModal').addEventListener('hidden.bs.modal', function() {
+// Fechar modal ao clicar fora, limpar alertas
+enderecoModal.addEventListener('hidden.bs.modal', function() {
     document.getElementById('modal-alert').innerHTML = '';
 });
 </script>
