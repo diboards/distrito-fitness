@@ -107,10 +107,19 @@ class EnderecoEntrega(models.Model):
     estado = models.CharField(max_length=2)
     principal = models.BooleanField(default=False)
 
+
+    def save(self, *args, **kwargs):
+            # Se este endereço está sendo marcado como principal
+            if self.principal:
+                # Remove principal de todos os outros endereços do mesmo usuário
+                EnderecoEntrega.objects.filter(usuario=self.usuario, principal=True).update(principal=False)
+            super().save(*args, **kwargs)
+    
     def __str__(self):
         return f"{self.rua}, {self.numero} - {self.bairro}, {self.cidade}/{self.estado}"
     class Meta:
         verbose_name_plural = "Endereços de Entrega"
+
 
 class Pedido(models.Model):
 
