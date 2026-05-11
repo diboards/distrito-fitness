@@ -136,6 +136,8 @@ def deletar_endereco(request, endereco_id):
     messages.success(request, 'Endereço excluído com sucesso!')
     return redirect('meus_enderecos')
 
+
+
 @login_required
 @require_http_methods(["POST"])
 def definir_principal(request, endereco_id):
@@ -144,34 +146,28 @@ def definir_principal(request, endereco_id):
         endereco = get_object_or_404(EnderecoEntrega, id=endereco_id, usuario=request.user)
         
         # Remove principal de todos os endereços do usuário
-        EnderecoEntrega.objects.filter(usuario=request.user).update(principal=False)
+        updated = EnderecoEntrega.objects.filter(usuario=request.user).update(principal=False)
+        print(f"DEBUG - Removido principal de {updated} endereços")
         
         # Define o novo endereço como principal
         endereco.principal = True
         endereco.save()
         
-        print(f"DEBUG - Endereço {endereco_id} definido como principal para usuário {request.user}")
+        print(f"DEBUG - Endereço {endereco_id} definido como principal")
         
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': True,
-                'message': 'Endereço principal definido com sucesso!',
-                'endereco_id': endereco.id
-            })
-        
-        messages.success(request, 'Endereço principal definido com sucesso!')
-        return redirect('meus_enderecos')
+        return JsonResponse({
+            'success': True,
+            'message': 'Endereço principal definido com sucesso!',
+            'endereco_id': endereco.id
+        })
         
     except Exception as e:
-        print(f"DEBUG - Erro ao definir principal: {str(e)}")
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': False,
-                'error': str(e)
-            }, status=400)
+        print(f"DEBUG - Erro: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
         
-        messages.error(request, f'Erro ao definir endereço principal: {str(e)}')
-        return redirect('meus_enderecos')
 @login_required
 def listar_enderecos_api(request):
     """API para listar endereços (usado no checkout)"""
