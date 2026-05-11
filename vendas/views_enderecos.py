@@ -24,6 +24,8 @@ def meus_enderecos(request):
     }
     return render(request, 'vendas/meus_enderecos.html', context)
 
+# vendas/views_enderecos.py
+
 @login_required
 @require_http_methods(["POST"])
 def adicionar_ou_editar_endereco(request):
@@ -39,6 +41,10 @@ def adicionar_ou_editar_endereco(request):
         estado = request.POST.get('estado')
         cep = request.POST.get('cep')
         
+        # Log para debug
+        print(f"DEBUG - endereco_id: {endereco_id}")
+        print(f"DEBUG - Dados recebidos: rua={rua}, numero={numero}, bairro={bairro}, cidade={cidade}, estado={estado}, cep={cep}")
+        
         if not all([rua, numero, bairro, cidade, estado, cep]):
             return JsonResponse({
                 'success': False,
@@ -46,20 +52,23 @@ def adicionar_ou_editar_endereco(request):
             })
         
         principal = request.POST.get('principal') == 'on'
+        complemento = request.POST.get('complemento', '')
         
         if endereco_id and endereco_id != '':
             # ===== MODO EDITAR =====
             endereco = get_object_or_404(EnderecoEntrega, id=endereco_id, usuario=request.user)
             
+            # Atualiza os campos
             endereco.rua = rua
             endereco.numero = numero
-            endereco.complemento = request.POST.get('complemento', '')
+            endereco.complemento = complemento
             endereco.bairro = bairro
             endereco.cidade = cidade
             endereco.estado = estado
             endereco.cep = cep
             
             if principal:
+                # Remove principal de outros endereços
                 EnderecoEntrega.objects.filter(usuario=request.user, principal=True).update(principal=False)
                 endereco.principal = True
             else:
@@ -67,6 +76,7 @@ def adicionar_ou_editar_endereco(request):
             
             endereco.save()
             message = 'Endereço atualizado com sucesso!'
+            print(f"DEBUG - Endereço {endereco_id} atualizado com sucesso")
             
         else:
             # ===== MODO ADICIONAR =====
@@ -78,7 +88,7 @@ def adicionar_ou_editar_endereco(request):
                 cep=cep,
                 rua=rua,
                 numero=numero,
-                complemento=request.POST.get('complemento', ''),
+                complemento=complemento,
                 bairro=bairro,
                 cidade=cidade,
                 estado=estado,
@@ -86,6 +96,7 @@ def adicionar_ou_editar_endereco(request):
             )
             endereco.save()
             message = 'Endereço adicionado com sucesso!'
+            print(f"DEBUG - Novo endereço criado com ID {endereco.id}")
         
         return JsonResponse({
             'success': True,
@@ -94,6 +105,7 @@ def adicionar_ou_editar_endereco(request):
         })
         
     except Exception as e:
+        print(f"DEBUG - Erro: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
 
 @login_required
