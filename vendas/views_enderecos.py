@@ -143,17 +143,24 @@ def deletar_endereco(request, endereco_id):
 def definir_principal(request, endereco_id):
     """Define um endereço como principal"""
     try:
+        # Busca o endereço
         endereco = get_object_or_404(EnderecoEntrega, id=endereco_id, usuario=request.user)
         
-        # Remove principal de todos os endereços do usuário
-        updated = EnderecoEntrega.objects.filter(usuario=request.user).update(principal=False)
-        print(f"DEBUG - Removido principal de {updated} endereços")
+        print(f"DEBUG - Usuário: {request.user}")
+        print(f"DEBUG - Endereço ID: {endereco_id} - Atual principal: {endereco.principal}")
+        
+        # Remove principal de todos os endereços do usuário usando update
+        atualizados = EnderecoEntrega.objects.filter(usuario=request.user).update(principal=False)
+        print(f"DEBUG - {atualizados} endereços tiveram principal removido")
         
         # Define o novo endereço como principal
         endereco.principal = True
-        endereco.save()
+        endereco.save(update_fields=['principal'])
+        print(f"DEBUG - Endereço {endereco_id} agora é principal")
         
-        print(f"DEBUG - Endereço {endereco_id} definido como principal")
+        # Verificação final
+        endereco_verificado = EnderecoEntrega.objects.get(id=endereco_id)
+        print(f"DEBUG - Verificação final: Endereço {endereco_id} principal = {endereco_verificado.principal}")
         
         return JsonResponse({
             'success': True,
