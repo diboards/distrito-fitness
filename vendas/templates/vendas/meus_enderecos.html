@@ -184,6 +184,8 @@ function formatarCEP(input) {
 
 function showAlert(message, type = 'success') {
     const alertDiv = document.getElementById('modal-alert');
+    if (!alertDiv) return;
+    
     alertDiv.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
                             ${message}
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -192,6 +194,11 @@ function showAlert(message, type = 'success') {
         const alert = alertDiv.querySelector('.alert');
         if (alert) alert.remove();
     }, 3000);
+}
+
+// Forçar reload da página
+function forceReload() {
+    window.location.href = window.location.href.split('?')[0] + '?t=' + new Date().getTime();
 }
 
 // ===== GARANTIR QUE O DOM ESTÁ CARREGADO =====
@@ -206,8 +213,6 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            
-            console.log("Botão editar clicado - ID:", this.dataset.enderecoId);
             
             // Preenche o formulário com os dados
             document.getElementById('modal-title').textContent = 'Editar Endereço';
@@ -231,9 +236,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnNovoEndereco = document.getElementById('btn-novo-endereco');
     if (btnNovoEndereco) {
         btnNovoEndereco.addEventListener('click', function() {
-            console.log("Botão novo endereço clicado");
-            
-            // Limpa o formulário
             document.getElementById('modal-title').textContent = 'Adicionar Endereço';
             document.getElementById('endereco-id').value = '';
             document.getElementById('form-endereco').reset();
@@ -271,9 +273,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Fecha o modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('enderecoModal'));
                     if (modal) modal.hide();
+                    // Recarrega com força
                     setTimeout(() => {
-                        location.reload();
-                    }, 1000);
+                        forceReload();
+                    }, 800);
                 } else {
                     showAlert(data.error || 'Erro ao salvar endereço', 'danger');
                     submitBtn.disabled = false;
@@ -288,60 +291,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // ===== DEFINIR ENDEREÇO PRINCIPAL =====
-document.querySelectorAll('.definir-principal-btn').forEach(btn => {
-    btn.addEventListener('click', async function(e) {
-        e.preventDefault();
-        const enderecoId = this.dataset.enderecoId;
-        
-        console.log("Definir principal - ID:", enderecoId);
-        
-        if (!confirm('Deseja definir este endereço como principal?')) return;
-        
-        // Mostrar loading no botão
-        const originalHtml = this.innerHTML;
-        this.innerHTML = '<i class="bi bi-arrow-repeat spinner"></i>';
-        this.disabled = true;
-        
-        try {
-            const response = await fetch(`/endereco/principal/${enderecoId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const data = await response.json();
-            console.log("Resposta:", data);
-            
-            if (data.success) {
-                showAlert(data.message, 'success');
-                setTimeout(() => {
-                    location.reload();
-                }, 1000);
-            } else {
-                showAlert(data.error || 'Erro ao definir endereço principal', 'danger');
-                this.innerHTML = originalHtml;
-                this.disabled = false;
-            }
-        } catch (error) {
-            console.error('Erro:', error);
-            showAlert('Erro ao definir endereço principal', 'danger');
-            this.innerHTML = originalHtml;
-            this.disabled = false;
-        }
-    });
-});
+    // ===== DELETAR ENDEREÇO =====
+    const botoesDeletar = document.querySelectorAll('.deletar-endereco-btn');
+    console.log("Botões de deletar encontrados:", botoesDeletar.length);
     
-    // ===== DEFINIR ENDEREÇO PRINCIPAL =====
-    document.querySelectorAll('.definir-principal-btn').forEach(btn => {
-        btn.addEventListener('click', async function() {
+    botoesDeletar.forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
             const enderecoId = this.dataset.enderecoId;
             
+            if (!confirm('Tem certeza que deseja excluir este endereço?')) return;
+            
+            // Mostra loading
+            const originalHtml = this.innerHTML;
+            this.innerHTML = '<i class="bi bi-arrow-repeat spinner"></i>';
+            this.disabled = true;
+            
             try {
-                const response = await fetch(`/endereco/principal/${enderecoId}/`, {
+                const response = await fetch(`/endereco/deletar/${enderecoId}/`, {
                     method: 'POST',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
@@ -353,13 +320,69 @@ document.querySelectorAll('.definir-principal-btn').forEach(btn => {
                 
                 if (data.success) {
                     showAlert(data.message, 'success');
-                    setTimeout(() => location.reload(), 1000);
+                    setTimeout(() => {
+                        forceReload();
+                    }, 800);
+                } else {
+                    showAlert(data.error || 'Erro ao excluir endereço', 'danger');
+                    this.innerHTML = originalHtml;
+                    this.disabled = false;
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showAlert('Erro ao excluir endereço', 'danger');
+                this.innerHTML = originalHtml;
+                this.disabled = false;
+            }
+        });
+    });
+    
+    // ===== DEFINIR ENDEREÇO PRINCIPAL =====
+    const botoesDefinirPrincipal = document.querySelectorAll('.definir-principal-btn');
+    console.log("Botões definir principal encontrados:", botoesDefinirPrincipal.length);
+    
+    botoesDefinirPrincipal.forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const enderecoId = this.dataset.enderecoId;
+            
+            console.log("Definir principal - ID:", enderecoId);
+            
+            if (!confirm('Deseja definir este endereço como principal?')) return;
+            
+            // Mostrar loading no botão
+            const originalHtml = this.innerHTML;
+            this.innerHTML = '<i class="bi bi-arrow-repeat spinner"></i>';
+            this.disabled = true;
+            
+            try {
+                const response = await fetch(`/endereco/principal/${enderecoId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                });
+                
+                const data = await response.json();
+                console.log("Resposta:", data);
+                
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    // RECARREGA A PÁGINA FORÇADAMENTE
+                    setTimeout(() => {
+                        forceReload();
+                    }, 500);
                 } else {
                     showAlert(data.error || 'Erro ao definir endereço principal', 'danger');
+                    this.innerHTML = originalHtml;
+                    this.disabled = false;
                 }
             } catch (error) {
                 console.error('Erro:', error);
                 showAlert('Erro ao definir endereço principal', 'danger');
+                this.innerHTML = originalHtml;
+                this.disabled = false;
             }
         });
     });
@@ -372,6 +395,11 @@ document.querySelectorAll('.definir-principal-btn').forEach(btn => {
         });
     }
 });
+
+// Função de reload com cache buster
+function forceReload() {
+    window.location.reload(true);
+}
 </script>
 
 <style>
