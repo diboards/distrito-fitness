@@ -301,70 +301,292 @@
 
 <!-- 🎨 ESTILOS -->
 <style>
-.hero-title {
-    color: #1f2937;
+/* Seções de categoria */
+.categoria-section {
+    margin-bottom: 3rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.section-title {
+    font-size: 1.8rem;
     font-weight: bold;
-    margin-bottom: 20px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
-.hero-overlay {
-    position: relative;
-    z-index: 2;
+
+.section-title i {
+    color: #f59e0b;
+    font-size: 1.8rem;
 }
-.menu-item {
-    padding: 10px 18px;
-    border-radius: 30px;
+
+.section-badge {
+    background: linear-gradient(135deg, #28bcc4, #0f7378);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: normal;
+}
+
+.section-badge.discount {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+.ver-todos-link {
+    color: #28bcc4;
     text-decoration: none;
-    color: #333;
     font-weight: 500;
     transition: all 0.3s ease;
 }
-.menu-item:hover {
-    background: #f1f5f9;
+
+.ver-todos-link:hover {
+    color: #0f7378;
+    transform: translateX(5px);
 }
-.menu-item.active {
-    background: linear-gradient(135deg, #28bcc4, #0f7378);
-    color: #fff;
+
+.ver-todos-link i {
+    font-size: 0.9rem;
 }
-.menu-instagram {
-    padding: 10px 18px;
-    border-radius: 30px;
-    background: linear-gradient(135deg, #facc15, #f59e0b);
-    color: #000;
-    font-weight: bold;
-    text-decoration: none;
+
+/* Container de scroll */
+.produtos-scroll-container {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 6px;
-    transition: 0.3s;
 }
-.menu-instagram:hover {
-    transform: scale(1.05);
+
+.produtos-scroll {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    gap: 25px;
+    padding: 15px 5px;
+    scrollbar-width: thin;
+    flex: 1;
 }
-.product-card {
+
+.produtos-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.produtos-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.produtos-scroll::-webkit-scrollbar-thumb {
+    background: #28bcc4;
+    border-radius: 10px;
+}
+
+/* Cards de produto */
+.produto-card {
+    min-width: 220px;
+    max-width: 220px;
+    background: white;
     border-radius: 12px;
+    overflow: hidden;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    position: relative;
 }
-.product-card:hover {
-    transform: translateY(-6px);
+
+.produto-card:hover {
+    transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
-.product-card img {
+
+.produto-card a {
+    display: block;
+    overflow: hidden;
+}
+
+.produto-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
     transition: transform 0.4s ease;
 }
-.product-card:hover img {
+
+.produto-card:hover img {
     transform: scale(1.05);
 }
-</style>
-<script>
-// Scroll suave com animação
-window.scrollProdutos = function(direction) {
-    const container = document.querySelector('.produtos-scroll');
-    if (!container) return;
 
+.produto-card.destaque {
+    border: 2px solid #f59e0b;
+}
+
+.badge-novo {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: linear-gradient(135deg, #28bcc4, #0f7378);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    z-index: 10;
+}
+
+.badge-desconto {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #e74c3c;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    z-index: 10;
+}
+
+.produto-info {
+    padding: 12px;
+}
+
+.produto-info h6 {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.old-price {
+    color: #999;
+    text-decoration: line-through;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+}
+
+.price {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #28bcc4;
+    margin-bottom: 4px;
+}
+
+.price span {
+    font-size: 0.7rem;
+    font-weight: normal;
+    color: #666;
+}
+
+.parcelado {
+    font-size: 0.7rem;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.btn-quick-add {
+    width: 100%;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 6px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-quick-add:hover {
+    background: #28bcc4;
+    color: white;
+    border-color: #28bcc4;
+}
+
+/* Botões de scroll */
+.scroll-btn {
+    position: absolute;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.scroll-btn.left {
+    left: -20px;
+}
+
+.scroll-btn.right {
+    right: -20px;
+}
+
+.scroll-btn:hover {
+    background: #28bcc4;
+    color: white;
+    transform: scale(1.1);
+}
+
+.info-card {
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+    .scroll-btn {
+        display: none;
+    }
+    
+    .produto-card {
+        min-width: 160px;
+    }
+    
+    .produto-card img {
+        height: 160px;
+    }
+    
+    .section-title {
+        font-size: 1.4rem;
+    }
+}
+.spinner {
+    animation: spin 0.5s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.btn-quick-add:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}    
+</style>
+
+<script>
+function scrollProdutos(scrollId, direction) {
+    const container = document.getElementById(scrollId);
+    if (!container) return;
+    
     const card = container.querySelector('.produto-card');
     if (!card) return;
-
-    const gap = 25; // mesmo gap do CSS
+    
+    const gap = 25;
     const scrollAmount = card.offsetWidth + gap;
     
     container.scrollBy({
@@ -373,56 +595,102 @@ window.scrollProdutos = function(direction) {
     });
 }
 
-// Scroll com wheel (roda do mouse)
 document.addEventListener('DOMContentLoaded', function() {
-    const scrollContainer = document.querySelector('.produtos-scroll');
-    if (scrollContainer) {
-        scrollContainer.addEventListener('wheel', function(e) {
+    const scrollContainers = document.querySelectorAll('.produtos-scroll');
+    
+    scrollContainers.forEach(container => {
+        container.addEventListener('wheel', function(e) {
             if (e.deltaY !== 0) {
                 e.preventDefault();
-                scrollContainer.scrollLeft += e.deltaY;
+                container.scrollLeft += e.deltaY;
             }
         });
-    }
-    
-    // Mostrar indicador apenas se houver scroll
-    const container = document.querySelector('.produtos-scroll');
-    const indicator = document.querySelector('.scroll-indicator');
-    
-    if (container && indicator) {
-        if (container.scrollWidth > container.clientWidth) {
-            indicator.style.display = 'block';
-        }
-    }
+    });
 });
-
-// Scroll automático com intervalo (opcional - descomente se quiser)
-/*
-let autoScrollInterval;
-const scrollContainer = document.querySelector('.produtos-scroll');
-
-function startAutoScroll() {
-    autoScrollInterval = setInterval(() => {
-        if (scrollContainer && !scrollContainer.matches(':hover')) {
-            const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
-            if (scrollContainer.scrollLeft >= maxScroll) {
-                scrollContainer.scrollTo({ left: 0, behavior: 'smooth' });
-            } else {
-                scrollContainer.scrollBy({ left: 300, behavior: 'smooth' });
+    
+// Função para adicionar ao carrinho via AJAX
+async function adicionarAoCarrinho(produtoId, buttonElement) {
+    const originalText = buttonElement.innerHTML;
+    
+    // Mostrar loading
+    buttonElement.innerHTML = '<i class="bi bi-arrow-repeat spinner"></i> Adicionando...';
+    buttonElement.disabled = true;
+    
+    try {
+        // Criar formulário com os dados
+        const formData = new FormData();
+        formData.append('quantidade', 1);
+        formData.append('action', 'carrinho');
+        
+        const response = await fetch(`/carrinho/adicionar/${produtoId}/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
             }
+        });
+        
+        if (response.ok) {
+            // Sucesso - mostra feedback
+            buttonElement.innerHTML = '<i class="bi bi-check-lg"></i> Adicionado!';
+            buttonElement.style.background = '#28a745';
+            buttonElement.style.borderColor = '#28a745';
+            buttonElement.style.color = 'white';
+            
+            // Atualizar contador do carrinho
+            atualizarCarrinhoCount();
+            
+            // Voltar ao normal após 2 segundos
+            setTimeout(() => {
+                buttonElement.innerHTML = originalText;
+                buttonElement.disabled = false;
+                buttonElement.style.background = '';
+                buttonElement.style.borderColor = '';
+                buttonElement.style.color = '';
+            }, 2000);
+        } else {
+            throw new Error('Erro ao adicionar');
         }
-    }, 5000);
+    } catch (error) {
+        console.error('Erro:', error);
+        buttonElement.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Erro!';
+        setTimeout(() => {
+            buttonElement.innerHTML = originalText;
+            buttonElement.disabled = false;
+        }, 2000);
+    }
 }
 
-function stopAutoScroll() {
-    clearInterval(autoScrollInterval);
+// Função para atualizar contador do carrinho
+async function atualizarCarrinhoCount() {
+    try {
+        const response = await fetch('/carrinho/count/');
+        const data = await response.json();
+        const badge = document.getElementById('carrinho-count');
+        if (badge) {
+            badge.innerText = data.count;
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar contador:', error);
+    }
 }
 
-if (scrollContainer) {
-    scrollContainer.addEventListener('mouseenter', stopAutoScroll);
-    scrollContainer.addEventListener('mouseleave', startAutoScroll);
-    startAutoScroll();
-}
-*/
+// Inicializar botões de compra
+document.addEventListener('DOMContentLoaded', function() {
+    // Botões "Comprar" nos cards
+    const botoesComprar = document.querySelectorAll('.btn-quick-add');
+    botoesComprar.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const produtoId = this.dataset.id;
+            if (produtoId) {
+                adicionarAoCarrinho(produtoId, this);
+            }
+        });
+    });
+    
+    console.log(`✅ ${botoesComprar.length} botões de compra inicializados`);
+});
+    
 </script>
 {% endblock %}
