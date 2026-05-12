@@ -36,19 +36,7 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
-          <!-- usuário não autenticado --> 
-        {% else %}
-        <li class="nav-item d-flex align-items-center me-3">
-            <a class="nav-link position-relative" href="{% url 'login' %}">
-                <i class="bi bi-cart3 fs-5"></i>
-                <span class="badge bg-primary rounded-pill position-absolute top-0 start-100 translate-middle" id="carrinho-count">
-                    0
-                </span>
-            </a>
-        </li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'registrar_com_endereco' %}"><i class="bi bi-person-plus"></i> Cadastrar</a></li>
-        {% endif %}
+         
         <li class="nav-item"><a class="nav-link" href="{% url 'lista_vendas' %}"><i class="bi bi-card-list"></i> Quem somos?</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'orcamento' %}"><i class="bi bi-card-list"></i>Contato</a></li>
         {% if user.is_authenticated and user.is_superuser %}
