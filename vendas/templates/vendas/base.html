@@ -227,31 +227,39 @@
       });
     
       // contador do carrinho
-  async function atualizarCarrinhoCount() {
-    try {
-      let response = await fetch("{% url 'carrinho_count_api' %}");
-      if (response.ok) {
-        let data = await response.json();
-        document.getElementById("carrinho-count").innerText = data.count;
-      }
-    } catch (e) {
-      console.error("Erro ao atualizar contador:", e);
-    }
-  }
+  //async function atualizarCarrinhoCount() {
+   // try {
+     // let response = await fetch("{% url 'carrinho_count_api' %}");
+    //  if (response.ok) {
+      //  let data = await response.json();
+      //  document.getElementById("carrinho-count").innerText = data.count;
+    //  }
+   // } catch (e) {
+   //   console.error("Erro ao atualizar contador:", e);
+  //  }
+//  }
 
   // Atualiza automaticamente quando a página carregar
-  document.addEventListener("DOMContentLoaded", atualizarCarrinhoCount);
+ // document.addEventListener("DOMContentLoaded", atualizarCarrinhoCount);
 
-    function getCSRFToken() {
-        const token = document.querySelector('[name=csrfmiddlewaretoken]');
-        if (token) return token.value;
+   // function getCSRFToken() {
+    //    const token = document.querySelector('[name=csrfmiddlewaretoken]');
+      //  if (token) return token.value;
         
-        const metaToken = document.querySelector('meta[name="csrf-token"]');
-        if (metaToken) return metaToken.content;
+     //   const metaToken = document.querySelector('meta[name="csrf-token"]');
+       // if (metaToken) return metaToken.content;
         
-        return '';
-    }        
-        
+      //  return '';
+    //}        
+       function getCSRFToken() {
+    const token = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (token) return token.value;
+    
+    const metaToken = document.querySelector('meta[name="csrf-token"]');
+    if (metaToken) return metaToken.content;
+    
+    return '';
+  }    
 </script>    
     {% endblock %}
 
