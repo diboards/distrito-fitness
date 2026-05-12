@@ -190,6 +190,9 @@
                         <p class="old-price">R$ {{ produto.preco }}</p>
                         <p class="price">R$ {{ produto.preco_pix }} <span>no PIX</span></p>
                         <p class="parcelado">ou 3x de R$ {{ produto.preco_parcela }}</p>
+                        <button class="btn-quick-add" data-id="{{ produto.id }}">
+                            <i class="bi bi-cart-plus"></i> Comprar
+                        </button>
                     </div>
                 </div>
                 {% empty %}
@@ -230,6 +233,9 @@
                         <p class="old-price">R$ {{ produto.preco }}</p>
                         <p class="price">R$ {{ produto.preco_pix }} <span>no PIX</span></p>
                         <p class="parcelado">ou 3x de R$ {{ produto.preco_parcela }}</p>
+                        <button class="btn-quick-add" data-id="{{ produto.id }}">
+                            <i class="bi bi-cart-plus"></i> Comprar
+                        </button>
                     </div>
                 </div>
                 {% empty %}
