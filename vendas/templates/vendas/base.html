@@ -5,6 +5,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <meta charset="UTF-8">
     <title>{% block title %}Sistema de Vendas{% endblock %}</title>
 
@@ -239,6 +240,17 @@
 
   // Atualiza automaticamente quando a página carregar
   document.addEventListener("DOMContentLoaded", atualizarCarrinhoCount);
+
+    function getCSRFToken() {
+        const token = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (token) return token.value;
+        
+        const metaToken = document.querySelector('meta[name="csrf-token"]');
+        if (metaToken) return metaToken.content;
+        
+        return '';
+    }        
+        
 </script>    
     {% endblock %}
 
