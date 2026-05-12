@@ -44,46 +44,67 @@
                         {% endfor %}
                     {% endif %}
                     
-                    <form method="post">
+                    <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Nome</label>
-                                <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}">
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small">{{ form.first_name.errors }}</div>
+                                {% endif %}
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Sobrenome</label>
-                                <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}">
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small">{{ form.last_name.errors }}</div>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label">E-mail</label>
-                            <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small">{{ form.email.errors }}</div>
+                            {% endif %}
                         </div>
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Telefone</label>
-                                <input type="text" name="telefone" class="form-control" value="{{ perfil.telefone|default:'' }}">
+                                {{ form.telefone }}
+                                {% if form.telefone.errors %}
+                                    <div class="text-danger small">{{ form.telefone.errors }}</div>
+                                {% endif %}
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">CPF</label>
-                                <input type="text" name="cpf" class="form-control" value="{{ perfil.cpf|default:'' }}">
+                                {{ form.cpf }}
+                                {% if form.cpf.errors %}
+                                    <div class="text-danger small">{{ form.cpf.errors }}</div>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Data de Nascimento</label>
-                                <input type="date" name="data_nascimento" class="form-control" value="{{ perfil.data_nascimento|date:'Y-m-d' }}">
+                                {{ form.data_nascimento }}
+                                {% if form.data_nascimento.errors %}
+                                    <div class="text-danger small">{{ form.data_nascimento.errors }}</div>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label">Bio</label>
-                            <textarea name="bio" class="form-control" rows="3">{{ perfil.bio|default:'' }}</textarea>
+                            {{ form.bio }}
+                            {% if form.bio.errors %}
+                                <div class="text-danger small">{{ form.bio.errors }}</div>
+                            {% endif %}
                         </div>
                         
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
