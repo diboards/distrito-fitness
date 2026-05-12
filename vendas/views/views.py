@@ -34,34 +34,53 @@ from django.conf import settings
 
 from vendas.utils import get_itens_carrinho
 
-# Página inicial
+
+
 def pagina_inicial(request):
     categoria_selecionada = request.GET.get('categoria', '')
     
+    # Query base
+    produtos_query = Produto.objects.filter(ativo=True)
+    
     if categoria_selecionada:
-        produtos = Produto.objects.filter(categoria=categoria_selecionada)
+        produtos = produtos_query.filter(categoria=categoria_selecionada)
     else:
-        produtos = Produto.objects.all()
-
-    # Montar lista com preços calculados
-    produtos_com_precos = []
-    for p in produtos:
-        preco_pix = (p.preco * Decimal("0.90")).quantize(Decimal("0.01"))  # 10% OFF no pix
-        preco_parcela = (p.preco / Decimal("3")).quantize(Decimal("0.01")) # parcelado em 3x
-        produtos_com_precos.append({
-            "id": p.id,
-            "nome": p.nome,
-            "preco": p.preco,
-            "preco_pix": preco_pix,
-            "preco_parcela": preco_parcela,
-            "imagem": p.imagem,
-            "categoria": p.categoria,
-        })
-
+        produtos = produtos_query
+    
+    # Separar produtos por categoria (apenas para página inicial)
+    produtos_lancamentos = produtos_query.filter(categoria='lancamentos')[:12]
+    produtos_promocoes = produtos_query.filter(categoria='promocoes')[:12]
+    produtos_conjuntos = produtos_query.filter(categoria='conjuntos')[:12]
+    produtos_outros = produtos_query.filter(categoria='outros')[:12]
+    produtos_destaque = produtos_query.order_by('-data_cadastro')[:6]
+    
+    # Calcular preços
+    def calcular_precos(produto_list):
+        resultado = []
+        for p in produto_list:
+            preco_pix = (p.preco * Decimal("0.90")).quantize(Decimal("0.01"))
+            preco_parcela = (p.preco / Decimal("3")).quantize(Decimal("0.01"))
+            resultado.append({
+                "id": p.id,
+                "nome": p.nome,
+                "preco": p.preco,
+                "preco_pix": preco_pix,
+                "preco_parcela": preco_parcela,
+                "imagem": p.imagem,
+                "categoria": p.categoria,
+            })
+        return resultado
+    
     context = {
-        'produtos': produtos_com_precos,
-        'categoria_selecionada': categoria_selecionada
+        'produtos_lancamentos': calcular_precos(produtos_lancamentos),
+        'produtos_promocoes': calcular_precos(produtos_promocoes),
+        'produtos_conjuntos': calcular_precos(produtos_conjuntos),
+        'produtos_outros': calcular_precos(produtos_outros),
+        'produtos_destaque': calcular_precos(produtos_destaque),
+        'categoria_selecionada': categoria_selecionada,
+        'produtos': calcular_precos(produtos),
     }
+    
     return render(request, 'vendas/index.html', context)
 
 
