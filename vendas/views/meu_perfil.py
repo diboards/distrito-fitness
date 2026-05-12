@@ -11,13 +11,21 @@ def meu_perfil(request):
     perfil, created = Perfil.objects.get_or_create(usuario=request.user)
     
     if request.method == 'POST':
-        form = PerfilForm(request.POST, request.FILES, instance=perfil)
+        form = PerfilForm(request.POST, instance=perfil)
         if form.is_valid():
-            form.save()
+            form.save()  # O save do form já atualiza User e Perfil
             messages.success(request, 'Perfil atualizado com sucesso!')
             return redirect('meu_perfil')
+        else:
+            messages.error(request, 'Erro ao atualizar perfil. Verifique os campos.')
     else:
-        form = PerfilForm(instance=perfil)
+        # Inicializa o form com os dados atuais
+        initial_data = {
+            'first_name': request.user.first_name,
+            'last_name': request.user.last_name,
+            'email': request.user.email,
+        }
+        form = PerfilForm(instance=perfil, initial=initial_data)
     
     context = {
         'form': form,
