@@ -182,23 +182,28 @@ def detalhes_produto(request, produto_id):
 def adicionar_carrinho(request, produto_id):
     if request.method == 'POST':
         produto = get_object_or_404(Produto, id=produto_id)
-
+        
         try:
             quantidade = int(request.POST.get('quantidade', 1))
         except:
             quantidade = 1
 
-        cor = request.POST.get('cor', '')
-        tamanho = request.POST.get('tamanho', '')
+        cor = request.POST.get('cor', '').strip()
+        tamanho = request.POST.get('tamanho', '').strip()
         action = request.POST.get('action', 'carrinho')
-
-        # ===== SE NÃO ESTÁ LOGADO =====
+        
+        # 🔥 IMPORTANTE: Se não tem cor/tamanho, usar valores padrão
+        if not cor:
+            cor = ''
+        if not tamanho:
+            tamanho = ''
+        
+        # Se não está logado, salva na sessão
         if not request.user.is_authenticated:
-            # Recupera ou cria o carrinho na sessão
             carrinho = request.session.get('carrinho', {})
             
-            # Chave única para o produto com suas variações
-            produto_key = f"{produto_id}_{cor}_{tamanho}"
+            # 🔥 Chave única consistente (usando os valores reais)
+            produto_key = f"{produto_id}_{cor}_{tamanho}".strip('_')
             
             if produto_key in carrinho:
                 carrinho[produto_key]['quantidade'] += quantidade
@@ -213,39 +218,38 @@ def adicionar_carrinho(request, produto_id):
                     'imagem': produto.imagem.url if produto.imagem else None
                 }
             
-            # Salva na sessão
             request.session['carrinho'] = carrinho
             request.session.modified = True
             
-            print(f"DEBUG - Carrinho salvo na sessão: {request.session.get('carrinho')}")
-            
-            # Se for compra rápida, redireciona para login
-            if action == 'comprar':
-                return redirect('login')
-            else:
-                messages.success(request, f'{produto.nome} adicionado ao carrinho!')
-                return redirect('detalhes_produto', produto_id=produto_id)
-
-        # ===== SE ESTÁ LOGADO =====
-        if request.user.is_authenticated:
-            item, created = CarrinhoItem.objects.get_or_create(
-                usuario=request.user,
-                produto=produto,
-                cor_selecionada=cor,
-                tamanho_selecionado=tamanho,
-                defaults={'quantidade': quantidade}
-            )
- 
-            if not created:
-                item.quantidade += quantidade
-                item.save()
+            # Log para debug
+            print(f"DEBUG - Carrinho na sessão após adicionar: {request.session.get('carrinho')}")
             
             messages.success(request, f'{produto.nome} adicionado ao carrinho!')
-
+            
             if action == 'comprar':
                 return redirect('visualizar_carrinho')
             return redirect('detalhes_produto', produto_id=produto_id)
-
+        
+        # Usuário logado - salva no banco
+        # Verificar se já existe item igual
+        item, created = CarrinhoItem.objects.get_or_create(
+            usuario=request.user,
+            produto=produto,
+            cor_selecionada=cor,
+            tamanho_selecionado=tamanho,
+            defaults={'quantidade': quantidade}
+        )
+        
+        if not created:
+            item.quantidade += quantidade
+            item.save()
+        
+        messages.success(request, f'{produto.nome} adicionado ao carrinho!')
+        
+        if action == 'comprar':
+            return redirect('visualizar_carrinho')
+        return redirect('detalhes_produto', produto_id=produto_id)
+    
     return redirect('pagina_inicial')
 
 def carrinho_count_api(request):
