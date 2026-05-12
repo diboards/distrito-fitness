@@ -102,9 +102,20 @@
         </li>
 
         {% else %}
-        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'registrar_com_endereco' %}"><i class="bi bi-person-plus"></i> Cadastrar</a></li>
-        {% endif %}
+    <!-- ============================================ -->
+    <!-- CARRINHO PARA USUÁRIO NÃO LOGADO - ADICIONAR AQUI -->
+    <!-- ============================================ -->
+    <li class="nav-item d-flex align-items-center me-3">
+        <a class="nav-link position-relative" href="{% url 'login' %}">
+            <i class="bi bi-cart3 fs-5"></i>
+            <span class="badge bg-primary rounded-pill position-absolute top-0 start-100 translate-middle" id="carrinho-count">
+                0
+            </span>
+        </a>
+    </li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'registrar_com_endereco' %}"><i class="bi bi-person-plus"></i> Cadastrar</a></li>
+    {% endif %}
       </ul>
     </div>
   </div>
