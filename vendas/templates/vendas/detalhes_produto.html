@@ -426,22 +426,54 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// função calcular valor desconto
-function atualizarPrecos(){
+// função calcular valor desconto - CORRIGIDA
+function atualizarPrecos() {
+    // 🔥 Verificar qual campo de quantidade existe na página
+    let quantidadeInput = document.getElementById("quantidade");
+    if (!quantidadeInput) {
+        quantidadeInput = document.getElementById("quantidade-input-comprar");
+    }
+    if (!quantidadeInput) {
+        quantidadeInput = document.getElementById("quantidade-carrinho");
+    }
+    
+    if (!quantidadeInput) {
+        console.warn("Campo de quantidade não encontrado");
+        return;
+    }
+    
     const precoProduto = parseFloat("{{ produto.preco|floatformat:2 }}".replace(",", ".")) || 0;
-    const qtd = parseInt(document.getElementById("quantidade").value) || 1;
+    const qtd = parseInt(quantidadeInput.value) || 1;
     const total = precoProduto * qtd;
 
     const precoPix = total * 0.90; // 10% desconto
     const precoParcelado = total; // preço cheio
 
-    document.getElementById("preco-pix").textContent = formatBR(precoPix);
-    document.getElementById("preco-parcelado").textContent = formatBR(precoParcelado);
+    const precoPixEl = document.getElementById("preco-pix");
+    const precoParceladoEl = document.getElementById("preco-parcelado");
+    
+    if (precoPixEl) precoPixEl.textContent = formatBR(precoPix);
+    if (precoParceladoEl) precoParceladoEl.textContent = formatBR(precoParcelado);
 }
 
+// 🔥 Inicializar quando o DOM estiver carregado
 document.addEventListener("DOMContentLoaded", function() {
+    // Verificar qual campo de quantidade existe
+    let quantidadeInput = document.getElementById("quantidade");
+    if (!quantidadeInput) {
+        quantidadeInput = document.getElementById("quantidade-input-comprar");
+    }
+    if (!quantidadeInput) {
+        quantidadeInput = document.getElementById("quantidade-carrinho");
+    }
+    
+    if (quantidadeInput) {
+        quantidadeInput.addEventListener("input", atualizarPrecos);
+        quantidadeInput.addEventListener("change", atualizarPrecos);
+    }
+    
+    // Chamar uma vez para inicializar
     atualizarPrecos();
-    document.getElementById("quantidade").addEventListener("input", atualizarPrecos);
 });
 
 </script>
