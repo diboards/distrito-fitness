@@ -271,6 +271,7 @@ def adicionar_endereco_checkout(request):
     return JsonResponse({'success': False, 'error': 'Método não permitido'})
 
 
+
 def registrar_com_endereco(request):
     # Verifica se tem email na session
     email = request.session.get('email_cadastro')
@@ -328,40 +329,61 @@ def registrar_com_endereco(request):
             )
             endereco.save()
 
-            # ===== 4. TRANSFERIR O CARRINHO DA SESSÃO PARA O USUÁRIO =====
+            # ===== 3. TRANSFERIR O CARRINHO DA SESSÃO PARA O USUÁRIO (CORRIGIDO - SEM DUPLICIDADE) =====
             if carrinho_sessao:
                 from .models import Produto  # Importar aqui para evitar circular
                 
+                # Dicionário para agrupar itens duplicados
+                itens_agrupados = {}
+                
                 for chave, dados in carrinho_sessao.items():
-                    try:
-                        # Extrai o ID do produto da chave (formato: "3_Vermelho_M")
-                        # ou pega diretamente do dicionário
-                        produto_id = dados.get('id')  # ← PEGA O ID DO DICIONÁRIO
-                        
-                        if not produto_id:
-                            # Tenta extrair da chave como fallback
+                    produto_id = dados.get('id')
+                    cor = dados.get('cor', '')
+                    tamanho = dados.get('tamanho', '')
+                    quantidade = dados.get('quantidade', 1)
+                    
+                    if not produto_id:
+                        # Tenta extrair da chave como fallback
+                        try:
                             produto_id = int(chave.split('_')[0]) if chave.split('_')[0].isdigit() else None
+                        except:
+                            produto_id = None
+                    
+                    if produto_id:
+                        # Chave única para agrupar (produto + cor + tamanho)
+                        grupo_key = f"{produto_id}_{cor}_{tamanho}"
                         
-                        if produto_id:
-                            produto = Produto.objects.get(id=produto_id)
-                            
-                            # Verifica se já existe no carrinho do usuário
-                            item, created = CarrinhoItem.objects.get_or_create(
-                                usuario=user,
-                                produto=produto,
-                                cor_selecionada=dados.get('cor', ''),
-                                tamanho_selecionado=dados.get('tamanho', ''),
-                                defaults={'quantidade': dados.get('quantidade', 1)}
-                            )
-                            if not created:
-                                item.quantidade += dados.get('quantidade', 1)
-                                item.save()
-                            print(f"DEBUG - Produto {produto.nome} adicionado ao carrinho")
+                        if grupo_key in itens_agrupados:
+                            itens_agrupados[grupo_key]['quantidade'] += quantidade
                         else:
-                            print(f"DEBUG - Não foi possível extrair ID do produto da chave: {chave}")
-                            
+                            itens_agrupados[grupo_key] = {
+                                'produto_id': produto_id,
+                                'cor': cor,
+                                'tamanho': tamanho,
+                                'quantidade': quantidade
+                            }
+                
+                # Agora transfere os itens agrupados (sem duplicidade)
+                for grupo_key, dados in itens_agrupados.items():
+                    try:
+                        produto = Produto.objects.get(id=dados['produto_id'])
+                        
+                        # Verifica se já existe no carrinho do usuário
+                        item, created = CarrinhoItem.objects.get_or_create(
+                            usuario=user,
+                            produto=produto,
+                            cor_selecionada=dados.get('cor', ''),
+                            tamanho_selecionado=dados.get('tamanho', ''),
+                            defaults={'quantidade': dados.get('quantidade', 1)}
+                        )
+                        if not created:
+                            item.quantidade += dados.get('quantidade', 1)
+                            item.save()
+                        
+                        print(f"DEBUG - Produto {produto.nome} (cor: {dados.get('cor', '')}, tam: {dados.get('tamanho', '')}) - quantidade: {item.quantidade}")
+                        
                     except Produto.DoesNotExist:
-                        print(f"DEBUG - Produto não encontrado: {dados.get('id')}")
+                        print(f"DEBUG - Produto não encontrado: {dados['produto_id']}")
                     except Exception as e:
                         print(f"DEBUG - Erro ao processar produto: {str(e)}")
                 
