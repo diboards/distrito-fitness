@@ -305,9 +305,45 @@ def registrar_com_endereco(request):
             
             # ===== 1. SALVAR O CARRINHO DA SESSÃO ANTES DE CRIAR O USUÁRIO =====
             carrinho_sessao = request.session.get('carrinho', {})
-            print("DEBUG - Carrinho na sessão:", carrinho_sessao)
+            print("DEBUG - Carrinho na sessão (antes de agrupar):", carrinho_sessao)
             
-            # ===== 2. CRIA O USUÁRIO =====
+            # ===== 2. AGRUPAR ITENS DO CARRINHO DA SESSÃO =====
+            itens_agrupados = {}
+            
+            for chave, dados in carrinho_sessao.items():
+                produto_id = dados.get('id')
+                cor = dados.get('cor', '').strip()
+                tamanho = dados.get('tamanho', '').strip()
+                quantidade = dados.get('quantidade', 1)
+                
+                # Se não tem ID, tenta extrair da chave
+                if not produto_id:
+                    try:
+                        produto_id = int(chave.split('_')[0]) if chave.split('_')[0].isdigit() else None
+                    except:
+                        produto_id = None
+                
+                if produto_id:
+                    # Chave de agrupamento (ignora diferenças de vazio vs None)
+                    cor_key = cor if cor else ''
+                    tam_key = tamanho if tamanho else ''
+                    grupo_key = f"{produto_id}_{cor_key}_{tam_key}"
+                    
+                    if grupo_key in itens_agrupados:
+                        itens_agrupados[grupo_key]['quantidade'] += quantidade
+                        print(f"DEBUG - Agrupando: {grupo_key} (total: {itens_agrupados[grupo_key]['quantidade']})")
+                    else:
+                        itens_agrupados[grupo_key] = {
+                            'produto_id': produto_id,
+                            'cor': cor,
+                            'tamanho': tamanho,
+                            'quantidade': quantidade
+                        }
+                        print(f"DEBUG - Novo item: {grupo_key} (quantidade: {quantidade})")
+            
+            print(f"DEBUG - Itens agrupados: {len(itens_agrupados)}")
+            
+            # ===== 3. CRIA O USUÁRIO =====
             user = User.objects.create_user(
                 username=email,
                 email=email,
@@ -329,69 +365,49 @@ def registrar_com_endereco(request):
             )
             endereco.save()
 
-            # ===== 3. TRANSFERIR O CARRINHO DA SESSÃO PARA O USUÁRIO (CORRIGIDO - SEM DUPLICIDADE) =====
-            if carrinho_sessao:
-                from .models import Produto  # Importar aqui para evitar circular
+            # ===== 4. TRANSFERIR OS ITENS AGRUPADOS PARA O CARRINHO DO USUÁRIO =====
+            if itens_agrupados:
+                from .models import Produto
                 
-                # Dicionário para agrupar itens duplicados
-                itens_agrupados = {}
-                
-                for chave, dados in carrinho_sessao.items():
-                    produto_id = dados.get('id')
-                    cor = dados.get('cor', '')
-                    tamanho = dados.get('tamanho', '')
-                    quantidade = dados.get('quantidade', 1)
-                    
-                    if not produto_id:
-                        # Tenta extrair da chave como fallback
-                        try:
-                            produto_id = int(chave.split('_')[0]) if chave.split('_')[0].isdigit() else None
-                        except:
-                            produto_id = None
-                    
-                    if produto_id:
-                        # Chave única para agrupar (produto + cor + tamanho)
-                        grupo_key = f"{produto_id}_{cor}_{tamanho}"
-                        
-                        if grupo_key in itens_agrupados:
-                            itens_agrupados[grupo_key]['quantidade'] += quantidade
-                        else:
-                            itens_agrupados[grupo_key] = {
-                                'produto_id': produto_id,
-                                'cor': cor,
-                                'tamanho': tamanho,
-                                'quantidade': quantidade
-                            }
-                
-                # Agora transfere os itens agrupados (sem duplicidade)
                 for grupo_key, dados in itens_agrupados.items():
                     try:
                         produto = Produto.objects.get(id=dados['produto_id'])
                         
-                        # Verifica se já existe no carrinho do usuário
-                        item, created = CarrinhoItem.objects.get_or_create(
+                        # Verificar se já existe item igual no carrinho
+                        item_existente = CarrinhoItem.objects.filter(
                             usuario=user,
                             produto=produto,
                             cor_selecionada=dados.get('cor', ''),
-                            tamanho_selecionado=dados.get('tamanho', ''),
-                            defaults={'quantidade': dados.get('quantidade', 1)}
-                        )
-                        if not created:
-                            item.quantidade += dados.get('quantidade', 1)
-                            item.save()
+                            tamanho_selecionado=dados.get('tamanho', '')
+                        ).first()
                         
-                        print(f"DEBUG - Produto {produto.nome} (cor: {dados.get('cor', '')}, tam: {dados.get('tamanho', '')}) - quantidade: {item.quantidade}")
+                        if item_existente:
+                            # Atualiza quantidade existente
+                            item_existente.quantidade += dados['quantidade']
+                            item_existente.save()
+                            print(f"DEBUG - Atualizado: {produto.nome} - nova quantidade: {item_existente.quantidade}")
+                        else:
+                            # Cria novo item
+                            CarrinhoItem.objects.create(
+                                usuario=user,
+                                produto=produto,
+                                cor_selecionada=dados.get('cor', ''),
+                                tamanho_selecionado=dados.get('tamanho', ''),
+                                quantidade=dados['quantidade']
+                            )
+                            print(f"DEBUG - Criado: {produto.nome} - quantidade: {dados['quantidade']}")
                         
                     except Produto.DoesNotExist:
-                        print(f"DEBUG - Produto não encontrado: {dados['produto_id']}")
+                        print(f"DEBUG - Produto não encontrado ID: {dados['produto_id']}")
                     except Exception as e:
-                        print(f"DEBUG - Erro ao processar produto: {str(e)}")
+                        print(f"DEBUG - Erro: {str(e)}")
                 
                 # Limpa o carrinho da sessão
                 request.session['carrinho'] = {}
                 request.session.modified = True
+                print("DEBUG - Carrinho da sessão limpo")
             
-            # Faz login automático
+            # ===== 5. FAZ LOGIN AUTOMÁTICO =====
             user = authenticate(username=email, password=password1)
             if user:
                 login(request, user)
@@ -401,9 +417,11 @@ def registrar_com_endereco(request):
                 
                 messages.success(request, 'Conta criada com sucesso!')
 
-                # Verifica se o carrinho foi transferido
-                itens_carrinho = CarrinhoItem.objects.filter(usuario=user)
-                print(f"DEBUG - Itens no carrinho após transferência: {itens_carrinho.count()}")
+                # Verifica o carrinho final
+                itens_finais = CarrinhoItem.objects.filter(usuario=user)
+                print(f"DEBUG - Itens finais no carrinho: {itens_finais.count()}")
+                for item in itens_finais:
+                    print(f"  - {item.produto.nome}: {item.quantidade} (cor: {item.cor_selecionada}, tam: {item.tamanho_selecionado})")
                 
                 return redirect('visualizar_carrinho')
                 
@@ -412,6 +430,7 @@ def registrar_com_endereco(request):
             return redirect('login')
         except Exception as e:
             messages.error(request, f'Erro ao criar conta: {str(e)}')
+            print(f"DEBUG - Erro geral: {str(e)}")
     
     return render(request, 'vendas/registrar_com_endereco.html', {
         'email': email
