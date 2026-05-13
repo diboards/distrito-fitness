@@ -382,23 +382,27 @@ def calcular_frete_ajax(request):
 
 @login_required
 def comprar_agora(request, produto_id):
+    """Adiciona produto ao carrinho e redireciona para checkout"""
     if request.method == 'POST':
         produto = get_object_or_404(Produto, id=produto_id)
         quantidade = int(request.POST.get('quantidade', 1))
         cor = request.POST.get('cor', '')
         tamanho = request.POST.get('tamanho', '')
         
-        # Limpa o carrinho atual
-        CarrinhoItem.objects.filter(usuario=request.user).delete()
-        
-        # Adiciona o produto ao carrinho
-        CarrinhoItem.objects.create(
+        # 🔥 NÃO LIMPAR O CARRINHO! Apenas adicionar/atualizar o produto específico
+        # Verificar se o produto já existe no carrinho
+        item, created = CarrinhoItem.objects.get_or_create(
             usuario=request.user,
             produto=produto,
-            quantidade=quantidade,
             cor_selecionada=cor,
-            tamanho_selecionado=tamanho
+            tamanho_selecionado=tamanho,
+            defaults={'quantidade': quantidade}
         )
+        
+        if not created:
+            # Se já existe, atualiza a quantidade (opcional)
+            item.quantidade = quantidade
+            item.save()
         
         messages.success(request, f'{produto.nome} adicionado ao carrinho!')
         return redirect('checkout')
@@ -406,17 +410,34 @@ def comprar_agora(request, produto_id):
     return redirect('detalhes_produto', produto_id=produto_id)
 
 #redirecionar não-logados para o login com produto na sessão:
+
 def comprar_agora_anonimo(request, produto_id):
     """Para usuários não logados - salva produto na sessão e redireciona para login"""
     produto = get_object_or_404(Produto, id=produto_id)
     
-    # Salva o produto na sessão
-    request.session['produto_compra'] = {
+    # 🔥 Salva na sessão do carrinho (não em produto_compra separado)
+    carrinho = request.session.get('carrinho', {})
+    
+    cor = request.GET.get('cor', '').strip()
+    tamanho = request.GET.get('tamanho', '').strip()
+    quantidade = int(request.GET.get('quantidade', 1))
+    
+    produto_key = f"{produto_id}_{cor}_{tamanho}"
+    
+    # Limpa o carrinho atual se quiser substituir
+    carrinho = {}  # Substitui o carrinho atual
+    
+    carrinho[produto_key] = {
         'id': produto_id,
-        'quantidade': int(request.GET.get('quantidade', 1)),
-        'cor': request.GET.get('cor', ''),
-        'tamanho': request.GET.get('tamanho', '')
+        'nome': produto.nome,
+        'preco': float(produto.preco),
+        'quantidade': quantidade,
+        'cor': cor,
+        'tamanho': tamanho,
+        'imagem': produto.imagem.url if produto.imagem else None
     }
+    
+    request.session['carrinho'] = carrinho
     request.session.modified = True
     
     return redirect('login')
