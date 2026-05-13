@@ -86,6 +86,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'vendas.context_processors.mercadopago_settings',
+                'vendas.context_processors.carrinho_count',  # ← Contador carrinho
             ],
         },
     },
