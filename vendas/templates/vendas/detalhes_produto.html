@@ -163,9 +163,32 @@
 
 <!-- JAVASCRIPT COM CÁLCULO DE FRETE -->
 <script>
-// Banco de dados de CEPs e regiões (mesmo do carrinho e checkout)
+// ============================================
+// FUNÇÕES DE FORMATAÇÃO E FRETE
+// ============================================
+
+function formatBR(value){
+    return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function formatarCEP(input) {
+    if (!input) return;
+    let cep = input.value.replace(/\D/g, '');
+    if (cep.length > 5) {
+        cep = cep.substring(0, 5) + '-' + cep.substring(5, 8);
+    }
+    input.value = cep;
+}
+
+function validarCEP(cep) {
+    cep = cep.replace(/\D/g, '');
+    return cep.length === 8;
+}
+
+// ============================================
+// BANCO DE DADOS DE FRETE
+// ============================================
 const regioesFrete = {
-    // Distrito Federal - Região Metropolitana
     '70000000-72799999': { cidade: 'Brasília-DF (Plano Piloto)', valor: 8.90, prazo: '2-3 dias', regiao: 'capital' },
     '71587040-71588238': { cidade: 'Paranoá-DF', valor: 8.90, prazo: '2-3 dias', regiao: 'rmdf' },
     '71590000-71590245': { cidade: 'Itapoã-DF', valor: 8.90, prazo: '2-3 dias', regiao: 'rmdf' },
@@ -177,54 +200,22 @@ const regioesFrete = {
     '73300000-73399999': { cidade: 'Planaltina-DF', valor: 10.90, prazo: '3-5 dias', regiao: 'rmdf' },
     '73200000-73299999': { cidade: 'Sobradinho-DF', valor: 10.90, prazo: '3-5 dias', regiao: 'rmdf' },
     '73500000-73599999': { cidade: 'Brazlândia-DF', valor: 11.90, prazo: '3-5 dias', regiao: 'rmdf' },
-    
-    // Goiás - Cidades próximas
     '74000000-74899999': { cidade: 'Goiânia-GO', valor: 12.90, prazo: '4-6 dias', regiao: 'goias' },
     '75000000-75999999': { cidade: 'Anápolis-GO', valor: 15.90, prazo: '5-8 dias', regiao: 'interior-go' },
     '72800000-72999999': { cidade: 'Luziânia-GO', valor: 13.90, prazo: '4-6 dias', regiao: 'goias' },
     '73800000-73999999': { cidade: 'Formosa-GO', valor: 14.90, prazo: '5-7 dias', regiao: 'goias' },
-    
-    // Outros estados
     '01000000-09999999': { cidade: 'São Paulo-SP', valor: 22.90, prazo: '8-12 dias', regiao: 'sul' },
     '20000000-28999999': { cidade: 'Rio de Janeiro-RJ', valor: 24.90, prazo: '8-12 dias', regiao: 'sudeste' },
     '30000000-39999999': { cidade: 'Belo Horizonte-MG', valor: 19.90, prazo: '7-10 dias', regiao: 'sudeste' },
     '50000000-56999999': { cidade: 'Recife-PE', valor: 29.90, prazo: '10-15 dias', regiao: 'nordeste' },
     '80000000-87999999': { cidade: 'Curitiba-PR', valor: 19.90, prazo: '7-10 dias', regiao: 'sul' },
-    
-    // Padrão para CEPs não mapeados
     'default': { cidade: 'sua cidade', valor: 15.90, prazo: '5-10 dias', regiao: 'default' }
 };
 
-function formatBR(value){
-    return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-// Formatar CEP (XXXXX-XXX)
-function formatarCEP(input) {
-    let cep = input.value.replace(/\D/g, '');
-    
-    if (cep.length > 5) {
-        cep = cep.substring(0, 5) + '-' + cep.substring(5, 8);
-    }
-    
-    input.value = cep;
-}
-
-// Validar CEP
-function validarCEP(cep) {
-    cep = cep.replace(/\D/g, '');
-    return cep.length === 8;
-}
-
-// Função de cálculo de frete
 function encontrarRegiaoPorCEP(cep) {
-    // Remove caracteres não numéricos e converte para string
     cep = cep.replace(/\D/g, '');
-    
-    // Converte para número, mas trata como string para comparação
     const cepNum = parseInt(cep, 10);
     
-    // Verifica se o CEP é válido
     if (isNaN(cepNum) || cep.length !== 8) {
         return regioesFrete['default'];
     }
@@ -233,249 +224,189 @@ function encontrarRegiaoPorCEP(cep) {
 
     for (const faixa in regioesFrete) {
         if (faixa === 'default') continue;
-
         const [inicioStr, fimStr] = faixa.split('-');
         const inicio = parseInt(inicioStr, 10);
         const fim = parseInt(fimStr, 10);
-
         if (cepNum >= inicio && cepNum <= fim) {
-            // Calcula o "tamanho" do intervalo
             const tamanhoFaixa = fim - inicio;
-
             if (!melhorMatch || tamanhoFaixa < melhorMatch.tamanho) {
-                melhorMatch = {
-                    dados: regioesFrete[faixa],
-                    tamanho: tamanhoFaixa
-                };
+                melhorMatch = { dados: regioesFrete[faixa], tamanho: tamanhoFaixa };
             }
         }
     }
-
     return melhorMatch ? melhorMatch.dados : regioesFrete['default'];
 }
 
-// Consultar frete
 function consultarFrete(cep) {
     return new Promise((resolve) => {
         setTimeout(() => {
             const regiao = encontrarRegiaoPorCEP(cep);
             const precoProduto = parseFloat("{{ produto.preco|floatformat:2 }}".replace(",", ".")) || 0;
-            
-            // Frete grátis para compras acima de R$ 200
             if (precoProduto > 200) {
                 regiao.valor = 0;
                 regiao.prazo = '3-5 dias (FRETE GRÁTIS)';
             }
-            
             resolve(regiao);
         }, 800);
     });
 }
 
-function mostrarLoadingFrete(mostrar) {
-    const loadingEl = document.querySelector('.loading-frete');
-    if (loadingEl) loadingEl.style.display = mostrar ? 'block' : 'none';
-}
-
-// Função principal para calcular frete
 async function calcularFrete() {
     const cepInput = document.getElementById('cep-frete');
+    if (!cepInput) return;
+    
     const cep = cepInput.value.replace(/\D/g, '');
     const resultadoEl = document.getElementById('resultado-frete');
+    const loadingEl = document.querySelector('.loading-frete');
     
     if (!validarCEP(cep)) {
-        resultadoEl.innerHTML = '<div class="alert alert-warning">Por favor, digite um CEP válido (8 dígitos)</div>';
+        if (resultadoEl) resultadoEl.innerHTML = '<div class="alert alert-warning">Digite um CEP válido (8 dígitos)</div>';
         return;
     }
     
-    mostrarLoadingFrete(true);
-    resultadoEl.innerHTML = '';
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (resultadoEl) resultadoEl.innerHTML = '';
     
     try {
         const resultado = await consultarFrete(cep);
-        
-        if (resultado.valor === 0) {
-            resultadoEl.innerHTML = `
-                <div class="alert alert-success">
-                    <strong>🎉 FRETE GRÁTIS!</strong><br>
-                    <small>Para ${resultado.cidade}<br>
-                    📅 ${resultado.prazo}</small>
-                </div>
-            `;
-        } else {
-            resultadoEl.innerHTML = `
-                <div class="alert alert-info">
-                    <strong>Frete: ${formatBR(resultado.valor)}</strong><br>
-                    <small>Para ${resultado.cidade}<br>
-                    📅 ${resultado.prazo}</small>
-                </div>
-            `;
+        if (resultadoEl) {
+            if (resultado.valor === 0) {
+                resultadoEl.innerHTML = `<div class="alert alert-success"><strong>🎉 FRETE GRÁTIS!</strong><br><small>${resultado.cidade}<br>📅 ${resultado.prazo}</small></div>`;
+            } else {
+                resultadoEl.innerHTML = `<div class="alert alert-info"><strong>Frete: ${formatBR(resultado.valor)}</strong><br><small>${resultado.cidade}<br>📅 ${resultado.prazo}</small></div>`;
+            }
         }
-        
     } catch (error) {
-        resultadoEl.innerHTML = '<div class="alert alert-danger">Erro ao calcular frete. Tente novamente.</div>';
-        console.error('Erro frete:', error);
+        if (resultadoEl) resultadoEl.innerHTML = '<div class="alert alert-danger">Erro ao calcular frete</div>';
     } finally {
-        mostrarLoadingFrete(false);
+        if (loadingEl) loadingEl.style.display = 'none';
     }
 }
 
-// Permitir calcular frete pressionando Enter
-document.getElementById('cep-frete').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        calcularFrete();
-    }
-});
+// ============================================
+// FUNÇÕES DE CORES, TAMANHOS E PREÇOS
+// ============================================
 
-// Código existente para cores, tamanhos e preços
-document.addEventListener('DOMContentLoaded', function() {
-    const colors = JSON.parse('{{ colors_json|escapejs }}');
-    const sizesByColor = JSON.parse('{{ sizes_json|escapejs }}');
-    const sizeLabels = JSON.parse('{{ size_labels_json|escapejs }}');
-
-    const mainImage = document.getElementById('main-product-image');
-    const corDisplay = document.getElementById('cor-display');
-    const tamanhoDisplay = document.getElementById('tamanho-display');
-    const inputCor = document.getElementById('input-cor');
-    const inputTamanho = document.getElementById('input-tamanho');
-
-    const corButtons = document.querySelectorAll('.cor-btn');
-    const tamanhoButtons = Array.from(document.querySelectorAll('.tamanho-btn'));
-
-    function applySizesForColor(cor, preferTamanho=null) {
-        const disponiveis = sizesByColor[cor] || [];
-        let selected = null;
-
-        tamanhoButtons.forEach(btn => {
-            const tamanhoVal = btn.dataset.tamanho;
-            if (disponiveis.includes(tamanhoVal)) {
-                btn.classList.remove('disabled', 'btn-secondary');
-                btn.classList.add('btn-outline-dark');
-                btn.innerHTML = sizeLabels[tamanhoVal] || tamanhoVal;
-            } else {
-                btn.classList.add('disabled', 'btn-secondary');
-                btn.classList.remove('btn-outline-dark', 'active');
-                btn.innerHTML = `<s>${sizeLabels[tamanhoVal] || tamanhoVal}</s>`;
-            }
-        });
-
-        if (preferTamanho && disponiveis.includes(preferTamanho)) {
-            selected = preferTamanho;
-        } else if (disponiveis.length > 0) {
-            selected = disponiveis[0];
-        }
-
-        tamanhoButtons.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.tamanho === selected) {
-                btn.classList.add('active');
-            }
-        });
-
-        if (selected) {
-            inputTamanho.value = selected;
-            tamanhoDisplay.textContent = sizeLabels[selected] || selected;
-        } else {
-            inputTamanho.value = '';
-            tamanhoDisplay.textContent = '-';
-        }
-    }
-
-    function setColor(cor) {
-        const colorObj = colors.find(c => c.cor === cor) || colors[0];
-        if (!colorObj) return;
-
-        if (colorObj.imagem) {
-            mainImage.src = colorObj.imagem;
-        }
-
-        corDisplay.textContent = colorObj.cor_display || cor;
-        inputCor.value = colorObj.cor || cor;
-
-        const preferTamanho = inputTamanho.value || null;
-        applySizesForColor(colorObj.cor, preferTamanho);
-    }
-
-    const initialColor = inputCor ? inputCor.value : (colors[0] ? colors[0].cor : null);
-    const initialSize = inputTamanho ? inputTamanho.value : null;
-    if (initialColor) {
-        setColor(initialColor);
-        if (initialSize) {
-            applySizesForColor(initialColor, initialSize);
-        }
-    } else if (colors.length) {
-        setColor(colors[0].cor);
-    }
-
-    corButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const cor = this.dataset.cor;
-            setColor(cor);
-        });
-    });
-
-    tamanhoButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            if (this.classList.contains('disabled')) return;
-            tamanhoButtons.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const tam = this.dataset.tamanho;
-            inputTamanho.value = tam;
-            tamanhoDisplay.textContent = sizeLabels[tam] || tam;
-        });
-    });
-});
-
-// função calcular valor desconto - CORRIGIDA
 function atualizarPrecos() {
-    // 🔥 Verificar qual campo de quantidade existe na página
-    let quantidadeInput = document.getElementById("quantidade");
-    if (!quantidadeInput) {
-        quantidadeInput = document.getElementById("quantidade-input-comprar");
-    }
-    if (!quantidadeInput) {
-        quantidadeInput = document.getElementById("quantidade-carrinho");
-    }
-    
-    if (!quantidadeInput) {
-        console.warn("Campo de quantidade não encontrado");
-        return;
-    }
+    let quantidadeInput = document.getElementById('quantidade-input-comprar');
+    if (!quantidadeInput) quantidadeInput = document.getElementById('quantidade');
+    if (!quantidadeInput) return;
     
     const precoProduto = parseFloat("{{ produto.preco|floatformat:2 }}".replace(",", ".")) || 0;
     const qtd = parseInt(quantidadeInput.value) || 1;
     const total = precoProduto * qtd;
-
-    const precoPix = total * 0.90; // 10% desconto
-    const precoParcelado = total; // preço cheio
-
-    const precoPixEl = document.getElementById("preco-pix");
-    const precoParceladoEl = document.getElementById("preco-parcelado");
+    const precoPix = total * 0.90;
+    
+    const precoPixEl = document.getElementById('preco-pix');
+    const precoParceladoEl = document.getElementById('preco-parcelado');
+    const qtdHidden = document.getElementById('quantidade-comprar');
     
     if (precoPixEl) precoPixEl.textContent = formatBR(precoPix);
-    if (precoParceladoEl) precoParceladoEl.textContent = formatBR(precoParcelado);
+    if (precoParceladoEl) precoParceladoEl.textContent = formatBR(total);
+    if (qtdHidden) qtdHidden.value = qtd;
 }
 
-// 🔥 Inicializar quando o DOM estiver carregado
-document.addEventListener("DOMContentLoaded", function() {
-    // Verificar qual campo de quantidade existe
-    let quantidadeInput = document.getElementById("quantidade");
-    if (!quantidadeInput) {
-        quantidadeInput = document.getElementById("quantidade-input-comprar");
-    }
-    if (!quantidadeInput) {
-        quantidadeInput = document.getElementById("quantidade-carrinho");
+// ============================================
+// INICIALIZAÇÃO PRINCIPAL
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM carregado - Inicializando página de produto');
+    
+    // Verificar se os elementos existem antes de configurar
+    const mainImage = document.getElementById('main-product-image');
+    const corDisplay = document.getElementById('cor-display');
+    const tamanhoDisplay = document.getElementById('tamanho-display');
+    const inputCorComprar = document.getElementById('input-cor-comprar');
+    const inputTamanhoComprar = document.getElementById('input-tamanho-comprar');
+    const inputCorCarrinho = document.getElementById('input-cor-carrinho');
+    const inputTamanhoCarrinho = document.getElementById('input-tamanho-carrinho');
+    
+    const corButtons = document.querySelectorAll('.cor-btn');
+    const tamanhoButtons = document.querySelectorAll('.tamanho-btn');
+    
+    // Função para definir cor
+    function setColor(cor) {
+        // Atualizar campos hidden
+        if (inputCorComprar) inputCorComprar.value = cor;
+        if (inputCorCarrinho) inputCorCarrinho.value = cor;
+        
+        // Atualizar display
+        if (corDisplay) corDisplay.textContent = cor;
+        
+        // Remover destaque de outros botões
+        corButtons.forEach(btn => {
+            btn.classList.remove('border-primary', 'border-2');
+        });
+        
+        // Destacar botão selecionado
+        const selectedBtn = Array.from(corButtons).find(btn => btn.dataset.cor === cor);
+        if (selectedBtn) {
+            selectedBtn.classList.add('border-primary', 'border-2');
+        }
     }
     
-    if (quantidadeInput) {
-        quantidadeInput.addEventListener("input", atualizarPrecos);
-        quantidadeInput.addEventListener("change", atualizarPrecos);
+    // Função para definir tamanho
+    function setTamanho(tamanho, label) {
+        if (inputTamanhoComprar) inputTamanhoComprar.value = tamanho;
+        if (inputTamanhoCarrinho) inputTamanhoCarrinho.value = tamanho;
+        if (tamanhoDisplay) tamanhoDisplay.textContent = label || tamanho;
+        
+        tamanhoButtons.forEach(btn => {
+            btn.classList.remove('active', 'btn-dark');
+            btn.classList.add('btn-outline-dark');
+        });
+        
+        const selectedBtn = Array.from(tamanhoButtons).find(btn => btn.dataset.tamanho === tamanho);
+        if (selectedBtn) {
+            selectedBtn.classList.remove('btn-outline-dark');
+            selectedBtn.classList.add('active', 'btn-dark');
+        }
     }
     
-    // Chamar uma vez para inicializar
+    // Adicionar eventos aos botões de cor
+    corButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const cor = this.dataset.cor;
+            const imagem = this.dataset.imagem;
+            const corDisplayName = this.dataset.corDisplay;
+            
+            if (imagem && mainImage) mainImage.src = imagem;
+            if (corDisplay) corDisplay.textContent = corDisplayName || cor;
+            
+            setColor(cor);
+        });
+    });
+    
+    // Adicionar eventos aos botões de tamanho
+    tamanhoButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (this.classList.contains('disabled')) return;
+            const tamanho = this.dataset.tamanho;
+            const label = this.textContent;
+            setTamanho(tamanho, label);
+        });
+    });
+    
+    // Configurar campo de quantidade
+    const qtdInput = document.getElementById('quantidade-input-comprar');
+    if (qtdInput) {
+        qtdInput.addEventListener('input', atualizarPrecos);
+        qtdInput.addEventListener('change', atualizarPrecos);
+    }
+    
+    // Inicializar preços
     atualizarPrecos();
+    
+    // Configurar frete com Enter
+    const cepFrete = document.getElementById('cep-frete');
+    if (cepFrete) {
+        cepFrete.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calcularFrete();
+        });
+    }
+    
+    console.log('Inicialização concluída');
 });
-
 </script>
 
 <style>
@@ -487,10 +418,21 @@ document.addEventListener("DOMContentLoaded", function() {
 .cor-btn.active {
     border: 2px solid #007bff !important;
 }
+.cor-btn {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.cor-btn:hover {
+    transform: scale(1.05);
+}
 .tamanho-btn.active {
     background-color: #007bff !important;
     color: white !important;
     border-color: #007bff !important;
+}
+.tamanho-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 </style>
 {% endblock %}
