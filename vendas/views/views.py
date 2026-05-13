@@ -200,14 +200,34 @@ def adicionar_carrinho(request, produto_id):
         
         # ===== SE NÃO ESTÁ LOGADO =====
         if not request.user.is_authenticated:
-            # Recupera ou cria o carrinho na sessão
             carrinho = request.session.get('carrinho', {})
             
-            # Chave única para o produto com suas variações
+            # 🔥 CRÍTICO: Verificar se já existe outro item do mesmo produto
+            # Se for "Comprar Agora", vamos limpar o carrinho atual
+            if action == 'comprar':
+                # Limpa todo o carrinho da sessão
+                carrinho = {}
+                messages.info(request, 'Carrinho limpo para nova compra!')
+            
+            # Chave única para o produto
             produto_key = f"{produto_id}_{cor}_{tamanho}"
             
+            # Verificar se já existe item similar (com cor/tamanho diferente)
+            # Se houver um item com cor/tamanho específico e este é genérico, não adicionar
+            if not cor and not tamanho:
+                # Este item não tem cor/tamanho - verificar se já existe item com cor/tamanho
+                for key in list(carrinho.keys()):
+                    if key.startswith(f"{produto_id}_") and key != produto_key:
+                        # Já existe variação deste produto
+                        messages.warning(request, 'Já existe uma variação deste produto no carrinho!')
+                        if action == 'comprar':
+                            return redirect('login')
+                        return redirect('detalhes_produto', produto_id=produto_id)
+            
+            # Adicionar ou atualizar
             if produto_key in carrinho:
                 carrinho[produto_key]['quantidade'] += quantidade
+                messages.success(request, f'{produto.nome} quantidade atualizada!')
             else:
                 carrinho[produto_key] = {
                     'id': produto_id,
@@ -218,20 +238,18 @@ def adicionar_carrinho(request, produto_id):
                     'tamanho': tamanho,
                     'imagem': produto.imagem.url if produto.imagem else None
                 }
+                messages.success(request, f'{produto.nome} adicionado ao carrinho!')
             
-            # Salva na sessão
             request.session['carrinho'] = carrinho
             request.session.modified = True
             
             print(f"DEBUG - Carrinho salvo na sessão: {request.session.get('carrinho')}")
             
-            # Se for compra rápida, redireciona para login
             if action == 'comprar':
                 return redirect('login')
             else:
-                messages.success(request, f'{produto.nome} adicionado ao carrinho!')
                 return redirect('detalhes_produto', produto_id=produto_id)
-
+                
         # ===== SE ESTÁ LOGADO =====
         if request.user.is_authenticated:
             item, created = CarrinhoItem.objects.get_or_create(
