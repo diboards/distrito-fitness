@@ -407,20 +407,17 @@ def comprar_agora(request, produto_id):
         cor = request.POST.get('cor', '')
         tamanho = request.POST.get('tamanho', '')
         
-        # 🔥 NÃO LIMPAR O CARRINHO! Apenas adicionar/atualizar o produto específico
-        # Verificar se o produto já existe no carrinho
-        item, created = CarrinhoItem.objects.get_or_create(
+        # 🔥 Limpa o carrinho atual (substitui pelo novo produto)
+        CarrinhoItem.objects.filter(usuario=request.user).delete()
+        
+        # Adiciona o produto ao carrinho
+        CarrinhoItem.objects.create(
             usuario=request.user,
             produto=produto,
+            quantidade=quantidade,
             cor_selecionada=cor,
-            tamanho_selecionado=tamanho,
-            defaults={'quantidade': quantidade}
+            tamanho_selecionado=tamanho
         )
-        
-        if not created:
-            # Se já existe, atualiza a quantidade (opcional)
-            item.quantidade = quantidade
-            item.save()
         
         messages.success(request, f'{produto.nome} adicionado ao carrinho!')
         return redirect('checkout')
@@ -429,22 +426,20 @@ def comprar_agora(request, produto_id):
 
 #redirecionar não-logados para o login com produto na sessão:
 
+
+
 def comprar_agora_anonimo(request, produto_id):
     """Para usuários não logados - salva produto na sessão e redireciona para login"""
     produto = get_object_or_404(Produto, id=produto_id)
     
-    # 🔥 Salva na sessão do carrinho (não em produto_compra separado)
-    carrinho = request.session.get('carrinho', {})
-    
+    quantidade = int(request.GET.get('quantidade', 1))
     cor = request.GET.get('cor', '').strip()
     tamanho = request.GET.get('tamanho', '').strip()
-    quantidade = int(request.GET.get('quantidade', 1))
+    
+    # 🔥 Limpa o carrinho da sessão (substitui pelo novo produto)
+    carrinho = {}
     
     produto_key = f"{produto_id}_{cor}_{tamanho}"
-    
-    # Limpa o carrinho atual se quiser substituir
-    carrinho = {}  # Substitui o carrinho atual
-    
     carrinho[produto_key] = {
         'id': produto_id,
         'nome': produto.nome,
@@ -457,6 +452,8 @@ def comprar_agora_anonimo(request, produto_id):
     
     request.session['carrinho'] = carrinho
     request.session.modified = True
+    
+    print(f"DEBUG - Carrinho salvo na sessão (comprar_agora_anonimo): {carrinho}")
     
     return redirect('login')
 
