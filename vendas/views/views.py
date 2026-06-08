@@ -131,48 +131,48 @@ def testar_conexao_mp(request):
 
 #Sacola de compras
 
+# vendas/views/views.py - SUBSTITUIR a função
+
 def detalhes_produto(request, produto_id):
-    produto = get_object_or_404(Produto, id=produto_id)
-
-     # Calculando descontos e parcelamento
-    preco_pix = (produto.preco * Decimal("0.90")).quantize(Decimal("0.01"))  # 10% OFF no pix
-    preco_parcela = (produto.preco / Decimal("4")).quantize(Decimal("0.01")) # parcelado em 4x
-
-    # traz todas as variações do mesmo modelo (mesmo nome)
-    variacoes = Produto.objects.filter(nome=produto.nome, ativo=True).order_by('cor', 'tamanho')
-
-    # organiza por cor: guarda primeira imagem encontrada e lista de tamanhos (valores)
-    colors = OrderedDict()
-    sizes_by_color = {}
-
-    for var in variacoes:
-        cor = var.cor  # valor armazenado no DB, ex: 'Vermelho', 'Azul', ...
-        cor_display = var.get_cor_display()
-        if cor not in colors:
-            colors[cor] = {
-                'cor': cor,
-                'cor_display': cor_display,
-                'imagem': var.imagem.url if var.imagem else ''
-            }
-            sizes_by_color[cor] = []
-        # adiciona tamanho (valor armazenado, ex 'M', 'G')
-        if var.tamanho not in sizes_by_color[cor]:
-            sizes_by_color[cor].append(var.tamanho)
-
-    # mapeamento para mostrar label do tamanho (value -> label)
-    size_labels = {val: label for val, label in Produto.TAMANHO_CHOICES}
-
+    produto = get_object_or_404(Produto, id=produto_id, ativo=True)
+    
+    # Buscar variações com estoque
+    variacoes = produto.variacoes.filter(quantidade_estoque__gt=0)
+    
+    # Agrupar por cor
+    cores_disponiveis = []
+    tamanhos_por_cor = {}
+    
+    for variacao in variacoes:
+        if variacao.cor not in tamanhos_por_cor:
+            tamanhos_por_cor[variacao.cor] = []
+            cores_disponiveis.append({
+                'cor': variacao.cor,
+                'cor_display': dict(Produto.COR_CHOICES).get(variacao.cor, variacao.cor),
+                'imagem': variacao.imagem.url if variacao.imagem else produto.imagem_principal.url if produto.imagem_principal else None
+            })
+        tamanhos_por_cor[variacao.cor].append({
+            'tamanho': variacao.tamanho,
+            'tamanho_display': dict(Produto.TAMANHO_CHOICES).get(variacao.tamanho, variacao.tamanho),
+            'preco': float(variacao.preco),
+            'estoque': variacao.quantidade_estoque,
+            'variacao_id': variacao.id
+        })
+    
+    # Preço mínimo
+    preco_minimo = produto.get_preco_minimo()
+    preco_pix = preco_minimo * Decimal('0.90')
+    preco_parcela = preco_minimo / Decimal('3')
+    
     context = {
         'produto': produto,
-        "preco_pix": preco_pix,
-        "preco_parcela": preco_parcela,
-        'colors_list': list(colors.values()),
-        'sizes_by_color': sizes_by_color,
-        'size_labels': size_labels,
-        # também passamos JSON já pronto para o JS sem precisar usar json_script
-        'colors_json': json.dumps(list(colors.values())),
-        'sizes_json': json.dumps(sizes_by_color),
-        'size_labels_json': json.dumps(size_labels),
+        'cores_disponiveis': cores_disponiveis,
+        'tamanhos_por_cor': tamanhos_por_cor,
+        'preco_minimo': preco_minimo,
+        'preco_pix': preco_pix,
+        'preco_parcela': preco_parcela,
+        'cores_json': json.dumps(cores_disponiveis),
+        'tamanhos_json': json.dumps(tamanhos_por_cor),
     }
     return render(request, 'vendas/detalhes_produto.html', context)
 
