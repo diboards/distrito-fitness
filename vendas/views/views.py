@@ -20,14 +20,14 @@ from django.utils import timezone
 from django.contrib.admin.views.decorators import staff_member_required
 
 from django.forms import inlineformset_factory
-from .models import Produto, ProdutoVariacao
+
 from .forms import ProdutoForm, ProdutoVariacaoForm, ProdutoVariacaoInlineFormSet
 
 
 from collections import OrderedDict
 from django.http import HttpResponseBadRequest
 from django.views.decorators.http import require_POST
-from vendas.models import Produto, Venda, CarrinhoItem, EnderecoEntrega, Pedido, ItemPedido
+from vendas.models import Produto, ProdutoVariacao, Venda, CarrinhoItem, EnderecoEntrega, Pedido, ItemPedido
 from vendas.forms import VendaForm, ProdutoForm, OrcamentoForm, UsuarioComEnderecoForm
 
 import json, os
