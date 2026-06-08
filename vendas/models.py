@@ -7,7 +7,25 @@ from decimal import Decimal
 from cloudinary.models import CloudinaryField
 from django.core.validators import RegexValidator
 
-
+class ProdutoVariacao(models.Model):
+    """Variação do produto (ex: Conjunto Azul - Tamanho M)"""
+    produto = models.ForeignKey('Produto', on_delete=models.CASCADE, related_name='variacoes')
+    cor = models.CharField(max_length=20, choices=Produto.COR_CHOICES)
+    tamanho = models.CharField(max_length=10, choices=Produto.TAMANHO_CHOICES)
+    preco = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
+    quantidade_estoque = models.PositiveIntegerField(default=0)
+    imagem = CloudinaryField('imagem', blank=True, null=True)
+    
+    class Meta:
+        unique_together = ['produto', 'cor', 'tamanho']  # Evita duplicidade
+    
+    def __str__(self):
+        return f"{self.produto.nome} - {self.cor}/{self.tamanho}"
+    
+    @property
+    def em_estoque(self):
+        return self.quantidade_estoque > 0
+        
 class Produto(models.Model):
     CATEGORIA_CHOICES = [
         ('lancamentos', 'Lançamentos'),
@@ -15,70 +33,45 @@ class Produto(models.Model):
         ('conjuntos', 'Conjuntos'),
         ('outros', 'Outros'),
     ]
-
-    TAMANHO_CHOICES = [
-        ('PP', 'PP'),
-        ('P', 'P'),
-        ('M', 'M'),
-        ('G', 'G'),
-        ('GG', 'GG'),
-        ('U', 'Único'),
-    ]
-    
-    COR_CHOICES = [
-        ('Vermelho', 'Vermelho'),
-        ('Azul', 'Azul'),
-        ('Verde', 'Verde'),
-        ('Amarelo', 'Amarelo'),
-        ('Preto', 'Preto'),
-        ('Branco', 'Branco'),
-        ('Rosa', 'Rosa'),
-        ('Roxo', 'Roxo'),
-        ('Laranja', 'Laranja'),
-        ('Cinza', 'Cinza'),
-        ('Marrom', 'Marrom'),
-        ('Outro', 'Outro'),
-    ]
     
     nome = models.CharField(max_length=100)
     descricao = models.TextField(blank=True, null=True)
-    preco = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
-    quantidade_estoque = models.PositiveIntegerField(default=0)
-    cor = models.CharField(max_length=20, choices=COR_CHOICES, default='Branco')
-    tamanho = models.CharField(max_length=10, choices=TAMANHO_CHOICES, default='M')
     categoria = models.CharField(max_length=20, choices=CATEGORIA_CHOICES, default='outros')
-
-    # ✅ CLOUDINARY
-    imagem = CloudinaryField('imagem', blank=True, null=True)
-
-    data_cadastro = models.DateTimeField(default=timezone.now)
+    imagem_principal = CloudinaryField('imagem', blank=True, null=True)  # Imagem padrão
     ativo = models.BooleanField(default=True)
+    data_cadastro = models.DateTimeField(default=timezone.now)
     
     class Meta:
         ordering = ['nome']
     
     def __str__(self):
-        return f"{self.nome} ({self.cor}, {self.tamanho})"
+        return self.nome
+    
+    def get_preco_minimo(self):
+        """Retorna o menor preço entre as variações"""
+        return self.variacoes.aggregate(models.Min('preco'))['preco__min'] or 0
+    
+    def get_estoque_total(self):
+        """Retorna o estoque total somando todas as variações"""
+        return self.variacoes.aggregate(models.Sum('quantidade_estoque'))['quantidade_estoque__sum'] or 0
 
 
 class CarrinhoItem(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
-    produto = models.ForeignKey('Produto', on_delete=models.CASCADE)
+    variacao = models.ForeignKey('ProdutoVariacao', on_delete=models.CASCADE)  # ← MUDE para variacao
     quantidade = models.PositiveIntegerField(default=1)
-    cor_selecionada = models.CharField(max_length=50, blank=True, null=True)
-    tamanho_selecionado = models.CharField(max_length=10, blank=True, null=True)
-
-    # ⚠️ IMPORTANTE: também precisa ser Cloudinary
-    imagem = CloudinaryField('imagem', blank=True, null=True)
-
     data_adicionado = models.DateTimeField(auto_now_add=True)
     
     @property
     def subtotal(self):
-        return self.produto.preco * self.quantidade
+        return self.variacao.preco * self.quantidade
+    
+    @property
+    def nome_produto(self):
+        return f"{self.variacao.produto.nome} - {self.variacao.cor}/{self.variacao.tamanho}"
     
     def __str__(self):
-        return f"{self.produto.nome} - {self.usuario.username}"
+        return f"{self.nome_produto} - {self.usuario.username}"
         
 class ItemPedido(models.Model):
     pedido = models.ForeignKey('Pedido', on_delete=models.CASCADE, related_name='itens_pedido')
