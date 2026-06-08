@@ -52,7 +52,7 @@ class Produto(models.Model):
     nome = models.CharField(max_length=100)
     descricao = models.TextField(blank=True, null=True)
     categoria = models.CharField(max_length=20, choices=CATEGORIA_CHOICES, default='outros')
-    imagem_principal = CloudinaryField('imagem', blank=True, null=True)
+    imagem = CloudinaryField('imagem', blank=True, null=True)
     ativo = models.BooleanField(default=True)
     data_cadastro = models.DateTimeField(default=timezone.now)
     
