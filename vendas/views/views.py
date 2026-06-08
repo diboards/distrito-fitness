@@ -37,10 +37,33 @@ from vendas.utils import get_itens_carrinho
 
 
 
+# vendas/views/views.py
+
+def calcular_precos(produto_list):
+    """Calcula preços para uma lista de produtos (usa primeira variação)"""
+    resultado = []
+    for p in produto_list:
+        # Buscar a primeira variação do produto
+        variacao = p.variacoes.first()
+        if variacao:
+            preco_pix = (variacao.preco * Decimal("0.90")).quantize(Decimal("0.01"))
+            preco_parcela = (variacao.preco / Decimal("3")).quantize(Decimal("0.01"))
+            resultado.append({
+                "id": p.id,
+                "nome": p.nome,
+                "preco": variacao.preco,
+                "preco_pix": preco_pix,
+                "preco_parcela": preco_parcela,
+                "imagem": p.imagem or (variacao.imagem if variacao.imagem else None),
+                "categoria": p.categoria,
+            })
+    return resultado
+
+
 def pagina_inicial(request):
     categoria_selecionada = request.GET.get('categoria', '')
     
-    # Query base
+    # Query base - produtos ativos
     produtos_query = Produto.objects.filter(ativo=True)
     
     if categoria_selecionada:
@@ -55,23 +78,7 @@ def pagina_inicial(request):
     produtos_outros = produtos_query.filter(categoria='outros')[:12]
     produtos_destaque = produtos_query.order_by('-data_cadastro')[:6]
     
-    # Calcular preços
-    def calcular_precos(produto_list):
-        resultado = []
-        for p in produto_list:
-            preco_pix = (p.preco * Decimal("0.90")).quantize(Decimal("0.01"))
-            preco_parcela = (p.preco / Decimal("3")).quantize(Decimal("0.01"))
-            resultado.append({
-                "id": p.id,
-                "nome": p.nome,
-                "preco": p.preco,
-                "preco_pix": preco_pix,
-                "preco_parcela": preco_parcela,
-                "imagem": p.imagem,
-                "categoria": p.categoria,
-            })
-        return resultado
-    
+    # Calcular preços para cada lista
     context = {
         'produtos_lancamentos': calcular_precos(produtos_lancamentos),
         'produtos_promocoes': calcular_precos(produtos_promocoes),
