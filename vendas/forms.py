@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import EnderecoEntrega
 
-from .models import Produto, ProdutoVariacao, Venda, Orcamento, EnderecoEntrega, Perfil
+from .models import Produto, ProdutoVariacao, Venda, EnderecoEntrega, Perfil
 
 
 class ProdutoForm(forms.ModelForm):
