@@ -21,14 +21,11 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 from django.forms import inlineformset_factory
 
-from .forms import ProdutoForm, ProdutoVariacaoForm, ProdutoVariacaoInlineFormSet
-
-
 from collections import OrderedDict
 from django.http import HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from vendas.models import Produto, ProdutoVariacao, Venda, CarrinhoItem, EnderecoEntrega, Pedido, ItemPedido
-from vendas.forms import VendaForm, ProdutoForm, OrcamentoForm, UsuarioComEnderecoForm
+from vendas.forms import VendaForm, ProdutoForm, ProdutoVariacaoForm, ProdutoVariacaoInlineFormSet, UsuarioComEnderecoForm
 
 import json, os
 import requests
