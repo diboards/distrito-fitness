@@ -13,7 +13,7 @@ class ProdutoForm(forms.ModelForm):
     """Formulário para o produto base (sem preço, cor, tamanho, estoque)"""
     class Meta:
         model = Produto
-        fields = ['nome', 'descricao', 'categoria', 'imagem_principal', 'ativo']
+        fields = ['nome', 'descricao', 'categoria', 'imagem', 'ativo']
         widgets = {
             'nome': forms.TextInput(attrs={
                 'class': 'form-control',
