@@ -88,6 +88,93 @@ class ProdutoForm(forms.ModelForm):
 
         return imagem   
 
+# novas class
+class ProdutoVariacaoForm(forms.ModelForm):
+    """Formulário para as VARIAÇÕES do produto (cores, tamanhos, preço, estoque)"""
+    
+    class Meta:
+        model = ProdutoVariacao
+        fields = ['cor', 'tamanho', 'preco', 'quantidade_estoque', 'imagem']
+        widgets = {
+            'cor': forms.Select(attrs={'class': 'form-control'}),
+            'tamanho': forms.Select(attrs={'class': 'form-control'}),
+            'preco': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0.01',
+                'placeholder': '0.00'
+            }),
+            'quantidade_estoque': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'placeholder': '0'
+            }),
+            'imagem': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            })
+        }
+        labels = {
+            'cor': 'Cor',
+            'tamanho': 'Tamanho',
+            'preco': 'Preço (R$)',
+            'quantidade_estoque': 'Quantidade em Estoque',
+            'imagem': 'Imagem da Variação'
+        }
+    
+    # 🔥 SUAS VALIDAÇÕES ORIGINAIS (mantidas)
+    def clean_preco(self):
+        preco = self.cleaned_data.get('preco')
+        if preco <= 0:
+            raise forms.ValidationError("O preço deve ser maior que zero.")
+        return preco
+    
+    def clean_quantidade_estoque(self):
+        quantidade = self.cleaned_data.get('quantidade_estoque')
+        if quantidade < 0:
+            raise forms.ValidationError("A quantidade em estoque não pode ser negativa.")
+        return quantidade
+    
+    def clean_imagem(self):
+        imagem = self.cleaned_data.get('imagem')
+
+        # Se não enviou nova imagem → mantém a atual
+        if not imagem:
+            return imagem
+
+        # Se for upload novo (arquivo mesmo)
+        if hasattr(imagem, 'size'):
+            if imagem.size > 2 * 1024 * 1024:
+                raise forms.ValidationError("Imagem muito grande (máx 2MB).")
+
+        # Se for Cloudinary (edição de produto)
+        elif hasattr(imagem, 'public_id'):
+            return imagem
+
+        return imagem
+
+
+class ProdutoVariacaoInlineFormSet(forms.BaseInlineFormSet):
+    """FormSet para gerenciar múltiplas variações do produto"""
+    
+    def clean(self):
+        """Validação adicional: garantir que não haja duplicidade de cor/tamanho"""
+        super().clean()
+        
+        combinacoes = []
+        for form in self.forms:
+            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                cor = form.cleaned_data.get('cor')
+                tamanho = form.cleaned_data.get('tamanho')
+                if cor and tamanho:
+                    combinacao = f"{cor}_{tamanho}"
+                    if combinacao in combinacoes:
+                        raise forms.ValidationError(
+                            f"Combinação {cor}/{tamanho} já foi adicionada. Não pode duplicar."
+                        )
+                    combinacoes.append(combinacao)
+# nova
+
 class VendaForm(forms.ModelForm):
     class Meta:
         model = Venda
