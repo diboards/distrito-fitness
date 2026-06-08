@@ -19,6 +19,10 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.contrib.admin.views.decorators import staff_member_required
 
+from django.forms import inlineformset_factory
+from .models import Produto, ProdutoVariacao
+from .forms import ProdutoForm, ProdutoVariacaoForm, ProdutoVariacaoInlineFormSet
+
 
 from collections import OrderedDict
 from django.http import HttpResponseBadRequest
@@ -1369,16 +1373,41 @@ def excluir_produto(request, produto_id):
 @superuser_required
 @login_required
 def cadastrar_produto(request):
+    """View para cadastrar produto com suas variações"""
+    
+    VariacaoFormSet = inlineformset_factory(
+        Produto,
+        ProdutoVariacao,
+        form=ProdutoVariacaoForm,
+        formset=ProdutoVariacaoInlineFormSet,
+        extra=3,  # Mostra 3 linhas para adicionar variações
+        can_delete=True,
+        min_num=1,
+        validate_min=True
+    )
+    
     if request.method == 'POST':
         form = ProdutoForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
+        formset = VariacaoFormSet(request.POST, request.FILES, instance=None)
+        
+        if form.is_valid() and formset.is_valid():
+            produto = form.save()
+            formset.instance = produto
+            formset.save()
+            
             messages.success(request, 'Produto cadastrado com sucesso!')
-            return redirect('estoque')
+            return redirect('lista_produtos')
+        else:
+            messages.error(request, 'Erro ao cadastrar produto. Verifique os campos.')
     else:
         form = ProdutoForm()
-
-    return render(request, 'vendas/cadastrar_produto.html', {'form': form})
+        formset = VariacaoFormSet()
+    
+    context = {
+        'form': form,
+        'formset': formset,
+    }
+    return render(request, 'vendas/cadastrar_produto.html', context)
 
 def meus_pedidos(request):
     pedidos = Pedido.objects.filter(usuario=request.user)\
