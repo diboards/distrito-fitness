@@ -7,10 +7,13 @@ from .models import EnderecoEntrega
 from .models import Produto, ProdutoVariacao, Venda, EnderecoEntrega, Perfil
 
 
+# vendas/forms.py - Substitua a classe ProdutoForm por esta:
+
 class ProdutoForm(forms.ModelForm):
+    """Formulário para o produto base (sem preço, cor, tamanho, estoque)"""
     class Meta:
         model = Produto
-        fields = ['nome', 'descricao', 'preco', 'quantidade_estoque', 'cor', 'tamanho', 'categoria', 'imagem']
+        fields = ['nome', 'descricao', 'categoria', 'imagem_principal', 'ativo']
         widgets = {
             'nome': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -21,40 +24,19 @@ class ProdutoForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'Digite a descrição do produto'
             }),
-            'preco': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'step': '0.01',
-                'min': '0.01',
-                'placeholder': '0.00'
-            }),
-            'quantidade_estoque': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '0',
-                'placeholder': '0'
-            }),
-            'cor': forms.Select(attrs={
-                'class': 'form-control'
-            }),
-            'tamanho': forms.Select(attrs={
-                'class': 'form-control'
-            }),
-            'categoria': forms.Select(attrs={
-                'class': 'form-control'
-            }),
-            'imagem': forms.FileInput(attrs={
+            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'imagem_principal': forms.FileInput(attrs={
                 'class': 'form-control',
                 'accept': 'image/*'
-            })
+            }),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'nome': 'Nome do Produto',
             'descricao': 'Descrição',
-            'preco': 'Preço (R$)',
-            'quantidade_estoque': 'Quantidade em Estoque',
-            'cor': 'Cor',
-            'tamanho': 'Tamanho',
             'categoria': 'Categoria',
-            'imagem': 'Imagem do Produto'
+            'imagem_principal': 'Imagem Principal do Produto',
+            'ativo': 'Produto Ativo',
         }
     
     def clean_preco(self):
