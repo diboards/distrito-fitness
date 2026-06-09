@@ -25,7 +25,7 @@ class ProdutoForm(forms.ModelForm):
                 'placeholder': 'Digite a descrição do produto'
             }),
             'categoria': forms.Select(attrs={'class': 'form-control'}),
-            'imagem_principal': forms.FileInput(attrs={
+            'imagem': forms.FileInput(attrs={
                 'class': 'form-control',
                 'accept': 'image/*'
             }),
@@ -35,7 +35,7 @@ class ProdutoForm(forms.ModelForm):
             'nome': 'Nome do Produto',
             'descricao': 'Descrição',
             'categoria': 'Categoria',
-            'imagem_principal': 'Imagem Principal do Produto',
+            'imagem': 'Imagem Principal do Produto',
             'ativo': 'Produto Ativo',
         }
     
