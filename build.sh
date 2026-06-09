@@ -7,18 +7,20 @@ echo "========================================="
 # Instalar dependências
 pip install -r requirements.txt
 
-# Remover migrações antigas que podem estar causando conflito
+# Remover migrações antigas
 rm -f vendas/migrations/00*.py
 
-# Criar novas migrações
+# Criar migrações
 python manage.py makemigrations vendas --noinput
 
-# Forçar a migração (ignorando erros de coluna)
-python manage.py migrate vendas --noinput --fake-initial
+# Forçar migração falsa para as tabelas existentes
+python manage.py migrate vendas --fake --noinput
 
-# Criar e aplicar migrações para o resto
-python manage.py makemigrations --noinput
-python manage.py migrate --noinput
+# Criar apenas a tabela ProdutoVariacao
+python manage.py migrate vendas --fake-initial --noinput
+
+# Tentar criar apenas a tabela que falta
+python manage.py migrate vendas 0001_initial --noinput
 
 # Coletar arquivos estáticos
 python manage.py collectstatic --noinput
