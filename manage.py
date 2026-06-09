@@ -1,28 +1,22 @@
+#!/bin/bash
 
-# manage.py
-#!/usr/bin/env python
-import os
-import sys
-import subprocess
+echo "🚀 Iniciando build..."
 
-def main():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'distrito_fitness.settings')
-    
-    # Executar migrações automaticamente se estiver no Render
-    if os.environ.get('RENDER'):
-        print("🔄 Executando migrações...")
-        subprocess.run([sys.executable, "manage.py", "makemigrations", "vendas", "--noinput"])
-        subprocess.run([sys.executable, "manage.py", "migrate", "--noinput"])
-    
-    try:
-        from django.core.management import execute_from_command_line
-    except ImportError as exc:
-        raise ImportError(
-            "Couldn't import Django. Are you sure it's installed and "
-            "available on your PYTHONPATH environment variable? Did you "
-            "forget to activate a virtual environment?"
-        ) from exc
-    execute_from_command_line(sys.argv)
+# Instalar dependências
+pip install -r requirements.txt
 
-if __name__ == '__main__':
-    main()
+# Remover migrações antigas (se houver conflito)
+rm -f vendas/migrations/00*.py
+
+# Criar novas migrações
+python manage.py makemigrations vendas --noinput
+python manage.py makemigrations --noinput
+
+# Aplicar migrações FORÇADAMENTE
+python manage.py migrate vendas --noinput
+python manage.py migrate --noinput
+
+# Coletar arquivos estáticos
+python manage.py collectstatic --noinput
+
+echo "✅ Build concluído!"
