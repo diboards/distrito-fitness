@@ -40,7 +40,8 @@ EOF
 
 # Forçar migração
 python manage.py migrate vendas --fake --noinput
-
+# No shell do Render, execute:
+python manage.py makemigrations vendas --empty --name remove_old_columns
 # Coletar arquivos estáticos
 python manage.py collectstatic --noinput
 
