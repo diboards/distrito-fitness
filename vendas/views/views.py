@@ -1314,15 +1314,17 @@ def superuser_required(view_func):
     return _wrapped_view
 
 @superuser_required
+# vendas/views/views.py
+
 def estoque(request):
-    # [código existente permanece o mesmo]
+    """View para gerenciamento de estoque"""
     # Obter parâmetros de filtro
     status_filter = request.GET.get('status')
     categoria_filter = request.GET.get('categoria')
     estoque_baixo_filter = request.GET.get('estoque_baixo')
     
-    # Query base
-    produtos = Produto.objects.all()
+    # Query base - busca produtos ativos
+    produtos = Produto.objects.filter(ativo=True)
     
     # Aplicar filtros
     if status_filter == 'ativo':
@@ -1333,19 +1335,51 @@ def estoque(request):
     if categoria_filter:
         produtos = produtos.filter(categoria=categoria_filter)
     
+    # 🔥 FILTRO DE ESTOQUE BAIXO - AGORA USA VARIAÇÕES
     if estoque_baixo_filter == 'sim':
-        produtos = produtos.filter(quantidade_estoque__lte=5)
+        # Busca produtos que têm alguma variação com estoque <= 5
+        produtos_ids = []
+        for p in produtos:
+            if p.variacoes.filter(quantidade_estoque__lte=5).exists():
+                produtos_ids.append(p.id)
+        produtos = produtos.filter(id__in=produtos_ids)
     elif estoque_baixo_filter == 'nao':
-        produtos = produtos.filter(quantidade_estoque__gt=5)
+        # Busca produtos que NÃO têm variações com estoque baixo
+        produtos_ids = []
+        for p in produtos:
+            if not p.variacoes.filter(quantidade_estoque__lte=5).exists():
+                produtos_ids.append(p.id)
+        produtos = produtos.filter(id__in=produtos_ids)
     
     # Estatísticas
-    total_produtos = Produto.objects.count()
+    total_produtos = Produto.objects.filter(ativo=True).count()
     produtos_ativos = Produto.objects.filter(ativo=True).count()
     produtos_inativos = Produto.objects.filter(ativo=False).count()
-    total_estoque = Produto.objects.aggregate(Sum('quantidade_estoque'))['quantidade_estoque__sum'] or 0
+    
+    # Calcular estoque total somando todas as variações
+    total_estoque = 0
+    for p in produtos:
+        total_estoque += p.variacoes.aggregate(Sum('quantidade_estoque'))['quantidade_estoque__sum'] or 0
+    
+    # Preparar dados para o template (incluindo preços da primeira variação)
+    produtos_com_precos = []
+    for p in produtos:
+        primeira_variacao = p.variacoes.first()
+        if primeira_variacao:
+            produtos_com_precos.append({
+                'id': p.id,
+                'nome': p.nome,
+                'preco': primeira_variacao.preco,
+                'quantidade_estoque': primeira_variacao.quantidade_estoque,
+                'cor': primeira_variacao.cor,
+                'tamanho': primeira_variacao.tamanho,
+                'imagem': p.imagem,
+                'categoria': p.categoria,
+                'ativo': p.ativo,
+            })
     
     context = {
-        'produtos': produtos,
+        'produtos': produtos_com_precos,
         'total_produtos': total_produtos,
         'produtos_ativos': produtos_ativos,
         'produtos_inativos': produtos_inativos,
