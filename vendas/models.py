@@ -48,11 +48,10 @@ COR_CHOICES = [
 # ============================================
 
 class Produto(models.Model):
-    """Produto base (ex: Conjunto Esportivo)"""
     nome = models.CharField(max_length=100)
     descricao = models.TextField(blank=True, null=True)
     categoria = models.CharField(max_length=20, choices=CATEGORIA_CHOICES, default='outros')
-    imagem = CloudinaryField('imagem', blank=True, null=True)
+    imagem = models.CharField(max_length=200, blank=True, null=True)  # ← Temporário
     ativo = models.BooleanField(default=True)
     data_cadastro = models.DateTimeField(default=timezone.now)
     
