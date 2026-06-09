@@ -1,21 +1,18 @@
 {% extends 'vendas/base.html' %}
 {% load static %}
 {% load extras %}
-{%load widget_tweaks%}
+{% load widget_tweaks %}
 
 {% block content %}
 <div class="container mt-1">
 
-    <!-- Fundo cinza claro -->
     <div class="p-1" style="background-color: #f8f9fa; border-radius: 8px;">
         
-        <!-- Card com relevo -->
         <div class="card shadow-lg mb-0 rounded-2">
             <div class="card-header bg-dark text-white">
                 <strong>Cadastro de Novo Produto</strong>
             </div>
             
-            <!-- Formulário -->
             <div class="card-body bg-light rounded-bottom-4">
                 <form method="POST" id="form-cadastrar-produto" enctype="multipart/form-data">
                     {% csrf_token %}
@@ -29,62 +26,107 @@
                                 <li>{{ field.label }}: {{ error }}</li>
                             {% endfor %}
                         {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
                         </ul>
                     </div>
                     {% endif %}
                     
+                    <!-- INFORMAÇÕES BÁSICAS DO PRODUTO -->
+                    <h5 class="mb-3">Informações Básicas</h5>
                     <div class="row mb-3">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label for="id_nome" class="form-label">Nome do Produto:</label>
                             {{ form.nome|add_class:"form-control input-cinza interactive-border" }}
                         </div>
                         
-                        <div class="col-md-4">
-                            <label for="id_quantidade_estoque" class="form-label">Quantidade em Estoque:</label>
-                            {{ form.quantidade_estoque|add_class:"form-control input-cinza interactive-border" }}
-                        </div>
-
-                        <div class="col-md-4">
-                            <label for="id_preco" class="form-label">Preço (R$):</label>
-                            {{ form.preco|add_class:"form-control input-cinza interactive-border" }}
+                        <div class="col-md-6">
+                            <label for="id_categoria" class="form-label">Categoria:</label>
+                            {{ form.categoria|add_class:"form-control input-cinza interactive-border" }}
                         </div>
                     </div>
 
                     <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label for="id_cor" class="form-label">Cor:</label>
-                            {{ form.cor|add_class:"form-control input-cinza interactive-border" }}
-                        </div>
-
-                        <div class="col-md-3">
-                            <label for="id_tamanho" class="form-label">Tamanho:</label>
-                            {{ form.tamanho|add_class:"form-control input-cinza interactive-border" }}
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="id_imagem" class="form-label">Imagem do Produto:</label>
-                            {{ form.imagem|add_class:"form-control input-cinza interactive-border" }}
-                            <div class="form-text">Formatos suportados: JPG, PNG, GIF. Tamanho máximo: 5MB.</div>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label for="id_descricao" class="form-label">Descrição:</label>
                             {{ form.descricao|add_class:"form-control input-cinza interactive-border small-textarea" }}
                         </div>
-                        <div class="col-md-3">
-                        <label for="id_categoria" class="form-label">Categoria:</label>
-                        {{ form.categoria|add_class:"form-control input-cinza interactive-border" }}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="id_imagem_principal" class="form-label">Imagem Principal do Produto:</label>
+                            {{ form.imagem_principal|add_class:"form-control input-cinza interactive-border" }}
+                            <div class="form-text">Imagem padrão do produto (opcional)</div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="image-preview-container mt-4 text-center">
                                 <img id="image-preview" src="{% static 'vendas/images/default-product.png' %}" 
                                      alt="Preview da imagem" class="img-thumbnail" style="max-height: 180px;">
-                                <div class="form-text mt-2">Pré-visualização da imagem</div>
+                                <div class="form-text mt-2">Pré-visualização da imagem principal</div>
                             </div>
                         </div>
                     </div>
+
+                    <hr>
+
+                    <!-- VARIAÇÕES DO PRODUTO (CORES, TAMANHOS, PREÇO, ESTOQUE) -->
+                    <h5 class="mb-3">Variações do Produto</h5>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Adicione as variações de cor, tamanho, preço e estoque do produto.
+                    </div>
+                    
+                    {{ formset.management_form }}
+                    
+                    <div id="variacoes-container">
+                        {% for form_variacao in formset %}
+                        <div class="card mb-3 variacao-card">
+                            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                                <span>Variação {{ forloop.counter }}</span>
+                                {% if formset.can_delete %}
+                                <button type="button" class="btn btn-danger btn-sm remover-variacao">
+                                    <i class="bi bi-trash"></i> Remover
+                                </button>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Cor:</label>
+                                        {{ form_variacao.cor|add_class:"form-control" }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Tamanho:</label>
+                                        {{ form_variacao.tamanho|add_class:"form-control" }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Preço (R$):</label>
+                                        {{ form_variacao.preco|add_class:"form-control" }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Quantidade em Estoque:</label>
+                                        {{ form_variacao.quantidade_estoque|add_class:"form-control" }}
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Imagem da Variação:</label>
+                                        {{ form_variacao.imagem|add_class:"form-control" }}
+                                    </div>
+                                </div>
+                                {{ form_variacao.id }}
+                                {% if form_variacao.instance.pk %}
+                                    {{ form_variacao.DELETE }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <button type="button" id="add-variacao" class="btn btn-outline-success btn-sm mb-3">
+                        <i class="bi bi-plus-circle"></i> Adicionar Variação
+                    </button>
 
                     <div class="row">
                         <div class="col text-start">
@@ -100,7 +142,6 @@
 
 </div>
 
-<!-- Estilos customizados -->
 <style>
     .interactive-border {
         border: 1px solid #ced4da;
@@ -123,12 +164,15 @@
         padding: 15px;
         background-color: #f9f9f9;
     }
+    .variacao-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+    }
 </style>
 
-<!-- Script para pré-visualização de imagem e bloquear botão após envio -->
 <script>
-    // Pré-visualização da imagem
-    document.getElementById('id_imagem').addEventListener('change', function(e) {
+    // Pré-visualização da imagem principal
+    document.getElementById('id_imagem_principal').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
@@ -137,6 +181,43 @@
             }
             reader.readAsDataURL(file);
         }
+    });
+    
+    // Adicionar nova variação
+    let formIndex = {{ formset.total_form_count }};
+    const container = document.getElementById('variacoes-container');
+    const addButton = document.getElementById('add-variacao');
+    
+    addButton.addEventListener('click', function() {
+        const emptyForm = `{{ formset.empty_form|safe }}`.replace(/__prefix__/g, formIndex);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'card mb-3 variacao-card';
+        wrapper.innerHTML = `
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <span>Variação ${formIndex + 1}</span>
+                <button type="button" class="btn btn-danger btn-sm remover-variacao">
+                    <i class="bi bi-trash"></i> Remover
+                </button>
+            </div>
+            <div class="card-body">
+                ${emptyForm}
+            </div>
+        `;
+        container.appendChild(wrapper);
+        
+        // Adicionar evento de remover à nova variação
+        wrapper.querySelector('.remover-variacao').addEventListener('click', function() {
+            wrapper.remove();
+        });
+        
+        formIndex++;
+    });
+    
+    // Adicionar eventos de remover às variações existentes
+    document.querySelectorAll('.remover-variacao').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.variacao-card').remove();
+        });
     });
     
     // Bloquear botão após envio
