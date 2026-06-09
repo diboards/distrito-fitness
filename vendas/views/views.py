@@ -1380,15 +1380,18 @@ def excluir_produto(request, produto_id):
 
 @superuser_required
 @login_required
+# vendas/views/views.py
+
+from django.forms import inlineformset_factory
+from .models import Produto, ProdutoVariacao
+from .forms import ProdutoForm, ProdutoVariacaoForm
+
 def cadastrar_produto(request):
-    """View para cadastrar produto com suas variações"""
-    
     VariacaoFormSet = inlineformset_factory(
         Produto,
         ProdutoVariacao,
         form=ProdutoVariacaoForm,
-        formset=ProdutoVariacaoInlineFormSet,
-        extra=3,  # Mostra 3 linhas para adicionar variações
+        extra=1,
         can_delete=True,
         min_num=1,
         validate_min=True
@@ -1402,7 +1405,6 @@ def cadastrar_produto(request):
             produto = form.save()
             formset.instance = produto
             formset.save()
-            
             messages.success(request, 'Produto cadastrado com sucesso!')
             return redirect('lista_produtos')
         else:
