@@ -60,35 +60,38 @@ def calcular_precos(produto_list):
     return resultado
 
 
+# vendas/views/views.py
+
 def pagina_inicial(request):
     categoria_selecionada = request.GET.get('categoria', '')
     
-    # Query base - produtos ativos
+    # Buscar produtos ativos
     produtos_query = Produto.objects.filter(ativo=True)
     
     if categoria_selecionada:
-        produtos = produtos_query.filter(categoria=categoria_selecionada)
-    else:
-        produtos = produtos_query
+        produtos_query = produtos_query.filter(categoria=categoria_selecionada)
     
-    # Separar produtos por categoria (apenas para página inicial)
-    produtos_lancamentos = produtos_query.filter(categoria='lancamentos')[:12]
-    produtos_promocoes = produtos_query.filter(categoria='promocoes')[:12]
-    produtos_conjuntos = produtos_query.filter(categoria='conjuntos')[:12]
-    produtos_outros = produtos_query.filter(categoria='outros')[:12]
-    produtos_destaque = produtos_query.order_by('-data_cadastro')[:6]
+    # Preparar produtos com suas variações
+    produtos_com_precos = []
+    for p in produtos_query:
+        primeira_variacao = p.variacoes.first()
+        if primeira_variacao:
+            preco_pix = (primeira_variacao.preco * Decimal("0.90")).quantize(Decimal("0.01"))
+            preco_parcela = (primeira_variacao.preco / Decimal("3")).quantize(Decimal("0.01"))
+            produtos_com_precos.append({
+                "id": p.id,
+                "nome": p.nome,
+                "preco": primeira_variacao.preco,
+                "preco_pix": preco_pix,
+                "preco_parcela": preco_parcela,
+                "imagem": p.imagem or (primeira_variacao.imagem if primeira_variacao.imagem else None),
+                "categoria": p.categoria,
+            })
     
-    # Calcular preços para cada lista
     context = {
-        'produtos_lancamentos': calcular_precos(produtos_lancamentos),
-        'produtos_promocoes': calcular_precos(produtos_promocoes),
-        'produtos_conjuntos': calcular_precos(produtos_conjuntos),
-        'produtos_outros': calcular_precos(produtos_outros),
-        'produtos_destaque': calcular_precos(produtos_destaque),
+        'produtos': produtos_com_precos,
         'categoria_selecionada': categoria_selecionada,
-        'produtos': calcular_precos(produtos),
     }
-    
     return render(request, 'vendas/index.html', context)
 
 
@@ -1414,41 +1417,39 @@ def excluir_produto(request, produto_id):
 
 @superuser_required
 @login_required
-# vendas/views/views.py
 
 def cadastrar_produto(request):
-    VariacaoFormSet = inlineformset_factory(
-        Produto,
-        ProdutoVariacao,
-        form=ProdutoVariacaoForm,
-        extra=1,
-        can_delete=True,
-        min_num=1,
-        validate_min=True
-    )
-    
     if request.method == 'POST':
-        form = ProdutoForm(request.POST, request.FILES)
-        formset = VariacaoFormSet(request.POST, request.FILES, instance=None)
+        # Criar o produto base
+        produto = Produto.objects.create(
+            nome=request.POST.get('nome'),
+            descricao=request.POST.get('descricao'),
+            categoria=request.POST.get('categoria'),
+            ativo=True
+        )
         
-        if form.is_valid() and formset.is_valid():
-            produto = form.save()
-            formset.instance = produto
-            formset.save()
-            messages.success(request, 'Produto cadastrado com sucesso!')
-            # 🔥 MUDAR AQUI - use 'estoque' em vez de 'lista_produtos'
-            return redirect('estoque')
-        else:
-            messages.error(request, 'Erro ao cadastrar produto. Verifique os campos.')
-    else:
-        form = ProdutoForm()
-        formset = VariacaoFormSet()
+        # Criar as variações do produto
+        cores = request.POST.getlist('cor[]')
+        tamanhos = request.POST.getlist('tamanho[]')
+        precos = request.POST.getlist('preco[]')
+        estoques = request.POST.getlist('quantidade_estoque[]')
+        imagens = request.FILES.getlist('imagem_variacao[]')
+        
+        for i in range(len(cores)):
+            if i < len(precos) and precos[i]:
+                ProdutoVariacao.objects.create(
+                    produto=produto,
+                    cor=cores[i] if i < len(cores) else 'Branco',
+                    tamanho=tamanhos[i] if i < len(tamanhos) else 'M',
+                    preco=Decimal(precos[i]),
+                    quantidade_estoque=int(estoques[i]) if i < len(estoques) else 0,
+                    imagem=imagens[i] if i < len(imagens) else None
+                )
+        
+        messages.success(request, 'Produto cadastrado com sucesso!')
+        return redirect('estoque')
     
-    context = {
-        'form': form,
-        'formset': formset,
-    }
-    return render(request, 'vendas/cadastrar_produto.html', context)
+    return render(request, 'vendas/cadastrar_produto.html')
 
 def meus_pedidos(request):
     pedidos = Pedido.objects.filter(usuario=request.user)\
