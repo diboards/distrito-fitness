@@ -6,14 +6,13 @@ echo "========================================="
 
 pip install -r requirements.txt
 
-# Limpar migrações problemáticas
-rm -f vendas/migrations/0005_*.py
-rm -f vendas/migrations/0006_*.py
+# Adicionar a coluna imagem via SQL direto
+python manage.py dbshell << 'EOF'
+ALTER TABLE vendas_produto ADD COLUMN IF NOT EXISTS imagem varchar(200);
+EOF
 
-# Criar nova migração
+# Criar e aplicar migrações
 python manage.py makemigrations vendas --noinput
-
-# Aplicar migrações
 python manage.py migrate vendas --noinput
 
 # Coletar estáticos
