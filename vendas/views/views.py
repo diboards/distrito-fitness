@@ -1382,10 +1382,6 @@ def excluir_produto(request, produto_id):
 @login_required
 # vendas/views/views.py
 
-from django.forms import inlineformset_factory
-from .models import Produto, ProdutoVariacao
-from .forms import ProdutoForm, ProdutoVariacaoForm
-
 def cadastrar_produto(request):
     VariacaoFormSet = inlineformset_factory(
         Produto,
