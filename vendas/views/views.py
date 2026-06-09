@@ -1402,7 +1402,7 @@ def cadastrar_produto(request):
             formset.instance = produto
             formset.save()
             messages.success(request, 'Produto cadastrado com sucesso!')
-            return redirect('lista_produtos')
+            return redirect('pagina_inicial')
         else:
             messages.error(request, 'Erro ao cadastrar produto. Verifique os campos.')
     else:
