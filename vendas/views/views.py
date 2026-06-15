@@ -1331,7 +1331,6 @@ def superuser_required(view_func):
 # vendas/views/views.py
 
 def estoque(request):
-    """View para gerenciamento de estoque"""
     if not request.user.is_authenticated or not request.user.is_superuser:
         return redirect('login')
     
@@ -1341,20 +1340,26 @@ def estoque(request):
     for p in produtos:
         variacao = p.variacoes.first()
         
-        # 🔥 EXTRAIR A URL DA IMAGEM DO CLOUDINARY
-        imagem_url = None
-        if p.imagem:
+        # 🔥 FUNÇÃO PARA EXTRAIR URL DO CLOUDINARY
+        def get_image_url(img_field):
+            if not img_field:
+                return None
             try:
-                imagem_url = p.imagem.url if hasattr(p.imagem, 'url') else str(p.imagem)
+                # Se for CloudinaryField
+                if hasattr(img_field, 'url'):
+                    return img_field.url
+                # Se for string
+                elif isinstance(img_field, str):
+                    return img_field
+                else:
+                    return str(img_field)
             except:
-                imagem_url = None
+                return None
         
-        # Se não tem imagem no produto, tenta da variação
-        if not imagem_url and variacao and variacao.imagem:
-            try:
-                imagem_url = variacao.imagem.url if hasattr(variacao.imagem, 'url') else str(variacao.imagem)
-            except:
-                imagem_url = None
+        # Prioridade: imagem da variação > imagem do produto
+        imagem_url = get_image_url(variacao.imagem if variacao else None)
+        if not imagem_url:
+            imagem_url = get_image_url(p.imagem)
         
         # Placeholder final
         if not imagem_url:
@@ -1367,7 +1372,7 @@ def estoque(request):
             'quantidade_estoque': variacao.quantidade_estoque if variacao else 0,
             'cor': variacao.cor if variacao else 'N/A',
             'tamanho': variacao.tamanho if variacao else 'N/A',
-            'imagem': imagem_url,  # ← Agora é uma string URL
+            'imagem': imagem_url,
             'categoria': p.get_categoria_display(),
             'ativo': p.ativo,
             'data_cadastro': p.data_cadastro,
