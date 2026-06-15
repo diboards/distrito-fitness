@@ -5,59 +5,22 @@
 <div class="container mt-4">
     {% if user.is_authenticated and user.is_superuser %}
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="bi bi-box-seam"></i> Estoque</h2>
-            <a href="{% url 'cadastrar_produto' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Novo Produto
-            </a>
+            <h2>Estoque</h2>
+            <a href="{% url 'cadastrar_produto' %}" class="btn btn-primary">Novo Produto</a>
         </div>
 
-        <!-- Cards de estatísticas -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card text-center bg-light">
-                    <div class="card-body">
-                        <h3>{{ total_produtos }}</h3>
-                        <p>Total de Produtos</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center bg-success text-white">
-                    <div class="card-body">
-                        <h3>{{ produtos_ativos }}</h3>
-                        <p>Produtos Ativos</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center bg-warning">
-                    <div class="card-body">
-                        <h3>{{ produtos_inativos }}</h3>
-                        <p>Produtos Inativos</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center bg-info text-white">
-                    <div class="card-body">
-                        <h3>{{ total_estoque }}</h3>
-                        <p>Unidades em Estoque</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Lista de produtos -->
         <div class="row">
             {% for produto in produtos %}
             <div class="col-md-4 mb-4">
                 <div class="card h-100">
-                    <img src="{{ produto.imagem }}" class="card-img-top" alt="{{ produto.nome }}" style="height: 200px; object-fit: cover;">
+                    <img src="{{ produto.imagem }}" class="card-img-top" alt="{{ produto.nome }}" 
+                         style="height: 200px; object-fit: cover;"
+                         onerror="this.src='https://placehold.co/300x200?text=Erro+Imagem'">
                     <div class="card-body">
-                        <h5 class="card-title">{{ produto.nome }}</h5>
-                        <p class="card-text">
-                            <strong>Preço:</strong> R$ {{ produto.preco|floatformat:2 }}<br>
-                            <strong>Estoque:</strong> {{ produto.quantidade_estoque }} unidades<br>
+                        <h5>{{ produto.nome }}</h5>
+                        <p>
+                            <strong>Preço:</strong> R$ {{ produto.preco }}<br>
+                            <strong>Estoque:</strong> {{ produto.quantidade_estoque }}<br>
                             <strong>Cor:</strong> {{ produto.cor }}<br>
                             <strong>Tamanho:</strong> {{ produto.tamanho }}<br>
                             <strong>Categoria:</strong> {{ produto.categoria }}<br>
@@ -72,11 +35,11 @@
                 </div>
             </div>
             {% empty %}
-            <div class="col-12">
-                <div class="alert alert-info">Nenhum produto cadastrado.</div>
-            </div>
+            <div class="col-12"><div class="alert alert-info">Nenhum produto cadastrado.</div></div>
             {% endfor %}
         </div>
+    {% else %}
+        <div class="alert alert-warning">Você não tem permissão para acessar esta página.</div>
     {% endif %}
 </div>
 {% endblock %}
