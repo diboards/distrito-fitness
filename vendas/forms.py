@@ -35,40 +35,18 @@ class ProdutoForm(forms.ModelForm):
             'nome': 'Nome do Produto',
             'descricao': 'Descrição',
             'categoria': 'Categoria',
-            'imagem': 'Imagem Principal do Produto',
+            'imagem': 'Imagem do Produto',
             'ativo': 'Produto Ativo',
         }
     
-    def clean_preco(self):
-        preco = self.cleaned_data.get('preco')
-        if preco <= 0:
-            raise forms.ValidationError("O preço deve ser maior que zero.")
-        return preco
-    
-    def clean_quantidade_estoque(self):
-        quantidade = self.cleaned_data.get('quantidade_estoque')
-        if quantidade < 0:
-            raise forms.ValidationError("A quantidade em estoque não pode ser negativa.")
-        return quantidade
-    
-    def clean_imagem(self):
+       
+   def clean_imagem(self):
         imagem = self.cleaned_data.get('imagem')
-
-        # Se não enviou nova imagem → mantém a atual
         if not imagem:
             return imagem
-
-        # 🔥 Se for upload novo (arquivo mesmo)
-        if hasattr(imagem, 'size'):
-            if imagem.size > 2 * 1024 * 1024:
-                raise forms.ValidationError("Imagem muito grande (máx 2MB).")
-
-        # 🔥 Se for Cloudinary (edição de produto)
-        elif hasattr(imagem, 'public_id'):
-            # objeto do Cloudinary → NÃO tem size
-            return imagem
-
-        return imagem   
+        if hasattr(imagem, 'size') and imagem.size > 2 * 1024 * 1024:
+            raise forms.ValidationError("Imagem muito grande (máx 2MB).")
+        return imagem  
 
 # novas class
 class ProdutoVariacaoForm(forms.ModelForm):
