@@ -72,35 +72,49 @@ def pagina_inicial(request):
         produtos_query = produtos_query.filter(categoria=categoria_selecionada)
     
     # Preparar produtos com suas variações
-    produtos_com_precos = []
+    produtos_lancamentos = []
+    produtos_promocoes = []
+    produtos_conjuntos = []
+    produtos_outros = []
+    
     for p in produtos_query:
         primeira_variacao = p.variacoes.first()
         
-        # Se não tem variação, usar valores padrão
-        if primeira_variacao:
-            preco = primeira_variacao.preco
-            imagem = p.imagem or (primeira_variacao.imagem if primeira_variacao.imagem else None)
-        else:
-            preco = Decimal('0.00')
-            imagem = p.imagem
+        # Pular produtos sem variação
+        if not primeira_variacao:
+            continue
         
-        preco_pix = (preco * Decimal("0.90")).quantize(Decimal("0.01")) if preco else Decimal('0.00')
-        preco_parcela = (preco / Decimal("3")).quantize(Decimal("0.01")) if preco else Decimal('0.00')
+        preco_pix = (primeira_variacao.preco * Decimal("0.90")).quantize(Decimal("0.01"))
+        preco_parcela = (primeira_variacao.preco / Decimal("3")).quantize(Decimal("0.01"))
         
-        produtos_com_precos.append({
+        produto_data = {
             "id": p.id,
             "nome": p.nome,
-            "preco": preco,
+            "preco": primeira_variacao.preco,
             "preco_pix": preco_pix,
             "preco_parcela": preco_parcela,
-            "imagem": imagem,
+            "imagem": p.imagem.url if p.imagem and hasattr(p.imagem, 'url') else None,
             "categoria": p.categoria,
-        })
+        }
+        
+        # Distribuir por categoria
+        if p.categoria == 'lancamentos':
+            produtos_lancamentos.append(produto_data)
+        elif p.categoria == 'promocoes':
+            produtos_promocoes.append(produto_data)
+        elif p.categoria == 'conjuntos':
+            produtos_conjuntos.append(produto_data)
+        else:
+            produtos_outros.append(produto_data)
     
     context = {
-        'produtos': produtos_com_precos,
+        'produtos_lancamentos': produtos_lancamentos[:12],
+        'produtos_promocoes': produtos_promocoes[:12],
+        'produtos_conjuntos': produtos_conjuntos[:12],
+        'produtos_outros': produtos_outros[:12],
         'categoria_selecionada': categoria_selecionada,
     }
+    
     return render(request, 'vendas/index.html', context)
 
 
