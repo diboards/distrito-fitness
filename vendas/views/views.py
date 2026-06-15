@@ -1337,8 +1337,8 @@ def estoque(request):
     categoria_filter = request.GET.get('categoria')
     estoque_baixo_filter = request.GET.get('estoque_baixo')
     
-    # Query base - busca produtos ativos
-    produtos = Produto.objects.filter(ativo=True)
+    # Query base - busca produtos
+    produtos = Produto.objects.all()
     
     # Aplicar filtros
     if status_filter == 'ativo':
@@ -1359,24 +1359,30 @@ def estoque(request):
     elif estoque_baixo_filter == 'nao':
         produtos_ids = []
         for p in produtos:
-            if not p.variacoes.filter(quantidade_estoque__lte=5).exists():
+            if p.variacoes.exists() and not p.variacoes.filter(quantidade_estoque__lte=5).exists():
+                produtos_ids.append(p.id)
+            elif not p.variacoes.exists():
                 produtos_ids.append(p.id)
         produtos = produtos.filter(id__in=produtos_ids)
     
     # Estatísticas
-    total_produtos = Produto.objects.filter(ativo=True).count()
+    total_produtos = Produto.objects.count()
     produtos_ativos = Produto.objects.filter(ativo=True).count()
     produtos_inativos = Produto.objects.filter(ativo=False).count()
     
     # Calcular estoque total somando todas as variações
     total_estoque = 0
     for p in produtos:
-        total_estoque += p.variacoes.aggregate(Sum('quantidade_estoque'))['quantidade_estoque__sum'] or 0
+        estoque_produto = p.variacoes.aggregate(Sum('quantidade_estoque'))['quantidade_estoque__sum']
+        if estoque_produto:
+            total_estoque += estoque_produto
     
     # Preparar dados para o template
     produtos_com_precos = []
     for p in produtos:
         primeira_variacao = p.variacoes.first()
+        
+        # Se tem variação, usa os dados da primeira
         if primeira_variacao:
             produtos_com_precos.append({
                 'id': p.id,
@@ -1385,9 +1391,28 @@ def estoque(request):
                 'quantidade_estoque': primeira_variacao.quantidade_estoque,
                 'cor': primeira_variacao.cor,
                 'tamanho': primeira_variacao.tamanho,
-                'imagem': p.imagem,
-                'categoria': p.categoria,
+                'imagem': p.imagem if p.imagem else (primeira_variacao.imagem if primeira_variacao.imagem else None),
+                'categoria': p.get_categoria_display(),
                 'ativo': p.ativo,
+                'data_cadastro': p.data_cadastro,
+                'tem_variacoes': True,
+                'variacoes': p.variacoes.all(),  # Para mostrar todas as variações no template
+            })
+        else:
+            # Produto sem variação - dados padrão
+            produtos_com_precos.append({
+                'id': p.id,
+                'nome': p.nome,
+                'preco': 0,
+                'quantidade_estoque': 0,
+                'cor': 'N/A',
+                'tamanho': 'N/A',
+                'imagem': p.imagem,
+                'categoria': p.get_categoria_display(),
+                'ativo': p.ativo,
+                'data_cadastro': p.data_cadastro,
+                'tem_variacoes': False,
+                'variacoes': [],
             })
     
     context = {
