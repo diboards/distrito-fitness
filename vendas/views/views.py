@@ -1331,111 +1331,54 @@ def superuser_required(view_func):
 # vendas/views/views.py
 
 def estoque(request):
-    """View para gerenciamento de estoque"""
-    # Obter parâmetros de filtro
-    status_filter = request.GET.get('status')
-    categoria_filter = request.GET.get('categoria')
-    estoque_baixo_filter = request.GET.get('estoque_baixo')
+    """View para gerenciamento de estoque - versão simplificada"""
     
-    # Query base - busca produtos
+    # Buscar todos os produtos
     produtos = Produto.objects.all()
     
-    # Aplicar filtros
-    if status_filter == 'ativo':
-        produtos = produtos.filter(ativo=True)
-    elif status_filter == 'inativo':
-        produtos = produtos.filter(ativo=False)
-    
-    if categoria_filter:
-        produtos = produtos.filter(categoria=categoria_filter)
-    
-    # FILTRO DE ESTOQUE BAIXO
-    if estoque_baixo_filter == 'sim':
-        produtos_ids = []
-        for p in produtos:
-            if p.variacoes.filter(quantidade_estoque__lte=5).exists():
-                produtos_ids.append(p.id)
-        produtos = produtos.filter(id__in=produtos_ids)
-    elif estoque_baixo_filter == 'nao':
-        produtos_ids = []
-        for p in produtos:
-            if p.variacoes.exists() and not p.variacoes.filter(quantidade_estoque__lte=5).exists():
-                produtos_ids.append(p.id)
-            elif not p.variacoes.exists():
-                produtos_ids.append(p.id)
-        produtos = produtos.filter(id__in=produtos_ids)
-    
     # Estatísticas
-    total_produtos = Produto.objects.count()
-    produtos_ativos = Produto.objects.filter(ativo=True).count()
-    produtos_inativos = Produto.objects.filter(ativo=False).count()
+    total_produtos = produtos.count()
+    produtos_ativos = produtos.filter(ativo=True).count()
+    produtos_inativos = produtos.filter(ativo=False).count()
     
     # Calcular estoque total
     total_estoque = 0
     for p in produtos:
-        estoque_produto = p.variacoes.aggregate(Sum('quantidade_estoque'))['quantidade_estoque__sum']
-        if estoque_produto:
-            total_estoque += estoque_produto
-    
-    # Função para extrair URL do Cloudinary
-    def get_cloudinary_url(img):
-        if img:
-            try:
-                if hasattr(img, 'url'):
-                    return img.url
-                elif hasattr(img, 'path'):
-                    return img.url if hasattr(img, 'url') else None
-                else:
-                    return str(img) if img else None
-            except:
-                return None
-        return None
+        for v in p.variacoes.all():
+            total_estoque += v.quantidade_estoque
     
     # Preparar dados para o template
-    produtos_com_precos = []
+    produtos_lista = []
     for p in produtos:
-        primeira_variacao = p.variacoes.first()
+        # Buscar primeira variação
+        variacao = p.variacoes.first()
         
-        # Buscar imagem - prioridade: variação > produto
+        # URL da imagem: usar placeholder se não tiver
         imagem_url = None
-        if primeira_variacao and primeira_variacao.imagem:
-            imagem_url = get_cloudinary_url(primeira_variacao.imagem)
-        if not imagem_url and p.imagem:
-            imagem_url = get_cloudinary_url(p.imagem)
+        if p.imagem:
+            try:
+                if hasattr(p.imagem, 'url'):
+                    imagem_url = p.imagem.url
+                else:
+                    imagem_url = str(p.imagem)
+            except:
+                imagem_url = None
         
-        if primeira_variacao:
-            produtos_com_precos.append({
-                'id': p.id,
-                'nome': p.nome,
-                'preco': float(primeira_variacao.preco),
-                'quantidade_estoque': primeira_variacao.quantidade_estoque,
-                'cor': primeira_variacao.cor,
-                'tamanho': primeira_variacao.tamanho,
-                'imagem': imagem_url,
-                'categoria': p.get_categoria_display(),
-                'ativo': p.ativo,
-                'data_cadastro': p.data_cadastro,
-                'tem_variacoes': True,
-                'variacoes': p.variacoes.all(),
-            })
-        else:
-            produtos_com_precos.append({
-                'id': p.id,
-                'nome': p.nome,
-                'preco': 0,
-                'quantidade_estoque': 0,
-                'cor': 'N/A',
-                'tamanho': 'N/A',
-                'imagem': imagem_url,
-                'categoria': p.get_categoria_display(),
-                'ativo': p.ativo,
-                'data_cadastro': p.data_cadastro,
-                'tem_variacoes': False,
-                'variacoes': [],
-            })
+        produtos_lista.append({
+            'id': p.id,
+            'nome': p.nome,
+            'preco': float(variacao.preco) if variacao else 0,
+            'quantidade_estoque': variacao.quantidade_estoque if variacao else 0,
+            'cor': variacao.cor if variacao else 'N/A',
+            'tamanho': variacao.tamanho if variacao else 'N/A',
+            'imagem': imagem_url or 'https://placehold.co/300x200?text=Sem+Imagem',
+            'categoria': p.get_categoria_display(),
+            'ativo': p.ativo,
+            'data_cadastro': p.data_cadastro,
+        })
     
     context = {
-        'produtos': produtos_com_precos,
+        'produtos': produtos_lista,
         'total_produtos': total_produtos,
         'produtos_ativos': produtos_ativos,
         'produtos_inativos': produtos_inativos,
