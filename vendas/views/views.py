@@ -1382,8 +1382,18 @@ def estoque(request):
     for p in produtos:
         primeira_variacao = p.variacoes.first()
         
-        # Se tem variação, usa os dados da primeira
+        # Função para extrair URL do Cloudinary
+        def get_image_url(img):
+            if img:
+                if hasattr(img, 'url'):
+                    return img.url
+                return str(img)
+            return None
+        
         if primeira_variacao:
+            # Prioriza imagem da variação, depois imagem do produto
+            imagem_url = get_image_url(primeira_variacao.imagem) or get_image_url(p.imagem)
+            
             produtos_com_precos.append({
                 'id': p.id,
                 'nome': p.nome,
@@ -1391,15 +1401,14 @@ def estoque(request):
                 'quantidade_estoque': primeira_variacao.quantidade_estoque,
                 'cor': primeira_variacao.cor,
                 'tamanho': primeira_variacao.tamanho,
-                'imagem': p.imagem if p.imagem else (primeira_variacao.imagem if primeira_variacao.imagem else None),
+                'imagem': imagem_url,
                 'categoria': p.get_categoria_display(),
                 'ativo': p.ativo,
                 'data_cadastro': p.data_cadastro,
                 'tem_variacoes': True,
-                'variacoes': p.variacoes.all(),  # Para mostrar todas as variações no template
+                'variacoes': p.variacoes.all(),
             })
         else:
-            # Produto sem variação - dados padrão
             produtos_com_precos.append({
                 'id': p.id,
                 'nome': p.nome,
@@ -1407,7 +1416,7 @@ def estoque(request):
                 'quantidade_estoque': 0,
                 'cor': 'N/A',
                 'tamanho': 'N/A',
-                'imagem': p.imagem,
+                'imagem': get_image_url(p.imagem),
                 'categoria': p.get_categoria_display(),
                 'ativo': p.ativo,
                 'data_cadastro': p.data_cadastro,
