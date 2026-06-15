@@ -57,11 +57,14 @@
             {% for produto in produtos %}
             <div class="col-md-4 mb-4">
                 <div class="card h-100 {% if not produto.ativo %}border-danger{% endif %}">
-                    <div class="card-img-top-container" style="height: 200px; overflow: hidden;">
+                    <div class="card-img-top-container" style="height: 200px; background-color: #f5f5f5; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                         {% if produto.imagem %}
-                        <img src="{{ produto.imagem }}" class="card-img-top" alt="{{ produto.nome }}" style="height: 200px; width: 100%; object-fit: cover;">
+                        <img src="{{ produto.imagem }}" class="card-img-top" alt="{{ produto.nome }}" 
+                             style="height: 200px; width: 100%; object-fit: cover;"
+                             onerror="this.src='https://res.cloudinary.com/dezpk6wob/image/upload/v1/placeholder'">
                         {% else %}
-                        <img src="https://res.cloudinary.com/dezpk6wob/image/upload/v1/sem-imagem" class="card-img-top" alt="Sem imagem" style="height: 200px; width: 100%; object-fit: cover;">
+                        <img src="https://res.cloudinary.com/dezpk6wob/image/upload/v1/placeholder" class="card-img-top" alt="Sem imagem" 
+                             style="height: 200px; width: 100%; object-fit: cover;">
                         {% endif %}
                     </div>
                     
