@@ -80,30 +80,14 @@ def pagina_inicial(request):
     for p in produtos_query:
         # Pular produtos sem variação
         if p.variacoes.count() == 0:
-            print(f"Produto sem variação: {p.nome}")  # Log para debug
+            print(f"DEBUG: Produto sem variação - {p.nome}")
             continue
         
         primeira_variacao = p.variacoes.first()
         
-        if not primeira_variacao:
-            continue
-        
         # Calcular preços
         preco_pix = (primeira_variacao.preco * Decimal("0.90")).quantize(Decimal("0.01"))
         preco_parcela = (primeira_variacao.preco / Decimal("3")).quantize(Decimal("0.01"))
-        
-        # Extrair URL da imagem
-        imagem_url = None
-        if primeira_variacao.imagem:
-            try:
-                imagem_url = primeira_variacao.imagem.url if hasattr(primeira_variacao.imagem, 'url') else str(primeira_variacao.imagem)
-            except:
-                imagem_url = None
-        if not imagem_url and p.imagem:
-            try:
-                imagem_url = p.imagem.url if hasattr(p.imagem, 'url') else str(p.imagem)
-            except:
-                imagem_url = None
         
         produto_data = {
             "id": p.id,
@@ -111,7 +95,7 @@ def pagina_inicial(request):
             "preco": primeira_variacao.preco,
             "preco_pix": preco_pix,
             "preco_parcela": preco_parcela,
-            "imagem": imagem_url,
+            "imagem": primeira_variacao.imagem.url if primeira_variacao.imagem and hasattr(primeira_variacao.imagem, 'url') else None,
             "categoria": p.categoria,
         }
         
