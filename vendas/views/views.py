@@ -1331,6 +1331,7 @@ def superuser_required(view_func):
 # vendas/views/views.py
 
 def estoque(request):
+    """View para gerenciamento de estoque"""
     if not request.user.is_authenticated or not request.user.is_superuser:
         return redirect('login')
     
@@ -1340,7 +1341,7 @@ def estoque(request):
     for p in produtos:
         variacao = p.variacoes.first()
         
-        # 🔥 Função para extrair URL do Cloudinary
+        # 🔥 EXTRAIR A URL DA IMAGEM DO CLOUDINARY
         imagem_url = None
         if p.imagem:
             try:
@@ -1366,7 +1367,7 @@ def estoque(request):
             'quantidade_estoque': variacao.quantidade_estoque if variacao else 0,
             'cor': variacao.cor if variacao else 'N/A',
             'tamanho': variacao.tamanho if variacao else 'N/A',
-            'imagem': imagem_url,
+            'imagem': imagem_url,  # ← Agora é uma string URL
             'categoria': p.get_categoria_display(),
             'ativo': p.ativo,
             'data_cadastro': p.data_cadastro,
