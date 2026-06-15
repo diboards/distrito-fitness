@@ -1388,30 +1388,25 @@ def estoque(request):
     for p in produtos:
         variacao = p.variacoes.first()
         
-        # 🔥 FUNÇÃO PARA EXTRAIR URL DO CLOUDINARY
-        def get_image_url(img_field):
-            if not img_field:
-                return None
-            try:
-                if hasattr(img_field, 'url'):
-                    return img_field.url
-                elif isinstance(img_field, str) and img_field.startswith('http'):
-                    return img_field
-                else:
-                    return str(img_field) if img_field else None
-            except:
-                return None
+        if not variacao:
+            # Criar variação temporária para mostrar
+            continue
         
-        # Prioridade: imagem da variação > imagem do produto
+        # Extrair URL da imagem
         imagem_url = None
-        if variacao:
-            imagem_url = get_image_url(variacao.imagem)
-        if not imagem_url:
-            imagem_url = get_image_url(p.imagem)
+        if variacao.imagem:
+            try:
+                imagem_url = variacao.imagem.url if hasattr(variacao.imagem, 'url') else str(variacao.imagem)
+            except:
+                imagem_url = None
+        if not imagem_url and p.imagem:
+            try:
+                imagem_url = p.imagem.url if hasattr(p.imagem, 'url') else str(p.imagem)
+            except:
+                imagem_url = None
         
-        # Placeholder final
         if not imagem_url:
-            imagem_url = 'https://res.cloudinary.com/dezpk6wob/image/upload/v1/placeholder'
+            imagem_url = 'https://placehold.co/300x200?text=Sem+Imagem'
         
         produtos_com_precos.append({
             'id': p.id,
