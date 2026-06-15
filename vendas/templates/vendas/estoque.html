@@ -13,9 +13,10 @@
             {% for produto in produtos %}
             <div class="col-md-4 mb-4">
                 <div class="card h-100">
+                    <!-- Imagem com fallback -->
                     <img src="{{ produto.imagem }}" class="card-img-top" alt="{{ produto.nome }}" 
                          style="height: 200px; object-fit: cover;"
-                         onerror="this.src='https://placehold.co/300x200?text=Erro+Imagem'">
+                         onerror="this.onerror=null; this.src='https://placehold.co/300x200?text=Sem+Imagem'">
                     <div class="card-body">
                         <h5>{{ produto.nome }}</h5>
                         <p>
