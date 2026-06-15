@@ -1331,6 +1331,7 @@ def superuser_required(view_func):
 # vendas/views/views.py
 
 def estoque(request):
+    """View para gerenciamento de estoque"""
     if not request.user.is_authenticated or not request.user.is_superuser:
         return redirect('login')
     
@@ -1345,25 +1346,25 @@ def estoque(request):
             if not img_field:
                 return None
             try:
-                # Se for CloudinaryField
                 if hasattr(img_field, 'url'):
                     return img_field.url
-                # Se for string
-                elif isinstance(img_field, str):
+                elif isinstance(img_field, str) and img_field.startswith('http'):
                     return img_field
                 else:
-                    return str(img_field)
+                    return str(img_field) if img_field else None
             except:
                 return None
         
         # Prioridade: imagem da variação > imagem do produto
-        imagem_url = get_image_url(variacao.imagem if variacao else None)
+        imagem_url = None
+        if variacao:
+            imagem_url = get_image_url(variacao.imagem)
         if not imagem_url:
             imagem_url = get_image_url(p.imagem)
         
         # Placeholder final
         if not imagem_url:
-            imagem_url = 'https://placehold.co/300x200?text=Sem+Imagem'
+            imagem_url = 'https://res.cloudinary.com/dezpk6wob/image/upload/v1/placeholder'
         
         produtos_com_precos.append({
             'id': p.id,
