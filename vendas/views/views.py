@@ -1331,8 +1331,6 @@ def superuser_required(view_func):
 # vendas/views/views.py
 
 def estoque(request):
-    """View para gerenciamento de estoque"""
-    # Verificar se é superusuário
     if not request.user.is_authenticated or not request.user.is_superuser:
         return redirect('login')
     
@@ -1342,22 +1340,22 @@ def estoque(request):
     for p in produtos:
         variacao = p.variacoes.first()
         
-        # 🔥 FUNÇÃO PARA PEGAR A URL CORRETA DO CLOUDINARY
+        # 🔥 Função para extrair URL do Cloudinary
         imagem_url = None
         if p.imagem:
-            if hasattr(p.imagem, 'url'):
-                imagem_url = p.imagem.url
-            else:
-                imagem_url = str(p.imagem)
+            try:
+                imagem_url = p.imagem.url if hasattr(p.imagem, 'url') else str(p.imagem)
+            except:
+                imagem_url = None
         
-        # Se não tem imagem no produto, tenta pegar da variação
+        # Se não tem imagem no produto, tenta da variação
         if not imagem_url and variacao and variacao.imagem:
-            if hasattr(variacao.imagem, 'url'):
-                imagem_url = variacao.imagem.url
-            else:
-                imagem_url = str(variacao.imagem)
+            try:
+                imagem_url = variacao.imagem.url if hasattr(variacao.imagem, 'url') else str(variacao.imagem)
+            except:
+                imagem_url = None
         
-        # Placeholder se não tiver imagem
+        # Placeholder final
         if not imagem_url:
             imagem_url = 'https://placehold.co/300x200?text=Sem+Imagem'
         
@@ -1379,7 +1377,7 @@ def estoque(request):
         'total_produtos': produtos.count(),
         'produtos_ativos': produtos.filter(ativo=True).count(),
         'produtos_inativos': produtos.filter(ativo=False).count(),
-        'total_estoque': 0,  # Calcule se necessário
+        'total_estoque': 0,
     }
     
     return render(request, 'vendas/estoque.html', context)
