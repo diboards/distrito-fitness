@@ -1331,58 +1331,55 @@ def superuser_required(view_func):
 # vendas/views/views.py
 
 def estoque(request):
-    """View para gerenciamento de estoque - versão simplificada"""
+    """View para gerenciamento de estoque"""
+    # Verificar se é superusuário
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return redirect('login')
     
-    # Buscar todos os produtos
     produtos = Produto.objects.all()
+    produtos_com_precos = []
     
-    # Estatísticas
-    total_produtos = produtos.count()
-    produtos_ativos = produtos.filter(ativo=True).count()
-    produtos_inativos = produtos.filter(ativo=False).count()
-    
-    # Calcular estoque total
-    total_estoque = 0
     for p in produtos:
-        for v in p.variacoes.all():
-            total_estoque += v.quantidade_estoque
-    
-    # Preparar dados para o template
-    produtos_lista = []
-    for p in produtos:
-        # Buscar primeira variação
         variacao = p.variacoes.first()
         
-        # URL da imagem: usar placeholder se não tiver
+        # 🔥 FUNÇÃO PARA PEGAR A URL CORRETA DO CLOUDINARY
         imagem_url = None
         if p.imagem:
-            try:
-                if hasattr(p.imagem, 'url'):
-                    imagem_url = p.imagem.url
-                else:
-                    imagem_url = str(p.imagem)
-            except:
-                imagem_url = None
+            if hasattr(p.imagem, 'url'):
+                imagem_url = p.imagem.url
+            else:
+                imagem_url = str(p.imagem)
         
-        produtos_lista.append({
+        # Se não tem imagem no produto, tenta pegar da variação
+        if not imagem_url and variacao and variacao.imagem:
+            if hasattr(variacao.imagem, 'url'):
+                imagem_url = variacao.imagem.url
+            else:
+                imagem_url = str(variacao.imagem)
+        
+        # Placeholder se não tiver imagem
+        if not imagem_url:
+            imagem_url = 'https://placehold.co/300x200?text=Sem+Imagem'
+        
+        produtos_com_precos.append({
             'id': p.id,
             'nome': p.nome,
             'preco': float(variacao.preco) if variacao else 0,
             'quantidade_estoque': variacao.quantidade_estoque if variacao else 0,
             'cor': variacao.cor if variacao else 'N/A',
             'tamanho': variacao.tamanho if variacao else 'N/A',
-            'imagem': imagem_url or 'https://placehold.co/300x200?text=Sem+Imagem',
+            'imagem': imagem_url,
             'categoria': p.get_categoria_display(),
             'ativo': p.ativo,
             'data_cadastro': p.data_cadastro,
         })
     
     context = {
-        'produtos': produtos_lista,
-        'total_produtos': total_produtos,
-        'produtos_ativos': produtos_ativos,
-        'produtos_inativos': produtos_inativos,
-        'total_estoque': total_estoque,
+        'produtos': produtos_com_precos,
+        'total_produtos': produtos.count(),
+        'produtos_ativos': produtos.filter(ativo=True).count(),
+        'produtos_inativos': produtos.filter(ativo=False).count(),
+        'total_estoque': 0,  # Calcule se necessário
     }
     
     return render(request, 'vendas/estoque.html', context)
