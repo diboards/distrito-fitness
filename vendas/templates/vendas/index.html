@@ -135,10 +135,14 @@
                 <div class="produto-card destaque">
                     <a href="{% url 'detalhes_produto' produto.id %}">
                         {% if produto.imagem %}
-                            <img src="{{ produto.imagem.url }}" alt="{{ produto.nome }}" loading="lazy">
-                        {% else %}
-                            <img src="{% static 'vendas/images/default-product.png' %}" alt="Produto" loading="lazy">
-                        {% endif %}
+    {% if produto.imagem.url %}
+        <img src="{{ produto.imagem.url }}" alt="{{ produto.nome }}" loading="lazy">
+    {% else %}
+        <img src="https://placehold.co/300x200?text=Sem+Imagem" alt="{{ produto.nome }}" loading="lazy">
+    {% endif %}
+{% else %}
+    <img src="https://placehold.co/300x200?text=Sem+Imagem" alt="{{ produto.nome }}" loading="lazy">
+{% endif %}
                         <span class="badge-desconto">{{ produto.desconto|default:"10" }}% OFF</span>
                     </a>
                     <div class="produto-info">
