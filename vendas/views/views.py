@@ -197,53 +197,42 @@ def detalhes_produto(request, produto_id):
     # Organizar por cor e tamanho
     from collections import OrderedDict
     colors = OrderedDict()
-    sizes_by_cor = {}
+    sizes_by_color = {}
     
     for var in variacoes:
         cor = var.cor
-        # Usar as constantes que estão no escopo global do arquivo models
-        if 'COR_CHOICES' in globals():
-            cor_display = dict(COR_CHOICES).get(cor, cor)
-        else:
-            cor_display = cor
-        
         if cor not in colors:
-            # Extrair URL da imagem do Cloudinary
+            # Extrair URL da imagem
             imagem_url = None
-            if var.imagem:
-                try:
-                    imagem_url = var.imagem.url if hasattr(var.imagem, 'url') else str(var.imagem)
-                except:
-                    imagem_url = None
+            if var.imagem and hasattr(var.imagem, 'url'):
+                imagem_url = var.imagem.url
             
             colors[cor] = {
                 'cor': cor,
-                'cor_display': cor_display,
+                'cor_display': cor,
                 'imagem': imagem_url
             }
-            sizes_by_cor[cor] = []
-        
-        if var.tamanho not in sizes_by_cor[cor]:
-            sizes_by_cor[cor].append(var.tamanho)
+            sizes_by_color[cor] = []
+        if var.tamanho not in sizes_by_color[cor]:
+            sizes_by_color[cor].append(var.tamanho)
     
     # Preço mínimo
     preco_minimo = variacoes.aggregate(models.Min('preco'))['preco__min'] or 0
     preco_pix = Decimal(str(preco_minimo)) * Decimal("0.90")
     preco_parcela = Decimal(str(preco_minimo)) / Decimal("3")
     
-    # Mapeamento de tamanhos para display
-    tamanho_choices = TAMANHO_CHOICES  # constante global
-    size_labels = {val: label for val, label in tamanho_choices}
+    # Mapeamento de tamanhos
+    size_labels = {'PP': 'PP', 'P': 'P', 'M': 'M', 'G': 'G', 'GG': 'GG', 'U': 'Único'}
     
     context = {
         'produto': produto,
         'preco_pix': preco_pix.quantize(Decimal("0.01")),
         'preco_parcela': preco_parcela.quantize(Decimal("0.01")),
         'colors_list': list(colors.values()),
-        'sizes_by_cor': sizes_by_cor,
+        'sizes_by_color': sizes_by_color,
         'size_labels': size_labels,
         'colors_json': json.dumps(list(colors.values())),
-        'sizes_json': json.dumps(sizes_by_cor),
+        'sizes_json': json.dumps(sizes_by_color),
         'size_labels_json': json.dumps(size_labels),
     }
     return render(request, 'vendas/detalhes_produto.html', context)
