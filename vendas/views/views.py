@@ -1349,7 +1349,7 @@ def estoque(request):
     if categoria_filter:
         produtos = produtos.filter(categoria=categoria_filter)
     
-    # FILTRO DE ESTOQUE BAIXO - usando variações
+    # FILTRO DE ESTOQUE BAIXO
     if estoque_baixo_filter == 'sim':
         produtos_ids = []
         for p in produtos:
@@ -1370,34 +1370,44 @@ def estoque(request):
     produtos_ativos = Produto.objects.filter(ativo=True).count()
     produtos_inativos = Produto.objects.filter(ativo=False).count()
     
-    # Calcular estoque total somando todas as variações
+    # Calcular estoque total
     total_estoque = 0
     for p in produtos:
         estoque_produto = p.variacoes.aggregate(Sum('quantidade_estoque'))['quantidade_estoque__sum']
         if estoque_produto:
             total_estoque += estoque_produto
     
+    # Função para extrair URL do Cloudinary
+    def get_cloudinary_url(img):
+        if img:
+            try:
+                if hasattr(img, 'url'):
+                    return img.url
+                elif hasattr(img, 'path'):
+                    return img.url if hasattr(img, 'url') else None
+                else:
+                    return str(img) if img else None
+            except:
+                return None
+        return None
+    
     # Preparar dados para o template
     produtos_com_precos = []
     for p in produtos:
         primeira_variacao = p.variacoes.first()
         
-        # Função para extrair URL do Cloudinary
-        def get_image_url(img):
-            if img:
-                if hasattr(img, 'url'):
-                    return img.url
-                return str(img)
-            return None
+        # Buscar imagem - prioridade: variação > produto
+        imagem_url = None
+        if primeira_variacao and primeira_variacao.imagem:
+            imagem_url = get_cloudinary_url(primeira_variacao.imagem)
+        if not imagem_url and p.imagem:
+            imagem_url = get_cloudinary_url(p.imagem)
         
         if primeira_variacao:
-            # Prioriza imagem da variação, depois imagem do produto
-            imagem_url = get_image_url(primeira_variacao.imagem) or get_image_url(p.imagem)
-            
             produtos_com_precos.append({
                 'id': p.id,
                 'nome': p.nome,
-                'preco': primeira_variacao.preco,
+                'preco': float(primeira_variacao.preco),
                 'quantidade_estoque': primeira_variacao.quantidade_estoque,
                 'cor': primeira_variacao.cor,
                 'tamanho': primeira_variacao.tamanho,
@@ -1416,7 +1426,7 @@ def estoque(request):
                 'quantidade_estoque': 0,
                 'cor': 'N/A',
                 'tamanho': 'N/A',
-                'imagem': get_image_url(p.imagem),
+                'imagem': imagem_url,
                 'categoria': p.get_categoria_display(),
                 'ativo': p.ativo,
                 'data_cadastro': p.data_cadastro,
