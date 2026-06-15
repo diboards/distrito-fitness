@@ -24,7 +24,7 @@ from django.forms import inlineformset_factory
 from collections import OrderedDict
 from django.http import HttpResponseBadRequest
 from django.views.decorators.http import require_POST
-from vendas.models import Produto, ProdutoVariacao, Venda, CarrinhoItem, EnderecoEntrega, Pedido, ItemPedido
+from vendas.models import Produto, ProdutoVariacao, Venda, CarrinhoItem, EnderecoEntrega, Pedido, ItemPedido, COR_CHOICES, TAMANHO_CHOICES
 from vendas.forms import VendaForm, ProdutoForm, ProdutoVariacaoForm, ProdutoVariacaoInlineFormSet, UsuarioComEnderecoForm
 
 import json, os
@@ -87,13 +87,28 @@ def pagina_inicial(request):
         preco_pix = (primeira_variacao.preco * Decimal("0.90")).quantize(Decimal("0.01"))
         preco_parcela = (primeira_variacao.preco / Decimal("3")).quantize(Decimal("0.01"))
         
+        # 🔥 EXTRAIR URL DA IMAGEM DO CLOUDINARY
+        imagem_url = None
+        # Prioridade: imagem da variação
+        if primeira_variacao.imagem:
+            try:
+                imagem_url = primeira_variacao.imagem.url if hasattr(primeira_variacao.imagem, 'url') else str(primeira_variacao.imagem)
+            except:
+                imagem_url = None
+        # Se não tem na variação, usa do produto
+        if not imagem_url and p.imagem:
+            try:
+                imagem_url = p.imagem.url if hasattr(p.imagem, 'url') else str(p.imagem)
+            except:
+                imagem_url = None
+        
         produto_data = {
             "id": p.id,
             "nome": p.nome,
             "preco": primeira_variacao.preco,
             "preco_pix": preco_pix,
             "preco_parcela": preco_parcela,
-            "imagem": p.imagem.url if p.imagem and hasattr(p.imagem, 'url') else None,
+            "imagem": imagem_url,
             "categoria": p.categoria,
         }
         
@@ -172,8 +187,8 @@ def testar_conexao_mp(request):
 def detalhes_produto(request, produto_id):
     produto = get_object_or_404(Produto, id=produto_id, ativo=True)
     
-    # Buscar variações disponíveis (com estoque > 0)
-    variacoes = produto.variacoes.filter(quantidade_estoque__gt=0)
+    # Buscar variações disponíveis
+    variacoes = produto.variacoes.all()
     
     if not variacoes.exists():
         messages.warning(request, 'Este produto não está disponível no momento.')
@@ -182,37 +197,53 @@ def detalhes_produto(request, produto_id):
     # Organizar por cor e tamanho
     from collections import OrderedDict
     colors = OrderedDict()
-    sizes_by_color = {}
+    sizes_by_cor = {}
     
     for var in variacoes:
         cor = var.cor
-        cor_display = dict(Produto.COR_CHOICES).get(cor, cor)
+        # Usar as constantes que estão no escopo global do arquivo models
+        if 'COR_CHOICES' in globals():
+            cor_display = dict(COR_CHOICES).get(cor, cor)
+        else:
+            cor_display = cor
+        
         if cor not in colors:
+            # Extrair URL da imagem do Cloudinary
+            imagem_url = None
+            if var.imagem:
+                try:
+                    imagem_url = var.imagem.url if hasattr(var.imagem, 'url') else str(var.imagem)
+                except:
+                    imagem_url = None
+            
             colors[cor] = {
                 'cor': cor,
                 'cor_display': cor_display,
-                'imagem': var.imagem.url if var.imagem else produto.imagem.url if produto.imagem else None
+                'imagem': imagem_url
             }
-            sizes_by_color[cor] = []
-        if var.tamanho not in sizes_by_color[cor]:
-            sizes_by_color[cor].append(var.tamanho)
+            sizes_by_cor[cor] = []
+        
+        if var.tamanho not in sizes_by_cor[cor]:
+            sizes_by_cor[cor].append(var.tamanho)
     
     # Preço mínimo
     preco_minimo = variacoes.aggregate(models.Min('preco'))['preco__min'] or 0
     preco_pix = Decimal(str(preco_minimo)) * Decimal("0.90")
     preco_parcela = Decimal(str(preco_minimo)) / Decimal("3")
     
-    size_labels = {val: label for val, label in Produto.TAMANHO_CHOICES}
+    # Mapeamento de tamanhos para display
+    tamanho_choices = TAMANHO_CHOICES  # constante global
+    size_labels = {val: label for val, label in tamanho_choices}
     
     context = {
         'produto': produto,
         'preco_pix': preco_pix.quantize(Decimal("0.01")),
         'preco_parcela': preco_parcela.quantize(Decimal("0.01")),
         'colors_list': list(colors.values()),
-        'sizes_by_color': sizes_by_color,
+        'sizes_by_cor': sizes_by_cor,
         'size_labels': size_labels,
         'colors_json': json.dumps(list(colors.values())),
-        'sizes_json': json.dumps(sizes_by_color),
+        'sizes_json': json.dumps(sizes_by_cor),
         'size_labels_json': json.dumps(size_labels),
     }
     return render(request, 'vendas/detalhes_produto.html', context)
