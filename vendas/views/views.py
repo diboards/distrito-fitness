@@ -63,15 +63,12 @@ def calcular_precos(produto_list):
 # vendas/views/views.py
 
 def pagina_inicial(request):
-    categoria_selecionada = request.GET.get('categoria', '')
-    
-    # Buscar produtos ativos
+    # Buscar TODOS os produtos ativos
     produtos_query = Produto.objects.filter(ativo=True)
     
-    if categoria_selecionada:
-        produtos_query = produtos_query.filter(categoria=categoria_selecionada)
+    # DEBUG: imprimir quantidade no log
+    print(f"DEBUG: Total de produtos ativos: {produtos_query.count()}")
     
-    # Preparar produtos com suas variações
     produtos_lancamentos = []
     produtos_promocoes = []
     produtos_conjuntos = []
@@ -79,9 +76,12 @@ def pagina_inicial(request):
     produtos_destaque = []
     
     for p in produtos_query:
-        # Pular produtos sem variação
-        if p.variacoes.count() == 0:
-            print(f"DEBUG: Produto sem variação - {p.nome}")
+        # Verificar se tem variação
+        variacoes_count = p.variacoes.count()
+        print(f"DEBUG: Produto {p.nome} - variações: {variacoes_count} - categoria: {p.categoria}")
+        
+        if variacoes_count == 0:
+            print(f"DEBUG: Produto {p.nome} sem variação, pulando")
             continue
         
         primeira_variacao = p.variacoes.first()
@@ -104,23 +104,25 @@ def pagina_inicial(request):
             "preco_pix": preco_pix,
             "preco_parcela": preco_parcela,
             "imagem": imagem_url,
-            "imagem_obj": primeira_variacao.imagem or p.imagem,
             "categoria": p.categoria,
         }
         
-        # Adicionar aos destaques (primeiros 6)
+        # Adicionar aos destaques
         if len(produtos_destaque) < 6:
             produtos_destaque.append(produto_data)
         
-        # Distribuir por categoria
-        if p.categoria == 'lancamentos':
+        # Distribuir por categoria (usando a string diretamente)
+        categoria = p.categoria
+        if categoria == 'lancamentos':
             produtos_lancamentos.append(produto_data)
-        elif p.categoria == 'promocoes':
+        elif categoria == 'promocoes':
             produtos_promocoes.append(produto_data)
-        elif p.categoria == 'conjuntos':
+        elif categoria == 'conjuntos':
             produtos_conjuntos.append(produto_data)
-        elif p.categoria == 'outros':
+        else:
             produtos_outros.append(produto_data)
+    
+    print(f"DEBUG: lancamentos={len(produtos_lancamentos)}, promocoes={len(produtos_promocoes)}, conjuntos={len(produtos_conjuntos)}, outros={len(produtos_outros)}")
     
     context = {
         'produtos_lancamentos': produtos_lancamentos[:12],
@@ -128,7 +130,7 @@ def pagina_inicial(request):
         'produtos_conjuntos': produtos_conjuntos[:12],
         'produtos_outros': produtos_outros[:12],
         'produtos_destaque': produtos_destaque[:3],
-        'categoria_selecionada': categoria_selecionada,
+        'categoria_selecionada': '',
     }
     
     return render(request, 'vendas/index.html', context)
