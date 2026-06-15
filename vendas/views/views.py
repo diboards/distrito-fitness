@@ -76,6 +76,7 @@ def pagina_inicial(request):
     produtos_promocoes = []
     produtos_conjuntos = []
     produtos_outros = []
+    produtos_destaque = []
     
     for p in produtos_query:
         # Pular produtos sem variação
@@ -89,15 +90,27 @@ def pagina_inicial(request):
         preco_pix = (primeira_variacao.preco * Decimal("0.90")).quantize(Decimal("0.01"))
         preco_parcela = (primeira_variacao.preco / Decimal("3")).quantize(Decimal("0.01"))
         
+        # Extrair URL da imagem
+        imagem_url = None
+        if primeira_variacao.imagem and hasattr(primeira_variacao.imagem, 'url'):
+            imagem_url = primeira_variacao.imagem.url
+        elif p.imagem and hasattr(p.imagem, 'url'):
+            imagem_url = p.imagem.url
+        
         produto_data = {
             "id": p.id,
             "nome": p.nome,
             "preco": primeira_variacao.preco,
             "preco_pix": preco_pix,
             "preco_parcela": preco_parcela,
-            "imagem": primeira_variacao.imagem.url if primeira_variacao.imagem and hasattr(primeira_variacao.imagem, 'url') else None,
+            "imagem": imagem_url,
+            "imagem_obj": primeira_variacao.imagem or p.imagem,
             "categoria": p.categoria,
         }
+        
+        # Adicionar aos destaques (primeiros 6)
+        if len(produtos_destaque) < 6:
+            produtos_destaque.append(produto_data)
         
         # Distribuir por categoria
         if p.categoria == 'lancamentos':
@@ -106,7 +119,7 @@ def pagina_inicial(request):
             produtos_promocoes.append(produto_data)
         elif p.categoria == 'conjuntos':
             produtos_conjuntos.append(produto_data)
-        else:
+        elif p.categoria == 'outros':
             produtos_outros.append(produto_data)
     
     context = {
@@ -114,6 +127,7 @@ def pagina_inicial(request):
         'produtos_promocoes': produtos_promocoes[:12],
         'produtos_conjuntos': produtos_conjuntos[:12],
         'produtos_outros': produtos_outros[:12],
+        'produtos_destaque': produtos_destaque[:3],
         'categoria_selecionada': categoria_selecionada,
     }
     
