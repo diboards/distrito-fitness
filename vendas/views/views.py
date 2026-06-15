@@ -75,24 +75,35 @@ def pagina_inicial(request):
     produtos_com_precos = []
     for p in produtos_query:
         primeira_variacao = p.variacoes.first()
+        
+        # Se não tem variação, usar valores padrão
         if primeira_variacao:
-            preco_pix = (primeira_variacao.preco * Decimal("0.90")).quantize(Decimal("0.01"))
-            preco_parcela = (primeira_variacao.preco / Decimal("3")).quantize(Decimal("0.01"))
-            produtos_com_precos.append({
-                "id": p.id,
-                "nome": p.nome,
-                "preco": primeira_variacao.preco,
-                "preco_pix": preco_pix,
-                "preco_parcela": preco_parcela,
-                "imagem": p.imagem or (primeira_variacao.imagem if primeira_variacao.imagem else None),
-                "categoria": p.categoria,
-            })
+            preco = primeira_variacao.preco
+            imagem = p.imagem or (primeira_variacao.imagem if primeira_variacao.imagem else None)
+        else:
+            preco = Decimal('0.00')
+            imagem = p.imagem
+        
+        preco_pix = (preco * Decimal("0.90")).quantize(Decimal("0.01")) if preco else Decimal('0.00')
+        preco_parcela = (preco / Decimal("3")).quantize(Decimal("0.01")) if preco else Decimal('0.00')
+        
+        produtos_com_precos.append({
+            "id": p.id,
+            "nome": p.nome,
+            "preco": preco,
+            "preco_pix": preco_pix,
+            "preco_parcela": preco_parcela,
+            "imagem": imagem,
+            "categoria": p.categoria,
+        })
     
     context = {
         'produtos': produtos_com_precos,
         'categoria_selecionada': categoria_selecionada,
     }
     return render(request, 'vendas/index.html', context)
+
+
 
 
 #teste
