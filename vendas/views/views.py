@@ -78,24 +78,27 @@ def pagina_inicial(request):
     produtos_outros = []
     
     for p in produtos_query:
+        # Pular produtos sem variação
+        if p.variacoes.count() == 0:
+            print(f"Produto sem variação: {p.nome}")  # Log para debug
+            continue
+        
         primeira_variacao = p.variacoes.first()
         
-        # Pular produtos sem variação
         if not primeira_variacao:
             continue
         
+        # Calcular preços
         preco_pix = (primeira_variacao.preco * Decimal("0.90")).quantize(Decimal("0.01"))
         preco_parcela = (primeira_variacao.preco / Decimal("3")).quantize(Decimal("0.01"))
         
-        # 🔥 EXTRAIR URL DA IMAGEM DO CLOUDINARY
+        # Extrair URL da imagem
         imagem_url = None
-        # Prioridade: imagem da variação
         if primeira_variacao.imagem:
             try:
                 imagem_url = primeira_variacao.imagem.url if hasattr(primeira_variacao.imagem, 'url') else str(primeira_variacao.imagem)
             except:
                 imagem_url = None
-        # Se não tem na variação, usa do produto
         if not imagem_url and p.imagem:
             try:
                 imagem_url = p.imagem.url if hasattr(p.imagem, 'url') else str(p.imagem)
@@ -131,7 +134,6 @@ def pagina_inicial(request):
     }
     
     return render(request, 'vendas/index.html', context)
-
 
 
 
