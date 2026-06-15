@@ -40,7 +40,7 @@ class ProdutoForm(forms.ModelForm):
         }
     
        
-   def clean_imagem(self):
+    def clean_imagem(self):
         imagem = self.cleaned_data.get('imagem')
         if not imagem:
             return imagem
