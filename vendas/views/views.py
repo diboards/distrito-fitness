@@ -1338,16 +1338,14 @@ def estoque(request):
     if categoria_filter:
         produtos = produtos.filter(categoria=categoria_filter)
     
-    # 🔥 FILTRO DE ESTOQUE BAIXO - AGORA USA VARIAÇÕES
+    # FILTRO DE ESTOQUE BAIXO - usando variações
     if estoque_baixo_filter == 'sim':
-        # Busca produtos que têm alguma variação com estoque <= 5
         produtos_ids = []
         for p in produtos:
             if p.variacoes.filter(quantidade_estoque__lte=5).exists():
                 produtos_ids.append(p.id)
         produtos = produtos.filter(id__in=produtos_ids)
     elif estoque_baixo_filter == 'nao':
-        # Busca produtos que NÃO têm variações com estoque baixo
         produtos_ids = []
         for p in produtos:
             if not p.variacoes.filter(quantidade_estoque__lte=5).exists():
@@ -1364,7 +1362,7 @@ def estoque(request):
     for p in produtos:
         total_estoque += p.variacoes.aggregate(Sum('quantidade_estoque'))['quantidade_estoque__sum'] or 0
     
-    # Preparar dados para o template (incluindo preços da primeira variação)
+    # Preparar dados para o template
     produtos_com_precos = []
     for p in produtos:
         primeira_variacao = p.variacoes.first()
