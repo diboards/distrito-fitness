@@ -191,57 +191,50 @@ def testar_conexao_mp(request):
 # vendas/views/views.py - SUBSTITUIR a função
 
 def detalhes_produto(request, produto_id):
-    produto = get_object_or_404(Produto, id=produto_id, ativo=True)
-    
-    # Buscar variações disponíveis
-    variacoes = produto.variacoes.all()
-    
-    if not variacoes.exists():
-        messages.warning(request, 'Este produto não está disponível no momento.')
-        return redirect('pagina_inicial')
-    
-    # Organizar por cor e tamanho
-    from collections import OrderedDict
+    produto = get_object_or_404(Produto, id=produto_id)
+
+     # Calculando descontos e parcelamento
+    preco_pix = (produto.preco * Decimal("0.90")).quantize(Decimal("0.01"))  # 10% OFF no pix
+    preco_parcela = (produto.preco / Decimal("4")).quantize(Decimal("0.01")) # parcelado em 4x
+
+    # traz todas as variações do mesmo modelo (mesmo nome)
+    variacoes = Produto.objects.filter(nome=produto.nome, ativo=True).order_by('cor', 'tamanho')
+
+    # organiza por cor: guarda primeira imagem encontrada e lista de tamanhos (valores)
     colors = OrderedDict()
     sizes_by_color = {}
-    
+
     for var in variacoes:
-        cor = var.cor
+        cor = var.cor  # valor armazenado no DB, ex: 'Vermelho', 'Azul', ...
+        cor_display = var.get_cor_display()
         if cor not in colors:
-            # Extrair URL da imagem
-            imagem_url = None
-            if var.imagem and hasattr(var.imagem, 'url'):
-                imagem_url = var.imagem.url
-            
             colors[cor] = {
                 'cor': cor,
-                'cor_display': cor,
-                'imagem': imagem_url
+                'cor_display': cor_display,
+                'imagem': var.imagem.url if var.imagem else ''
             }
             sizes_by_color[cor] = []
+        # adiciona tamanho (valor armazenado, ex 'M', 'G')
         if var.tamanho not in sizes_by_color[cor]:
             sizes_by_color[cor].append(var.tamanho)
-    
-    # Preço mínimo
-    preco_minimo = variacoes.aggregate(models.Min('preco'))['preco__min'] or 0
-    preco_pix = Decimal(str(preco_minimo)) * Decimal("0.90")
-    preco_parcela = Decimal(str(preco_minimo)) / Decimal("3")
-    
-    # Mapeamento de tamanhos
-    size_labels = {'PP': 'PP', 'P': 'P', 'M': 'M', 'G': 'G', 'GG': 'GG', 'U': 'Único'}
-    
+
+    # mapeamento para mostrar label do tamanho (value -> label)
+    size_labels = {val: label for val, label in Produto.TAMANHO_CHOICES}
+
     context = {
         'produto': produto,
-        'preco_pix': preco_pix.quantize(Decimal("0.01")),
-        'preco_parcela': preco_parcela.quantize(Decimal("0.01")),
+        "preco_pix": preco_pix,
+        "preco_parcela": preco_parcela,
         'colors_list': list(colors.values()),
         'sizes_by_color': sizes_by_color,
         'size_labels': size_labels,
+        # também passamos JSON já pronto para o JS sem precisar usar json_script
         'colors_json': json.dumps(list(colors.values())),
         'sizes_json': json.dumps(sizes_by_color),
         'size_labels_json': json.dumps(size_labels),
     }
     return render(request, 'vendas/detalhes_produto.html', context)
+
     
 
 
@@ -250,87 +243,96 @@ def detalhes_produto(request, produto_id):
 def adicionar_carrinho(request, produto_id):
     if request.method == 'POST':
         produto = get_object_or_404(Produto, id=produto_id)
-        
+
         try:
             quantidade = int(request.POST.get('quantidade', 1))
         except:
             quantidade = 1
-        
+
         cor = request.POST.get('cor', '').strip()
         tamanho = request.POST.get('tamanho', '').strip()
         action = request.POST.get('action', 'carrinho')
-        
-        # 🔥 Buscar a variação específica
-        from ..models import ProdutoVariacao
-        
-        try:
-            variacao = ProdutoVariacao.objects.get(
-                produto=produto,
-                cor=cor,
-                tamanho=tamanho
-            )
-        except ProdutoVariacao.DoesNotExist:
-            messages.error(request, 'Produto não disponível nas opções selecionadas')
-            return redirect('detalhes_produto', produto_id=produto_id)
-        
-        # Verificar estoque
-        if variacao.quantidade_estoque < quantidade:
-            messages.error(request, f'Quantidade indisponível. Estoque: {variacao.quantidade_estoque}')
-            return redirect('detalhes_produto', produto_id=produto_id)
+
+        # 🔥 IMPORTANTE: Se não tem cor/tamanho, usar valores padrão - novo codigo!
+        if not cor:
+            cor = ''
+        if not tamanho:
+            tamanho = ''
         
         # ===== SE NÃO ESTÁ LOGADO =====
         if not request.user.is_authenticated:
             carrinho = request.session.get('carrinho', {})
             
+            # 🔥 CRÍTICO: Verificar se já existe outro item do mesmo produto
+            # Se for "Comprar Agora", vamos limpar o carrinho atual
             if action == 'comprar':
+                # Limpa todo o carrinho da sessão
                 carrinho = {}
+                messages.info(request, 'Carrinho limpo para nova compra!')
             
-            # Chave única para a variação
-            produto_key = f"v_{variacao.id}"
+            # Chave única para o produto
+            produto_key = f"{produto_id}_{cor}_{tamanho}"
             
+            # Verificar se já existe item similar (com cor/tamanho diferente)
+            # Se houver um item com cor/tamanho específico e este é genérico, não adicionar
+            if not cor and not tamanho:
+                # Este item não tem cor/tamanho - verificar se já existe item com cor/tamanho
+                for key in list(carrinho.keys()):
+                    if key.startswith(f"{produto_id}_") and key != produto_key:
+                        # Já existe variação deste produto
+                        messages.warning(request, 'Já existe uma variação deste produto no carrinho!')
+                        if action == 'comprar':
+                            return redirect('login')
+                        return redirect('detalhes_produto', produto_id=produto_id)
+            
+            # Adicionar ou atualizar
             if produto_key in carrinho:
                 carrinho[produto_key]['quantidade'] += quantidade
+                messages.success(request, f'{produto.nome} quantidade atualizada!')
             else:
                 carrinho[produto_key] = {
-                    'variacao_id': variacao.id,
-                    'produto_nome': produto.nome,
+                    'id': produto_id,
+                    'nome': produto.nome,
+                    'preco': float(produto.preco),
+                    'quantidade': quantidade,
                     'cor': cor,
                     'tamanho': tamanho,
-                    'preco': float(variacao.preco),
-                    'quantidade': quantidade,
-                    'imagem': variacao.imagem.url if variacao.imagem else produto.imagem_principal.url if produto.imagem_principal else None
+                    'imagem': produto.imagem.url if produto.imagem else None
                 }
+                messages.success(request, f'{produto.nome} adicionado ao carrinho!')
             
             request.session['carrinho'] = carrinho
             request.session.modified = True
             
+            print(f"DEBUG - Carrinho salvo na sessão: {request.session.get('carrinho')}")
+            
             if action == 'comprar':
                 return redirect('login')
             else:
-                messages.success(request, f'{produto.nome} ({cor}/{tamanho}) adicionado!')
                 return redirect('detalhes_produto', produto_id=produto_id)
-        
+                
         # ===== SE ESTÁ LOGADO =====
-        if action == 'comprar':
-            CarrinhoItem.objects.filter(usuario=request.user).delete()
-        
-        item, created = CarrinhoItem.objects.get_or_create(
-            usuario=request.user,
-            variacao=variacao,
-            defaults={'quantidade': quantidade}
-        )
-        
-        if not created:
-            item.quantidade += quantidade
-            item.save()
-        
-        messages.success(request, f'{produto.nome} ({cor}/{tamanho}) adicionado!')
-        
-        if action == 'comprar':
-            return redirect('checkout')
-        return redirect('detalhes_produto', produto_id=produto_id)
-    
+        if request.user.is_authenticated:
+            item, created = CarrinhoItem.objects.get_or_create(
+                usuario=request.user,
+                produto=produto,
+                cor_selecionada=cor,
+                tamanho_selecionado=tamanho,
+                defaults={'quantidade': quantidade}
+            )
+ 
+            if not created:
+                item.quantidade += quantidade
+                item.save()
+            
+            messages.success(request, f'{produto.nome} adicionado ao carrinho!')
+
+            if action == 'comprar':
+                return redirect('visualizar_carrinho')
+            return redirect('detalhes_produto', produto_id=produto_id)
+
     return redirect('pagina_inicial')
+
 
 
 def carrinho_count_api(request):
