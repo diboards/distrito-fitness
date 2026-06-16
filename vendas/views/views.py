@@ -1396,7 +1396,7 @@ def estoque(request):
                 print("STR:", str(variacao.imagem))
                 print("URL:", variacao.imagem.url)
         
-                imagem_url = variacao.imagem.url
+                imagem_url = variacao.imagem.url.replace("http://", "https://")
         
             except Exception as e:
                 print("ERRO:", e)
