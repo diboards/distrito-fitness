@@ -1372,58 +1372,90 @@ def superuser_required(view_func):
 
 def estoque(request):
     """View para gerenciamento de estoque"""
+    
     if not request.user.is_authenticated or not request.user.is_superuser:
         return redirect('login')
-    
-    produtos = Produto.objects.all()
+
+    produtos = Produto.objects.prefetch_related('variacoes').all()
+
     produtos_com_precos = []
-    
+
     for p in produtos:
-        variacao = p.variacoes.first()
-        
-        if not variacao:
-            print("IMAGEM:", variacao.imagem)
-            print("TIPO:", type(variacao.imagem))
-            # Criar variação temporária para mostrar
-            continue
-        
-        # Extrair URL da imagem
-        if variacao.imagem:
+
+        # pega a primeira variação com imagem
+        variacao = p.variacoes.filter(imagem__isnull=False).first()
+
+        imagem_url = None
+        preco = 0
+        estoque = 0
+        cor = 'N/A'
+        tamanho = 'N/A'
+
+        if variacao:
+
+            preco = variacao.preco
+            estoque = variacao.quantidade_estoque
+            cor = variacao.cor
+            tamanho = variacao.tamanho
+
             try:
-                print("=================================")
-                print("PRODUTO:", p.nome)
-                print("IMAGEM RAW:", variacao.imagem)
-                print("STR:", str(variacao.imagem))
-                print("URL:", variacao.imagem.url)
-        
-                imagem_url = variacao.imagem.url.replace("http://", "https://")
-        
+                if variacao.imagem:
+                    imagem_url = variacao.imagem.url.replace(
+                        "http://",
+                        "https://"
+                    )
+
+                    print("=" * 50)
+                    print("PRODUTO:", p.id, p.nome)
+                    print("VARIACAO:", variacao.id)
+                    print("IMAGEM:", variacao.imagem)
+                    print("URL:", imagem_url)
+
             except Exception as e:
-                print("ERRO:", e)
-                imagem_url = None
-        
+                print("ERRO IMAGEM:", e)
+
+        # usa imagem principal do produto se não existir na variação
+        if not imagem_url and p.imagem:
+            try:
+                imagem_url = p.imagem.url.replace(
+                    "http://",
+                    "https://"
+                )
+            except Exception as e:
+                print("ERRO IMAGEM PRODUTO:", e)
+
+        # placeholder
+        if not imagem_url:
+            imagem_url = "https://placehold.co/300x200?text=Sem+Imagem"
+
         produtos_com_precos.append({
             'id': p.id,
             'nome': p.nome,
-            'preco': float(variacao.preco) if variacao else 0,
-            'quantidade_estoque': variacao.quantidade_estoque if variacao else 0,
-            'cor': variacao.cor if variacao else 'N/A',
-            'tamanho': variacao.tamanho if variacao else 'N/A',
+            'preco': float(preco),
+            'quantidade_estoque': estoque,
+            'cor': cor,
+            'tamanho': tamanho,
             'imagem': imagem_url,
             'categoria': p.get_categoria_display(),
             'ativo': p.ativo,
             'data_cadastro': p.data_cadastro,
         })
-    
+
     context = {
         'produtos': produtos_com_precos,
         'total_produtos': produtos.count(),
         'produtos_ativos': produtos.filter(ativo=True).count(),
         'produtos_inativos': produtos.filter(ativo=False).count(),
-        'total_estoque': 0,
+        'total_estoque': sum(
+            p.get_estoque_total() for p in produtos
+        ),
     }
-    
-    return render(request, 'vendas/estoque.html', context)
+
+    return render(
+        request,
+        'vendas/estoque.html',
+        context
+    )
 
 @superuser_required
 @login_required
