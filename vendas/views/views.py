@@ -1388,20 +1388,19 @@ def estoque(request):
             continue
         
         # Extrair URL da imagem
-        imagem_url = None
         if variacao.imagem:
             try:
-                imagem_url = variacao.imagem.url if hasattr(variacao.imagem, 'url') else str(variacao.imagem)
-            except:
-                imagem_url = None
-        if not imagem_url and p.imagem:
-            try:
-                imagem_url = p.imagem.url if hasattr(p.imagem, 'url') else str(p.imagem)
-            except:
-                imagem_url = None
+                print("=================================")
+                print("PRODUTO:", p.nome)
+                print("IMAGEM RAW:", variacao.imagem)
+                print("STR:", str(variacao.imagem))
+                print("URL:", variacao.imagem.url)
         
-        if not imagem_url:
-            imagem_url = 'https://placehold.co/300x200?text=Sem+Imagem'
+                imagem_url = variacao.imagem.url
+        
+            except Exception as e:
+                print("ERRO:", e)
+                imagem_url = None
         
         produtos_com_precos.append({
             'id': p.id,
