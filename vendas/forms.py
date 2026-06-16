@@ -48,111 +48,37 @@ class ProdutoForm(forms.ModelForm):
             raise forms.ValidationError("Imagem muito grande (máx 2MB).")
         return imagem  
 
-# novas class
-class ProdutoVariacaoForm(forms.ModelForm):
-    """Formulário para as VARIAÇÕES do produto (cores, tamanhos, preço, estoque)"""
-    
-    class Meta:
-        model = ProdutoVariacao
-        fields = ['cor', 'tamanho', 'preco', 'quantidade_estoque', 'imagem']
-        widgets = {
-            'cor': forms.Select(attrs={'class': 'form-control'}),
-            'tamanho': forms.Select(attrs={'class': 'form-control'}),
-            'preco': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'step': '0.01',
-                'min': '0.01',
-                'placeholder': '0.00'
-            }),
-            'quantidade_estoque': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '0',
-                'placeholder': '0'
-            }),
-            'imagem': forms.FileInput(attrs={
-                'class': 'form-control',
-                'accept': 'image/*'
-            })
-        }
-        labels = {
-            'cor': 'Cor',
-            'tamanho': 'Tamanho',
-            'preco': 'Preço (R$)',
-            'quantidade_estoque': 'Quantidade em Estoque',
-            'imagem': 'Imagem da Variação'
-        }
-    
-    # 🔥 SUAS VALIDAÇÕES ORIGINAIS (mantidas)
-    def clean_preco(self):
-        preco = self.cleaned_data.get('preco')
-        if preco <= 0:
-            raise forms.ValidationError("O preço deve ser maior que zero.")
-        return preco
-    
-    def clean_quantidade_estoque(self):
-        quantidade = self.cleaned_data.get('quantidade_estoque')
-        if quantidade < 0:
-            raise forms.ValidationError("A quantidade em estoque não pode ser negativa.")
-        return quantidade
-    
-    def clean_imagem(self):
-        imagem = self.cleaned_data.get('imagem')
-
-        # Se não enviou nova imagem → mantém a atual
-        if not imagem:
-            return imagem
-
-        # Se for upload novo (arquivo mesmo)
-        if hasattr(imagem, 'size'):
-            if imagem.size > 2 * 1024 * 1024:
-                raise forms.ValidationError("Imagem muito grande (máx 2MB).")
-
-        # Se for Cloudinary (edição de produto)
-        elif hasattr(imagem, 'public_id'):
-            return imagem
-
-        return imagem
 
 
-class ProdutoVariacaoInlineFormSet(forms.BaseInlineFormSet):
-    """FormSet para gerenciar múltiplas variações do produto"""
-    
-    def clean(self):
-        """Validação adicional: garantir que não haja duplicidade de cor/tamanho"""
-        super().clean()
+class Venda(models.Model):
+        STATUS_CHOICES = [
+            ('pendente', 'Pendente'),
+            ('processando', 'Processando'),
+            ('concluida', 'Concluída'),
+            ('cancelada', 'Cancelada'),
+        ]
         
-        combinacoes = []
-        for form in self.forms:
-            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
-                cor = form.cleaned_data.get('cor')
-                tamanho = form.cleaned_data.get('tamanho')
-                if cor and tamanho:
-                    combinacao = f"{cor}_{tamanho}"
-                    if combinacao in combinacoes:
-                        raise forms.ValidationError(
-                            f"Combinação {cor}/{tamanho} já foi adicionada. Não pode duplicar."
-                        )
-                    combinacoes.append(combinacao)
-# nova
+        produto = models.ForeignKey(Produto, on_delete=models.CASCADE, verbose_name="Produto")
+        quantidade = models.PositiveIntegerField(validators=[MinValueValidator(1)], verbose_name="Quantidade")
+        preco_unitario = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Preço Unitário")
+        total = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total")
+        data_venda = models.DateTimeField(default=timezone.now, verbose_name="Data da Venda")  # Use default por enquanto
+        vendedor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Vendedor")
+        status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente', verbose_name="Status")
+        observacoes = models.TextField(blank=True, null=True, verbose_name="Observações")
+        
+        class Meta:
+            verbose_name = "Venda"
+            verbose_name_plural = "Vendas"
+            ordering = ['-data_venda']
+        
+        def __str__(self):
+            return f"Venda #{self.id} - {self.produto.nome}"
+        
+        def save(self, *args, **kwargs):
+            self.total = self.quantidade * self.preco_unitario
+            super().save(*args, **kwargs)
 
-class VendaForm(forms.ModelForm):
-    class Meta:
-        model = Venda
-        fields = ['produto', 'quantidade', 'observacoes', 'status']
-        widgets = {
-            'produto': forms.Select(attrs={'class': 'form-control'}),
-            'quantidade': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '1',
-                'placeholder': 'Quantidade'
-            }),
-            'observacoes': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Observações adicionais'
-            }),
-            'status': forms.Select(attrs={'class': 'form-control'})
-        }
 
 # forms.py - mantenha apenas este
 class UsuarioComEnderecoForm(forms.Form):
@@ -247,40 +173,28 @@ class OrcamentoForm(forms.Form):
         return data
 
 # Forms Meu perfil
-class PerfilForm(forms.ModelForm):
-    first_name = forms.CharField(max_length=30, required=False, label="Nome")
-    last_name = forms.CharField(max_length=30, required=False, label="Sobrenome")
-    email = forms.EmailField(required=True, label="E-mail")
-    
+class Perfil(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
+    telefone = models.CharField(
+        max_length=15, 
+        blank=True, 
+        null=True,
+        validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Número de telefone inválido")]
+    )
+    cpf = models.CharField(max_length=14, blank=True, null=True, verbose_name="CPF")
+    data_nascimento = models.DateField(blank=True, null=True)
+    #avatar = models.ImageField(upload_to='avatars/', blank=True, null=True) foto de perfil
+    bio = models.TextField(max_length=500, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
-        model = Perfil
-        fields = ['telefone', 'cpf', 'data_nascimento', 'bio']
-        widgets = {
-            'data_nascimento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
-            'cpf': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00'}),
-            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Conte um pouco sobre você...'}),
-            'avatar': forms.FileInput(attrs={'class': 'form-control'}),
-        }
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance and self.instance.usuario:
-            self.fields['first_name'].initial = self.instance.usuario.first_name
-            self.fields['last_name'].initial = self.instance.usuario.last_name
-            self.fields['email'].initial = self.instance.usuario.email
-    
-    def save(self, commit=True):
-        perfil = super().save(commit=False)
-        if commit:
-            perfil.save()
-            # Atualiza dados do User
-            usuario = perfil.usuario
-            usuario.first_name = self.cleaned_data['first_name']
-            usuario.last_name = self.cleaned_data['last_name']
-            usuario.email = self.cleaned_data['email']
-            usuario.save()
-        return perfil
+        verbose_name = "Perfil"
+        verbose_name_plural = "Perfis"
+
+    def __str__(self):
+        return f"Perfil de {self.usuario.username}"
+
 
 # Forms de Endereço
 class EnderecoEntregaForm(forms.ModelForm):
