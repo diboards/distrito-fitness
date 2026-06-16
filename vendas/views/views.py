@@ -1382,6 +1382,8 @@ def estoque(request):
         variacao = p.variacoes.first()
         
         if not variacao:
+            print("IMAGEM:", variacao.imagem)
+            print("TIPO:", type(variacao.imagem))
             # Criar variação temporária para mostrar
             continue
         
