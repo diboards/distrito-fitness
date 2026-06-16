@@ -10,10 +10,9 @@ from .models import Produto, ProdutoVariacao, Venda, EnderecoEntrega, Perfil
 # vendas/forms.py - Substitua a classe ProdutoForm por esta:
 
 class ProdutoForm(forms.ModelForm):
-    """Formulário para o produto base (sem preço, cor, tamanho, estoque)"""
     class Meta:
         model = Produto
-        fields = ['nome', 'descricao', 'categoria', 'imagem', 'ativo']
+        fields = ['nome', 'descricao', 'preco', 'quantidade_estoque', 'cor', 'tamanho', 'categoria', 'imagem']
         widgets = {
             'nome': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -24,60 +23,92 @@ class ProdutoForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'Digite a descrição do produto'
             }),
-            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'preco': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0.01',
+                'placeholder': '0.00'
+            }),
+            'quantidade_estoque': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'placeholder': '0'
+            }),
+            'cor': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'tamanho': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'categoria': forms.Select(attrs={
+                'class': 'form-control'
+            }),
             'imagem': forms.FileInput(attrs={
                 'class': 'form-control',
                 'accept': 'image/*'
-            }),
-            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            })
         }
         labels = {
             'nome': 'Nome do Produto',
             'descricao': 'Descrição',
+            'preco': 'Preço (R$)',
+            'quantidade_estoque': 'Quantidade em Estoque',
+            'cor': 'Cor',
+            'tamanho': 'Tamanho',
             'categoria': 'Categoria',
-            'imagem': 'Imagem do Produto',
-            'ativo': 'Produto Ativo',
+            'imagem': 'Imagem do Produto'
         }
     
-       
+    def clean_preco(self):
+        preco = self.cleaned_data.get('preco')
+        if preco <= 0:
+            raise forms.ValidationError("O preço deve ser maior que zero.")
+        return preco
+    
+    def clean_quantidade_estoque(self):
+        quantidade = self.cleaned_data.get('quantidade_estoque')
+        if quantidade < 0:
+            raise forms.ValidationError("A quantidade em estoque não pode ser negativa.")
+        return quantidade
+    
     def clean_imagem(self):
         imagem = self.cleaned_data.get('imagem')
+
+        # Se não enviou nova imagem → mantém a atual
         if not imagem:
             return imagem
-        if hasattr(imagem, 'size') and imagem.size > 2 * 1024 * 1024:
-            raise forms.ValidationError("Imagem muito grande (máx 2MB).")
-        return imagem  
 
+        # 🔥 Se for upload novo (arquivo mesmo)
+        if hasattr(imagem, 'size'):
+            if imagem.size > 2 * 1024 * 1024:
+                raise forms.ValidationError("Imagem muito grande (máx 2MB).")
 
+        # 🔥 Se for Cloudinary (edição de produto)
+        elif hasattr(imagem, 'public_id'):
+            # objeto do Cloudinary → NÃO tem size
+            return imagem
 
-class Venda(models.Model):
-        STATUS_CHOICES = [
-            ('pendente', 'Pendente'),
-            ('processando', 'Processando'),
-            ('concluida', 'Concluída'),
-            ('cancelada', 'Cancelada'),
-        ]
-        
-        produto = models.ForeignKey(Produto, on_delete=models.CASCADE, verbose_name="Produto")
-        quantidade = models.PositiveIntegerField(validators=[MinValueValidator(1)], verbose_name="Quantidade")
-        preco_unitario = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Preço Unitário")
-        total = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total")
-        data_venda = models.DateTimeField(default=timezone.now, verbose_name="Data da Venda")  # Use default por enquanto
-        vendedor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Vendedor")
-        status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente', verbose_name="Status")
-        observacoes = models.TextField(blank=True, null=True, verbose_name="Observações")
-        
-        class Meta:
-            verbose_name = "Venda"
-            verbose_name_plural = "Vendas"
-            ordering = ['-data_venda']
-        
-        def __str__(self):
-            return f"Venda #{self.id} - {self.produto.nome}"
-        
-        def save(self, *args, **kwargs):
-            self.total = self.quantidade * self.preco_unitario
-            super().save(*args, **kwargs)
+        return imagem   
+
+class VendaForm(forms.ModelForm):
+    class Meta:
+        model = Venda
+        fields = ['produto', 'quantidade', 'observacoes', 'status']
+        widgets = {
+            'produto': forms.Select(attrs={'class': 'form-control'}),
+            'quantidade': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',
+                'placeholder': 'Quantidade'
+            }),
+            'observacoes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Observações adicionais'
+            }),
+            'status': forms.Select(attrs={'class': 'form-control'})
+        }
+
 
 
 # forms.py - mantenha apenas este
