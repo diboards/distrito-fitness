@@ -1,22 +1,26 @@
-#!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
-import os
-import sys
+from vendas.models import Produto, ProdutoVariacao
+from cloudinary.uploader import upload
+import requests
+from io import BytesIO
 
+# Baixar uma imagem placeholder
+img_url = "https://placehold.co/600x400?text=Produto"
+response = requests.get(img_url)
+img_data = BytesIO(response.content)
 
-def main():
-    """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'distrito_fitness.settings')
-    try:
-        from django.core.management import execute_from_command_line
-    except ImportError as exc:
-        raise ImportError(
-            "Couldn't import Django. Are you sure it's installed and "
-            "available on your PYTHONPATH environment variable? Did you "
-            "forget to activate a virtual environment?"
-        ) from exc
-    execute_from_command_line(sys.argv)
+# Fazer upload para o Cloudinary
+result = upload(img_data, folder="produtos", public_id="placeholder")
+placeholder_url = result['secure_url']
 
+print(f"Placeholder URL: {placeholder_url}")
 
-if __name__ == '__main__':
-    main()
+# Adicionar imagem a produtos sem imagem
+count = 0
+for p in Produto.objects.all():
+    if not p.imagem:
+        p.imagem = placeholder_url
+        p.save()
+        count += 1
+        print(f"✅ Imagem adicionada ao produto: {p.nome}")
+
+print(f"Total: {count} produtos atualizados")
