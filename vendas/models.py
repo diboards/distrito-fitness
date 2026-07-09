@@ -123,7 +123,27 @@ class EnderecoEntrega(models.Model):
     class Meta:
         verbose_name_plural = "Endereços de Entrega"
 
-
+class Produto(models.Model):
+    nome = models.CharField(max_length=100)
+    descricao = models.TextField(blank=True, null=True)
+    categoria = models.CharField(max_length=20, choices=CATEGORIA_CHOICES, default='outros')
+    imagem = CloudinaryField('imagem', blank=True, null=True)
+    ativo = models.BooleanField(default=True)
+    data_cadastro = models.DateTimeField(default=timezone.now)
+    
+    class Meta:
+        ordering = ['nome']
+    
+    def __str__(self):
+        return self.nome
+    
+    def get_preco_minimo(self):
+        preco_min = self.variacoes.aggregate(models.Min('preco'))['preco__min']
+        return preco_min or Decimal('0.00')
+    
+    def get_estoque_total(self):
+        total = self.variacoes.aggregate(models.Sum('quantidade_estoque'))['quantidade_estoque__sum']
+        return total or 0
 class ProdutoVariacao(models.Model):
     """Variação do produto (ex: Conjunto - Azul - M)"""
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='variacoes')
