@@ -9,36 +9,16 @@ from .models import Produto, ProdutoVariacao, Venda, EnderecoEntrega, Perfil
 
 # vendas/forms.py - Substitua a classe ProdutoForm por esta:
 
-# vendas/forms.py - Substitua a classe ProdutoForm
-
 class ProdutoForm(forms.ModelForm):
-    """Formulário para o produto base (sem preço, cor, tamanho, estoque)"""
     class Meta:
         model = Produto
         fields = ['nome', 'descricao', 'categoria', 'imagem', 'ativo']
         widgets = {
-            'nome': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Digite o nome do produto'
-            }),
-            'descricao': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 4,
-                'placeholder': 'Digite a descrição do produto'
-            }),
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'categoria': forms.Select(attrs={'class': 'form-control'}),
-            'imagem': forms.FileInput(attrs={
-                'class': 'form-control',
-                'accept': 'image/*'
-            }),
+            'imagem': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        }
-        labels = {
-            'nome': 'Nome do Produto',
-            'descricao': 'Descrição',
-            'categoria': 'Categoria',
-            'imagem': 'Imagem do Produto',
-            'ativo': 'Produto Ativo',
         }
     
     def clean_imagem(self):
@@ -47,7 +27,35 @@ class ProdutoForm(forms.ModelForm):
             return imagem
         if hasattr(imagem, 'size') and imagem.size > 2 * 1024 * 1024:
             raise forms.ValidationError("Imagem muito grande (máx 2MB).")
-        return imagem 
+        return imagem
+
+
+class ProdutoVariacaoForm(forms.ModelForm):
+    class Meta:
+        model = ProdutoVariacao
+        fields = ['cor', 'tamanho', 'preco', 'quantidade_estoque', 'imagem']
+        widgets = {
+            'cor': forms.Select(attrs={'class': 'form-control'}),
+            'tamanho': forms.Select(attrs={'class': 'form-control'}),
+            'preco': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'quantidade_estoque': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'imagem': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+        }
+
+
+class ProdutoVariacaoInlineFormSet(forms.BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        combinacoes = []
+        for form in self.forms:
+            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                cor = form.cleaned_data.get('cor')
+                tamanho = form.cleaned_data.get('tamanho')
+                if cor and tamanho:
+                    combinacao = f"{cor}_{tamanho}"
+                    if combinacao in combinacoes:
+                        raise forms.ValidationError(f"Combinação {cor}/{tamanho} já foi adicionada.")
+                    combinacoes.append(combinacao)
 
 class VendaForm(forms.ModelForm):
     class Meta:
@@ -162,28 +170,6 @@ class OrcamentoForm(forms.Form):
             raise forms.ValidationError('Escolha um orçamento.')
         return data
 
-# Forms Meu perfil
-class Perfil(models.Model):
-    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
-    telefone = models.CharField(
-        max_length=15, 
-        blank=True, 
-        null=True,
-        validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Número de telefone inválido")]
-    )
-    cpf = models.CharField(max_length=14, blank=True, null=True, verbose_name="CPF")
-    data_nascimento = models.DateField(blank=True, null=True)
-    #avatar = models.ImageField(upload_to='avatars/', blank=True, null=True) foto de perfil
-    bio = models.TextField(max_length=500, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = "Perfil"
-        verbose_name_plural = "Perfis"
-
-    def __str__(self):
-        return f"Perfil de {self.usuario.username}"
 
 
 # Forms de Endereço
