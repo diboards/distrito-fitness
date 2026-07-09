@@ -73,26 +73,47 @@ def pagina_inicial(request):
     else:
         produtos = produtos_query
     
-    # Separar produtos por categoria (apenas para página inicial)
+    # Separar produtos por categoria
     produtos_lancamentos = produtos_query.filter(categoria='lancamentos')[:12]
     produtos_promocoes = produtos_query.filter(categoria='promocoes')[:12]
     produtos_conjuntos = produtos_query.filter(categoria='conjuntos')[:12]
     produtos_outros = produtos_query.filter(categoria='outros')[:12]
     produtos_destaque = produtos_query.order_by('-data_cadastro')[:6]
     
-    # Calcular preços
+    # Calcular preços a partir da primeira variação
     def calcular_precos(produto_list):
         resultado = []
         for p in produto_list:
-            preco_pix = (p.preco * Decimal("0.90")).quantize(Decimal("0.01"))
-            preco_parcela = (p.preco / Decimal("3")).quantize(Decimal("0.01"))
+            # 🔥 PEGAR A PRIMEIRA VARIAÇÃO
+            variacao = p.variacoes.first()
+            if not variacao:
+                continue
+            
+            preco_pix = (variacao.preco * Decimal("0.90")).quantize(Decimal("0.01"))
+            preco_parcela = (variacao.preco / Decimal("3")).quantize(Decimal("0.01"))
+            
+            # 🔥 PEGAR URL DA IMAGEM CORRETAMENTE
+            imagem_url = None
+            if variacao.imagem:
+                try:
+                    imagem_url = variacao.imagem.url.replace("http://", "https://")
+                except:
+                    imagem_url = None
+            if not imagem_url and p.imagem:
+                try:
+                    imagem_url = p.imagem.url.replace("http://", "https://")
+                except:
+                    imagem_url = None
+            if not imagem_url:
+                imagem_url = 'https://placehold.co/300x200?text=Sem+Imagem'
+            
             resultado.append({
                 "id": p.id,
                 "nome": p.nome,
-                "preco": p.preco,
+                "preco": variacao.preco,
                 "preco_pix": preco_pix,
                 "preco_parcela": preco_parcela,
-                "imagem": p.imagem,
+                "imagem": imagem_url,
                 "categoria": p.categoria,
             })
         return resultado
