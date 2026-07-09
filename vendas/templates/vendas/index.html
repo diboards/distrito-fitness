@@ -31,7 +31,7 @@
         </div>
     </section>
 
-    <!-- 🎯 CAROUSEL (apenas na página inicial) -->
+    <!-- CAROUSEL -->
     {% if not categoria_selecionada %}
     <div id="carouselProdutos" class="carousel slide carousel-fade mb-5" data-bs-ride="carousel">
         <div class="carousel-inner">
@@ -45,11 +45,8 @@
                         <p class="carousel-parcelado">ou 3x de R$ {{ produto.preco_parcela }} sem juros</p>
                         <a href="{% url 'detalhes_produto' produto.id %}" class="btn-carousel">🛒 Comprar agora →</a>
                     </div>
-                    {% if produto.imagem %}
-                        <img src="{{ produto.imagem.url }}" class="carousel-img" alt="{{ produto.nome }}">
-                    {% else %}
-                        <img src="{% static 'vendas/images/default-product.png' %}" class="carousel-img" alt="Produto">
-                    {% endif %}
+                    <img src="{{ produto.imagem }}" class="carousel-img" alt="{{ produto.nome }}"
+                         onerror="this.src='https://placehold.co/400x300?text=Sem+Imagem'">
                     <div class="carousel-overlay"></div>
                 </div>
             </div>
@@ -69,7 +66,6 @@
     </div>
     {% endif %}
 
-    <!-- ============================================ -->
     <!-- SEÇÃO: LANÇAMENTOS -->
     {% if not categoria_selecionada or categoria_selecionada == 'lancamentos' %}
     <section class="categoria-section">
@@ -113,54 +109,7 @@
     </section>
     {% endif %}
 
-    <!-- ============================================ -->
-    <!-- SEÇÃO: PROMOÇÕES -->
-    <!-- ============================================ -->
-    {% if not categoria_selecionada or categoria_selecionada == 'promocoes' %}
-    <section class="categoria-section">
-        <div class="section-header">
-            <h2 class="section-title">
-                <i class="bi bi-fire"></i> Promoções
-                <span class="section-badge discount">Ofertas</span>
-            </h2>
-            <a href="?categoria=promocoes" class="ver-todos-link">Ver todos <i class="bi bi-arrow-right"></i></a>
-        </div>
-        
-        <div class="produtos-scroll-container">
-            <div class="produtos-scroll" id="scrollPromocoes">
-                {% for produto in produtos_promocoes %}
-                <div class="produto-card destaque">
-                    <a href="{% url 'detalhes_produto' produto.id %}">
-                        {% if produto.imagem %}
-                            <img src="{{ produto.imagem.url }}" alt="{{ produto.nome }}" loading="lazy">
-                        {% else %}
-                            <img src="{% static 'vendas/images/default-product.png' %}" alt="Produto" loading="lazy">
-                        {% endif %}
-                        <span class="badge-desconto">{{ produto.desconto|default:"10" }}% OFF</span>
-                    </a>
-                    <div class="produto-info">
-                        <h6 title="{{ produto.nome }}">{{ produto.nome|truncatechars:30 }}</h6>
-                        <p class="old-price">R$ {{ produto.preco }}</p>
-                        <p class="price">R$ {{ produto.preco_pix }} <span>no PIX</span></p>
-                        <p class="parcelado">ou 3x de R$ {{ produto.preco_parcela }}</p>
-                        <button class="btn-quick-add" data-id="{{ produto.id }}">
-                            <i class="bi bi-cart-plus"></i> Comprar
-                        </button>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="text-center py-5">Nenhuma promoção disponível no momento.</div>
-                {% endfor %}
-            </div>
-            <button class="scroll-btn left" onclick="scrollProdutos('scrollPromocoes', -1)"><i class="bi bi-chevron-left"></i></button>
-            <button class="scroll-btn right" onclick="scrollProdutos('scrollPromocoes', 1)"><i class="bi bi-chevron-right"></i></button>
-        </div>
-    </section>
-    {% endif %}
-
-    <!-- ============================================ -->
     <!-- SEÇÃO: CONJUNTOS -->
-    <!-- ============================================ -->
     {% if not categoria_selecionada or categoria_selecionada == 'conjuntos' %}
     <section class="categoria-section">
         <div class="section-header">
@@ -176,11 +125,9 @@
                 {% for produto in produtos_conjuntos %}
                 <div class="produto-card">
                     <a href="{% url 'detalhes_produto' produto.id %}">
-                        {% if produto.imagem %}
-                            <img src="{{ produto.imagem.url }}" alt="{{ produto.nome }}" loading="lazy">
-                        {% else %}
-                            <img src="{% static 'vendas/images/default-product.png' %}" alt="Produto" loading="lazy">
-                        {% endif %}
+                        <img src="{{ produto.imagem }}" alt="{{ produto.nome }}" loading="lazy"
+                             style="width:100%; height:200px; object-fit:cover;"
+                             onerror="this.src='https://placehold.co/300x200?text=Sem+Imagem'">
                     </a>
                     <div class="produto-info">
                         <h6 title="{{ produto.nome }}">{{ produto.nome|truncatechars:30 }}</h6>
@@ -202,9 +149,7 @@
     </section>
     {% endif %}
 
-    <!-- ============================================ -->
     <!-- SEÇÃO: OUTROS PRODUTOS -->
-    <!-- ============================================ -->
     {% if not categoria_selecionada or categoria_selecionada == 'outros' %}
     <section class="categoria-section">
         <div class="section-header">
@@ -219,11 +164,9 @@
                 {% for produto in produtos_outros %}
                 <div class="produto-card">
                     <a href="{% url 'detalhes_produto' produto.id %}">
-                        {% if produto.imagem %}
-                            <img src="{{ produto.imagem.url }}" alt="{{ produto.nome }}" loading="lazy">
-                        {% else %}
-                            <img src="{% static 'vendas/images/default-product.png' %}" alt="Produto" loading="lazy">
-                        {% endif %}
+                        <img src="{{ produto.imagem }}" alt="{{ produto.nome }}" loading="lazy"
+                             style="width:100%; height:200px; object-fit:cover;"
+                             onerror="this.src='https://placehold.co/300x200?text=Sem+Imagem'">
                     </a>
                     <div class="produto-info">
                         <h6 title="{{ produto.nome }}">{{ produto.nome|truncatechars:30 }}</h6>
@@ -245,7 +188,7 @@
     </section>
     {% endif %}
 
-    <!-- Bloco informativo (apenas na página inicial) -->
+    <!-- Bloco informativo -->
     {% if not categoria_selecionada %}
     <section class="info-section mt-5">
         <h4 class="section-title text-center mb-4">Aqui é onde você encontra peças selecionadas com ótimo design.</h4>
@@ -296,7 +239,7 @@
 
 </div>
 
-<!-- 🎨 ESTILOS -->
+<!-- ESTILOS -->
 <style>
 .hero-title {
     color: #1f2937;
@@ -634,11 +577,9 @@ function scrollProdutos(scrollId, direction) {
 
 // Função para obter o CSRF token de forma segura
 function getCSRFToken() {
-    // Procura o token no formulário
     const tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
     if (tokenInput) return tokenInput.value;
     
-    // Procura o token no meta tag
     const metaToken = document.querySelector('meta[name="csrf-token"]');
     if (metaToken) return metaToken.content;
     
@@ -655,12 +596,10 @@ async function adicionarAoCarrinho(produtoId, buttonElement) {
     
     const originalText = buttonElement.innerHTML;
     
-    // Mostrar loading
     buttonElement.innerHTML = '<i class="bi bi-arrow-repeat spinner"></i> Adicionando...';
     buttonElement.disabled = true;
     
     try {
-        // Criar formulário com os dados
         const formData = new FormData();
         formData.append('quantidade', 1);
         formData.append('action', 'add');
@@ -676,16 +615,13 @@ async function adicionarAoCarrinho(produtoId, buttonElement) {
         });
         
         if (response.ok) {
-            // Sucesso - mostra feedback
             buttonElement.innerHTML = '<i class="bi bi-check-lg"></i> Adicionado!';
             buttonElement.style.background = '#28a745';
             buttonElement.style.borderColor = '#28a745';
             buttonElement.style.color = 'white';
             
-            // Atualizar contador do carrinho (apenas se o elemento existir)
             await atualizarCarrinhoCount();
             
-            // Voltar ao normal após 2 segundos
             setTimeout(() => {
                 buttonElement.innerHTML = originalText;
                 buttonElement.disabled = false;
@@ -707,19 +643,15 @@ async function adicionarAoCarrinho(produtoId, buttonElement) {
     }
 }
 
-// Função para atualizar contador do carrinho (com verificação de segurança)
+// Função para atualizar contador do carrinho
 async function atualizarCarrinhoCount() {
     try {
         const response = await fetch('/carrinho/count/');
         const data = await response.json();
         
-        // Só tenta atualizar se o elemento existir
         const badge = document.getElementById('carrinho-count');
         if (badge) {
             badge.innerText = data.count || 0;
-        } else {
-            // Elemento não existe (usuário não logado) - não faz nada
-            console.log('Carrinho não disponível (usuário não logado)');
         }
     } catch (error) {
         console.error('Erro ao atualizar contador:', error);
@@ -728,7 +660,6 @@ async function atualizarCarrinhoCount() {
 
 // Inicializar quando o DOM estiver carregado
 document.addEventListener('DOMContentLoaded', function() {
-    // Configurar scroll com wheel
     const scrollContainers = document.querySelectorAll('.produtos-scroll');
     scrollContainers.forEach(container => {
         container.addEventListener('wheel', function(e) {
@@ -739,7 +670,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Botões "Comprar" nos cards
     const botoesComprar = document.querySelectorAll('.btn-quick-add');
     console.log(`✅ ${botoesComprar.length} botões de compra encontrados`);
     
@@ -755,7 +685,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Tenta atualizar o contador (se o elemento existir)
     atualizarCarrinhoCount();
 });
 </script>
