@@ -178,51 +178,61 @@ def testar_conexao_mp(request):
 # vendas/views/views.py - SUBSTITUIR a função
 
 def detalhes_produto(request, produto_id):
-    produto = get_object_or_404(Produto, id=produto_id)
-
-     # Calculando descontos e parcelamento
-    preco_pix = (produto.preco * Decimal("0.90")).quantize(Decimal("0.01"))  # 10% OFF no pix
-    preco_parcela = (produto.preco / Decimal("4")).quantize(Decimal("0.01")) # parcelado em 4x
-
-    # traz todas as variações do mesmo modelo (mesmo nome)
-    variacoes = Produto.objects.filter(nome=produto.nome, ativo=True).order_by('cor', 'tamanho')
-
-    # organiza por cor: guarda primeira imagem encontrada e lista de tamanhos (valores)
+    produto = get_object_or_404(Produto, id=produto_id, ativo=True)
+    
+    # Buscar variações disponíveis
+    variacoes = produto.variacoes.all()
+    
+    if not variacoes.exists():
+        messages.warning(request, 'Este produto não está disponível no momento.')
+        return redirect('pagina_inicial')
+    
+    # Organizar por cor e tamanho
+    from collections import OrderedDict
     colors = OrderedDict()
     sizes_by_color = {}
-
+    
     for var in variacoes:
-        cor = var.cor  # valor armazenado no DB, ex: 'Vermelho', 'Azul', ...
-        cor_display = var.get_cor_display()
+        cor = var.cor
         if cor not in colors:
+            # Extrair URL da imagem
+            imagem_url = None
+            if var.imagem:
+                try:
+                    imagem_url = var.imagem.url.replace("http://", "https://")
+                except:
+                    imagem_url = None
+            
             colors[cor] = {
                 'cor': cor,
-                'cor_display': cor_display,
-                'imagem': var.imagem.url if var.imagem else ''
+                'cor_display': cor,
+                'imagem': imagem_url
             }
             sizes_by_color[cor] = []
-        # adiciona tamanho (valor armazenado, ex 'M', 'G')
         if var.tamanho not in sizes_by_color[cor]:
             sizes_by_color[cor].append(var.tamanho)
-
-    # mapeamento para mostrar label do tamanho (value -> label)
-    size_labels = {val: label for val, label in Produto.TAMANHO_CHOICES}
-
+    
+    # Preço mínimo (da primeira variação)
+    primeira_variacao = variacoes.first()
+    preco_minimo = primeira_variacao.preco if primeira_variacao else 0
+    preco_pix = Decimal(str(preco_minimo)) * Decimal("0.90")
+    preco_parcela = Decimal(str(preco_minimo)) / Decimal("3")
+    
+    # Mapeamento de tamanhos
+    size_labels = {'PP': 'PP', 'P': 'P', 'M': 'M', 'G': 'G', 'GG': 'GG', 'U': 'Único'}
+    
     context = {
         'produto': produto,
-        "preco_pix": preco_pix,
-        "preco_parcela": preco_parcela,
+        'preco_pix': preco_pix.quantize(Decimal("0.01")),
+        'preco_parcela': preco_parcela.quantize(Decimal("0.01")),
         'colors_list': list(colors.values()),
         'sizes_by_color': sizes_by_color,
         'size_labels': size_labels,
-        # também passamos JSON já pronto para o JS sem precisar usar json_script
         'colors_json': json.dumps(list(colors.values())),
         'sizes_json': json.dumps(sizes_by_color),
         'size_labels_json': json.dumps(size_labels),
     }
     return render(request, 'vendas/detalhes_produto.html', context)
-
-    
 
 
 # vendas/views/views.py - SUBSTITUIR a função
