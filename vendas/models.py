@@ -124,6 +124,22 @@ class EnderecoEntrega(models.Model):
         verbose_name_plural = "Endereços de Entrega"
 
 
+class ProdutoVariacao(models.Model):
+    """Variação do produto (ex: Conjunto - Azul - M)"""
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='variacoes')
+    cor = models.CharField(max_length=20, choices=COR_CHOICES)
+    tamanho = models.CharField(max_length=10, choices=TAMANHO_CHOICES)
+    preco = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
+    quantidade_estoque = models.PositiveIntegerField(default=0)
+    imagem = CloudinaryField('imagem', blank=True, null=True)
+    
+    class Meta:
+        unique_together = ['produto', 'cor', 'tamanho']
+        ordering = ['cor', 'tamanho']
+    
+    def __str__(self):
+        return f"{self.produto.nome} - {self.cor}/{self.tamanho}"
+
 class Pedido(models.Model):
 
     METODO_PAGAMENTO_CHOICES = [
