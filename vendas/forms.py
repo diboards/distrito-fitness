@@ -9,10 +9,13 @@ from .models import Produto, ProdutoVariacao, Venda, EnderecoEntrega, Perfil
 
 # vendas/forms.py - Substitua a classe ProdutoForm por esta:
 
+# vendas/forms.py - Substitua a classe ProdutoForm
+
 class ProdutoForm(forms.ModelForm):
+    """Formulário para o produto base (sem preço, cor, tamanho, estoque)"""
     class Meta:
         model = Produto
-        fields = ['nome', 'descricao', 'preco', 'quantidade_estoque', 'cor', 'tamanho', 'categoria', 'imagem']
+        fields = ['nome', 'descricao', 'categoria', 'imagem', 'ativo']
         widgets = {
             'nome': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -23,72 +26,28 @@ class ProdutoForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'Digite a descrição do produto'
             }),
-            'preco': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'step': '0.01',
-                'min': '0.01',
-                'placeholder': '0.00'
-            }),
-            'quantidade_estoque': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '0',
-                'placeholder': '0'
-            }),
-            'cor': forms.Select(attrs={
-                'class': 'form-control'
-            }),
-            'tamanho': forms.Select(attrs={
-                'class': 'form-control'
-            }),
-            'categoria': forms.Select(attrs={
-                'class': 'form-control'
-            }),
+            'categoria': forms.Select(attrs={'class': 'form-control'}),
             'imagem': forms.FileInput(attrs={
                 'class': 'form-control',
                 'accept': 'image/*'
-            })
+            }),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'nome': 'Nome do Produto',
             'descricao': 'Descrição',
-            'preco': 'Preço (R$)',
-            'quantidade_estoque': 'Quantidade em Estoque',
-            'cor': 'Cor',
-            'tamanho': 'Tamanho',
             'categoria': 'Categoria',
-            'imagem': 'Imagem do Produto'
+            'imagem': 'Imagem do Produto',
+            'ativo': 'Produto Ativo',
         }
-    
-    def clean_preco(self):
-        preco = self.cleaned_data.get('preco')
-        if preco <= 0:
-            raise forms.ValidationError("O preço deve ser maior que zero.")
-        return preco
-    
-    def clean_quantidade_estoque(self):
-        quantidade = self.cleaned_data.get('quantidade_estoque')
-        if quantidade < 0:
-            raise forms.ValidationError("A quantidade em estoque não pode ser negativa.")
-        return quantidade
     
     def clean_imagem(self):
         imagem = self.cleaned_data.get('imagem')
-
-        # Se não enviou nova imagem → mantém a atual
         if not imagem:
             return imagem
-
-        # 🔥 Se for upload novo (arquivo mesmo)
-        if hasattr(imagem, 'size'):
-            if imagem.size > 2 * 1024 * 1024:
-                raise forms.ValidationError("Imagem muito grande (máx 2MB).")
-
-        # 🔥 Se for Cloudinary (edição de produto)
-        elif hasattr(imagem, 'public_id'):
-            # objeto do Cloudinary → NÃO tem size
-            return imagem
-
-        return imagem   
+        if hasattr(imagem, 'size') and imagem.size > 2 * 1024 * 1024:
+            raise forms.ValidationError("Imagem muito grande (máx 2MB).")
+        return imagem 
 
 class VendaForm(forms.ModelForm):
     class Meta:
