@@ -1,0 +1,310 @@
+{% extends 'vendas/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if user.is_authenticated and user.is_superuser %}
+        <!-- Cabeçalho -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-box-seam"></i> Estoque</h2>
+            <div class="d-flex gap-2">
+                <a href="{% url 'cadastrar_produto' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Novo Produto
+                </a>
+                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#filtrosModal">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+            </div>
+        </div>
+
+        <!-- Cards de estatísticas -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center bg-light">
+                    <div class="card-body">
+                        <h3>{{ total_produtos }}</h3>
+                        <p>Total de Produtos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center bg-success text-white">
+                    <div class="card-body">
+                        <h3>{{ produtos_ativos }}</h3>
+                        <p>Produtos Ativos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center bg-warning">
+                    <div class="card-body">
+                        <h3>{{ produtos_inativos }}</h3>
+                        <p>Produtos Inativos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center bg-info text-white">
+                    <div class="card-body">
+                        <h3>{{ total_estoque }}</h3>
+                        <p>Unidades em Estoque</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de produtos -->
+        <div class="row">
+            {% for produto in produtos %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 {% if not produto.ativo %}border-danger{% endif %}">
+                    <!-- Imagem -->
+                    <img src="{{ produto.imagem }}" class="card-img-top" alt="{{ produto.nome }}" 
+                         style="height: 200px; object-fit: cover;"
+                         onerror="this.src='https://placehold.co/300x200?text=Sem+Imagem'">
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">{{ produto.nome }}</h5>
+                        <p class="card-text">
+                            <strong>Preço:</strong> R$ {{ produto.preco|floatformat:2 }}<br>
+                            <strong>Estoque:</strong> 
+                            <span class="{% if produto.quantidade_estoque <= 5 %}text-danger fw-bold{% endif %}">
+                                {{ produto.quantidade_estoque }} unidades
+                            </span><br>
+                            <strong>Cor:</strong> {{ produto.cor }}<br>
+                            <strong>Tamanho:</strong> {{ produto.tamanho }}<br>
+                            <strong>Categoria:</strong> {{ produto.categoria }}<br>
+                            <strong>Status:</strong> 
+                            <span class="badge {% if produto.ativo %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if produto.ativo %}Ativo{% else %}Inativo{% endif %}
+                            </span>
+                        </p>
+                    </div>
+                    
+                    <!-- Botões de ação -->
+                    <div class="card-footer">
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-warning btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#editarModal{{ produto.id }}">
+                                <i class="bi bi-pencil"></i> Editar
+                            </button>
+                            <button type="button" class="btn btn-info btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#detalhesModal{{ produto.id }}">
+                                <i class="bi bi-eye"></i> Detalhes
+                            </button>
+                        </div>
+                        <small class="text-muted mt-2 d-block">
+                            <i class="bi bi-calendar"></i> {{ produto.data_cadastro|date:"d/m/Y" }}
+                            {% if produto.quantidade_estoque <= 5 %}
+                            <span class="badge bg-danger float-end">
+                                <i class="bi bi-exclamation-triangle"></i> Baixo Estoque
+                            </span>
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🔥 MODAL DE EDIÇÃO -->
+            <div class="modal fade" id="editarModal{{ produto.id }}" tabindex="-1" aria-labelledby="editarModalLabel{{ produto.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editarModalLabel{{ produto.id }}">
+                                <i class="bi bi-pencil"></i> Editar Produto: {{ produto.nome }}
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form method="POST" action="{% url 'editar_produto' produto.id %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nome do Produto *</label>
+                                            <input type="text" class="form-control" name="nome" value="{{ produto.nome }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Categoria *</label>
+                                            <select class="form-select" name="categoria" required>
+                                                <option value="lancamentos" {% if produto.categoria == 'Lançamentos' %}selected{% endif %}>Lançamentos</option>
+                                                <option value="promocoes" {% if produto.categoria == 'Promoções' %}selected{% endif %}>Promoções</option>
+                                                <option value="conjuntos" {% if produto.categoria == 'Conjuntos' %}selected{% endif %}>Conjuntos</option>
+                                                <option value="outros" {% if produto.categoria == 'Outros' %}selected{% endif %}>Outros</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Descrição</label>
+                                    <textarea class="form-control" name="descricao" rows="3">{{ produto.descricao }}</textarea>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Preço *</label>
+                                            <input type="number" class="form-control" name="preco" value="{{ produto.preco }}" step="0.01" min="0.01" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Quantidade em Estoque *</label>
+                                            <input type="number" class="form-control" name="quantidade_estoque" value="{{ produto.quantidade_estoque }}" min="0" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Status</label>
+                                            <select class="form-select" name="ativo">
+                                                <option value="1" {% if produto.ativo %}selected{% endif %}>Ativo</option>
+                                                <option value="0" {% if not produto.ativo %}selected{% endif %}>Inativo</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Imagem do Produto</label>
+                                    <input type="file" class="form-control" name="imagem" accept="image/*">
+                                    {% if produto.imagem %}
+                                    <div class="mt-2">
+                                        <img src="{{ produto.imagem }}" alt="Imagem atual" class="img-thumbnail" style="max-height: 100px;">
+                                        <small class="text-muted d-block">Imagem atual</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-circle"></i> Salvar
+                                </button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🔥 MODAL DE DETALHES -->
+            <div class="modal fade" id="detalhesModal{{ produto.id }}" tabindex="-1" aria-labelledby="detalhesModalLabel{{ produit.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="detalhesModalLabel{{ produit.id }}">
+                                <i class="bi bi-info-circle"></i> Detalhes do Produto
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <img src="{{ produto.imagem }}" class="img-fluid rounded" alt="{{ produto.nome }}"
+                                         onerror="this.src='https://placehold.co/300x200?text=Sem+Imagem'">
+                                </div>
+                                <div class="col-md-6">
+                                    <h4>{{ produto.nome }}</h4>
+                                    <p><strong>Descrição:</strong> {{ produto.descricao|default:"Nenhuma descrição" }}</p>
+                                    <p><strong>Preço:</strong> R$ {{ produto.preco }}</p>
+                                    <p><strong>Estoque:</strong> {{ produto.quantidade_estoque }} unidades</p>
+                                    <p><strong>Cor:</strong> {{ produto.cor }}</p>
+                                    <p><strong>Tamanho:</strong> {{ produto.tamanho }}</p>
+                                    <p><strong>Categoria:</strong> {{ produto.categoria }}</p>
+                                    <p><strong>Status:</strong> 
+                                        <span class="badge {% if produto.ativo %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if produto.ativo %}Ativo{% else %}Inativo{% endif %}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editarModal{{ produto.id }}">
+                                <i class="bi bi-pencil"></i> Editar
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-inbox"></i> Nenhum produto em estoque. 
+                    <a href="{% url 'cadastrar_produto' %}" class="alert-link">Cadastre o primeiro produto</a>.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning">Você não tem permissão para acessar esta página.</div>
+    {% endif %}
+</div>
+
+<!-- Modal de Filtros -->
+<div class="modal fade" id="filtrosModal" tabindex="-1" aria-labelledby="filtrosModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filtrosModalLabel">
+                    <i class="bi bi-funnel"></i> Filtrar Estoque
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="GET" action="{% url 'estoque' %}">
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="">Todos</option>
+                            <option value="ativo">Ativos</option>
+                            <option value="inativo">Inativos</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Categoria</label>
+                        <select class="form-select" name="categoria">
+                            <option value="">Todas</option>
+                            <option value="lancamentos">Lançamentos</option>
+                            <option value="promocoes">Promoções</option>
+                            <option value="conjuntos">Conjuntos</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estoque Baixo (< 5 unidades)</label>
+                        <select class="form-select" name="estoque_baixo">
+                            <option value="">Todos</option>
+                            <option value="sim">Sim</option>
+                            <option value="nao">Não</option>
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-filter"></i> Aplicar Filtros
+                        </button>
+                        <a href="{% url 'estoque' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Limpar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 10px;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.card.border-danger {
+    border: 2px solid #dc3545;
+}
+</style>
+{% endblock %}
