@@ -65,53 +65,68 @@ def calcular_precos(produto_list):
 def pagina_inicial(request):
     categoria_selecionada = request.GET.get('categoria', '')
     
+    # Query base
     produtos_query = Produto.objects.filter(ativo=True)
     
     if categoria_selecionada:
-        produtos_query = produtos_query.filter(categoria=categoria_selecionada)
+        produtos = produtos_query.filter(categoria=categoria_selecionada)
+    else:
+        produtos = produtos_query
     
-    # Buscar produtos com suas variações
-    produtos_com_precos = []
-    for p in produtos_query:
-        variacao = p.variacoes.first()
-        if not variacao:
-            continue
-        
-        # URL da imagem
-        imagem_url = None
-        if variacao.imagem:
-            try:
-                imagem_url = variacao.imagem.url.replace("http://", "https://")
-            except:
-                imagem_url = None
-        if not imagem_url and p.imagem:
-            try:
-                imagem_url = p.imagem.url.replace("http://", "https://")
-            except:
-                imagem_url = None
-        if not imagem_url:
-            imagem_url = 'https://placehold.co/300x200?text=Sem+Imagem'
-        
-        preco_pix = (variacao.preco * Decimal("0.90")).quantize(Decimal("0.01"))
-        preco_parcela = (variacao.preco / Decimal("3")).quantize(Decimal("0.01"))
-        
-        produtos_com_precos.append({
-            "id": p.id,
-            "nome": p.nome,
-            "preco": variacao.preco,
-            "preco_pix": preco_pix,
-            "preco_parcela": preco_parcela,
-            "imagem": imagem_url,
-            "categoria": p.categoria,
-        })
+    # Separar produtos por categoria
+    produtos_lancamentos = produtos_query.filter(categoria='lancamentos')[:12]
+    produtos_promocoes = produtos_query.filter(categoria='promocoes')[:12]
+    produtos_conjuntos = produtos_query.filter(categoria='conjuntos')[:12]
+    produtos_outros = produtos_query.filter(categoria='outros')[:12]
+    produtos_destaque = produtos_query.order_by('-data_cadastro')[:6]
+    
+    # Calcular preços a partir da primeira variação
+    def calcular_precos(produto_list):
+        resultado = []
+        for p in produto_list:
+            variacao = p.variacoes.first()
+            if not variacao:
+                continue
+            
+            preco_pix = (variacao.preco * Decimal("0.90")).quantize(Decimal("0.01"))
+            preco_parcela = (variacao.preco / Decimal("3")).quantize(Decimal("0.01"))
+            
+            imagem_url = None
+            if variacao.imagem:
+                try:
+                    imagem_url = variacao.imagem.url.replace("http://", "https://")
+                except:
+                    imagem_url = None
+            if not imagem_url and p.imagem:
+                try:
+                    imagem_url = p.imagem.url.replace("http://", "https://")
+                except:
+                    imagem_url = None
+            if not imagem_url:
+                imagem_url = 'https://placehold.co/300x200?text=Sem+Imagem'
+            
+            resultado.append({
+                "id": p.id,
+                "nome": p.nome,
+                "preco": variacao.preco,
+                "preco_pix": preco_pix,
+                "preco_parcela": preco_parcela,
+                "imagem": imagem_url,
+                "categoria": p.categoria,
+            })
+        return resultado
     
     context = {
-        'produtos': produtos_com_precos,
+        'produtos_lancamentos': calcular_precos(produtos_lancamentos),
+        'produtos_promocoes': calcular_precos(produtos_promocoes),
+        'produtos_conjuntos': calcular_precos(produtos_conjuntos),
+        'produtos_outros': calcular_precos(produtos_outros),
+        'produtos_destaque': calcular_precos(produtos_destaque),
         'categoria_selecionada': categoria_selecionada,
+        'produtos': calcular_precos(produtos),
     }
+    
     return render(request, 'vendas/index.html', context)
-
-
 
 #teste
 
@@ -1353,11 +1368,10 @@ def estoque(request):
     produtos = Produto.objects.prefetch_related('variacoes').all()
 
     produtos_com_precos = []
+    total_estoque_geral = 0
 
     for p in produtos:
-
-        # pega a primeira variação com imagem
-        variacao = p.variacoes.filter(imagem__isnull=False).first()
+        variacao = p.variacoes.first()
 
         imagem_url = None
         preco = 0
@@ -1366,39 +1380,24 @@ def estoque(request):
         tamanho = 'N/A'
 
         if variacao:
-
             preco = variacao.preco
             estoque = variacao.quantidade_estoque
             cor = variacao.cor
             tamanho = variacao.tamanho
+            total_estoque_geral += estoque
 
             try:
                 if variacao.imagem:
-                    imagem_url = variacao.imagem.url.replace(
-                        "http://",
-                        "https://"
-                    )
-
-                    print("=" * 50)
-                    print("PRODUTO:", p.id, p.nome)
-                    print("VARIACAO:", variacao.id)
-                    print("IMAGEM:", variacao.imagem)
-                    print("URL:", imagem_url)
-
+                    imagem_url = variacao.imagem.url.replace("http://", "https://")
             except Exception as e:
                 print("ERRO IMAGEM:", e)
 
-        # usa imagem principal do produto se não existir na variação
         if not imagem_url and p.imagem:
             try:
-                imagem_url = p.imagem.url.replace(
-                    "http://",
-                    "https://"
-                )
+                imagem_url = p.imagem.url.replace("http://", "https://")
             except Exception as e:
                 print("ERRO IMAGEM PRODUTO:", e)
 
-        # placeholder
         if not imagem_url:
             imagem_url = "https://placehold.co/300x200?text=Sem+Imagem"
 
@@ -1420,16 +1419,10 @@ def estoque(request):
         'total_produtos': produtos.count(),
         'produtos_ativos': produtos.filter(ativo=True).count(),
         'produtos_inativos': produtos.filter(ativo=False).count(),
-        'total_estoque': sum(
-            p.get_estoque_total() for p in produtos
-        ),
+        'total_estoque': total_estoque_geral,
     }
 
-    return render(
-        request,
-        'vendas/estoque.html',
-        context
-    )
+    return render(request, 'vendas/estoque.html', context)
 
 @superuser_required
 @login_required
