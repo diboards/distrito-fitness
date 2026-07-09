@@ -65,69 +65,50 @@ def calcular_precos(produto_list):
 def pagina_inicial(request):
     categoria_selecionada = request.GET.get('categoria', '')
     
-    # Query base
     produtos_query = Produto.objects.filter(ativo=True)
     
     if categoria_selecionada:
-        produtos = produtos_query.filter(categoria=categoria_selecionada)
-    else:
-        produtos = produtos_query
+        produtos_query = produtos_query.filter(categoria=categoria_selecionada)
     
-    # Separar produtos por categoria
-    produtos_lancamentos = produtos_query.filter(categoria='lancamentos')[:12]
-    produtos_promocoes = produtos_query.filter(categoria='promocoes')[:12]
-    produtos_conjuntos = produtos_query.filter(categoria='conjuntos')[:12]
-    produtos_outros = produtos_query.filter(categoria='outros')[:12]
-    produtos_destaque = produtos_query.order_by('-data_cadastro')[:6]
-    
-    # Calcular preços a partir da primeira variação
-    def calcular_precos(produto_list):
-        resultado = []
-        for p in produto_list:
-            # 🔥 PEGAR A PRIMEIRA VARIAÇÃO
-            variacao = p.variacoes.first()
-            if not variacao:
-                continue
-            
-            preco_pix = (variacao.preco * Decimal("0.90")).quantize(Decimal("0.01"))
-            preco_parcela = (variacao.preco / Decimal("3")).quantize(Decimal("0.01"))
-            
-            # 🔥 PEGAR URL DA IMAGEM CORRETAMENTE
-            imagem_url = None
-            if variacao.imagem:
-                try:
-                    imagem_url = variacao.imagem.url.replace("http://", "https://")
-                except:
-                    imagem_url = None
-            if not imagem_url and p.imagem:
-                try:
-                    imagem_url = p.imagem.url.replace("http://", "https://")
-                except:
-                    imagem_url = None
-            if not imagem_url:
-                imagem_url = 'https://placehold.co/300x200?text=Sem+Imagem'
-            
-            resultado.append({
-                "id": p.id,
-                "nome": p.nome,
-                "preco": variacao.preco,
-                "preco_pix": preco_pix,
-                "preco_parcela": preco_parcela,
-                "imagem": imagem_url,
-                "categoria": p.categoria,
-            })
-        return resultado
+    # Buscar produtos com suas variações
+    produtos_com_precos = []
+    for p in produtos_query:
+        variacao = p.variacoes.first()
+        if not variacao:
+            continue
+        
+        # URL da imagem
+        imagem_url = None
+        if variacao.imagem:
+            try:
+                imagem_url = variacao.imagem.url.replace("http://", "https://")
+            except:
+                imagem_url = None
+        if not imagem_url and p.imagem:
+            try:
+                imagem_url = p.imagem.url.replace("http://", "https://")
+            except:
+                imagem_url = None
+        if not imagem_url:
+            imagem_url = 'https://placehold.co/300x200?text=Sem+Imagem'
+        
+        preco_pix = (variacao.preco * Decimal("0.90")).quantize(Decimal("0.01"))
+        preco_parcela = (variacao.preco / Decimal("3")).quantize(Decimal("0.01"))
+        
+        produtos_com_precos.append({
+            "id": p.id,
+            "nome": p.nome,
+            "preco": variacao.preco,
+            "preco_pix": preco_pix,
+            "preco_parcela": preco_parcela,
+            "imagem": imagem_url,
+            "categoria": p.categoria,
+        })
     
     context = {
-        'produtos_lancamentos': calcular_precos(produtos_lancamentos),
-        'produtos_promocoes': calcular_precos(produtos_promocoes),
-        'produtos_conjuntos': calcular_precos(produtos_conjuntos),
-        'produtos_outros': calcular_precos(produtos_outros),
-        'produtos_destaque': calcular_precos(produtos_destaque),
+        'produtos': produtos_com_precos,
         'categoria_selecionada': categoria_selecionada,
-        'produtos': calcular_precos(produtos),
     }
-    
     return render(request, 'vendas/index.html', context)
 
 
