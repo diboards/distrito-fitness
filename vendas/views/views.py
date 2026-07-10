@@ -1449,13 +1449,14 @@ def editar_produto(request, produto_id):
 
 @superuser_required
 @login_required
-def excluir_produto(request, produto_id):
+@user_passes_test(lambda u: u.is_superuser)
+def deletar_produto(request, produto_id):
+    """Exclui um produto"""
     produto = get_object_or_404(Produto, id=produto_id)
-    if request.method == 'POST':
-        produto.delete()
-        messages.success(request, 'Produto excluído com sucesso!')
-        return redirect('lista_produto')
-    return render(request, 'vendas/excluir_produto.html', {'produto': produto})
+    nome = produto.nome
+    produto.delete()
+    messages.success(request, f'Produto "{nome}" excluído com sucesso!')
+    return redirect('estoque')
 
 @superuser_required
 @login_required
