@@ -1369,12 +1369,44 @@ def superuser_required(view_func):
 # vendas/views/views.py
 
 def estoque(request):
-    """View para gerenciamento de estoque"""
+    """View para gerenciamento de estoque com filtros"""
     
     if not request.user.is_authenticated or not request.user.is_superuser:
         return redirect('login')
 
+    # Obter parâmetros de filtro
+    status_filter = request.GET.get('status', '')
+    categoria_filter = request.GET.get('categoria', '')
+    estoque_baixo_filter = request.GET.get('estoque_baixo', '')
+
+    # Query base
     produtos = Produto.objects.prefetch_related('variacoes').all()
+    
+    # 🔥 APLICAR FILTROS
+    # 1. Filtro por Status
+    if status_filter == 'ativo':
+        produtos = produtos.filter(ativo=True)
+    elif status_filter == 'inativo':
+        produtos = produtos.filter(ativo=False)
+    
+    # 2. Filtro por Categoria
+    if categoria_filter:
+        produtos = produtos.filter(categoria=categoria_filter)
+    
+    # 3. Filtro por Estoque Baixo
+    if estoque_baixo_filter == 'sim':
+        # Produtos com variações com estoque <= 5
+        produtos_ids = []
+        for p in produtos:
+            if p.variacoes.filter(quantidade_estoque__lte=5).exists():
+                produtos_ids.append(p.id)
+        produtos = produtos.filter(id__in=produtos_ids)
+    elif estoque_baixo_filter == 'nao':
+        produtos_ids = []
+        for p in produtos:
+            if not p.variacoes.filter(quantidade_estoque__lte=5).exists():
+                produtos_ids.append(p.id)
+        produtos = produtos.filter(id__in=produtos_ids)
 
     produtos_com_precos = []
     total_estoque_geral = 0
@@ -1391,9 +1423,9 @@ def estoque(request):
         if variacao:
             preco = variacao.preco
             estoque = variacao.quantidade_estoque
+            total_estoque_geral += estoque
             cor = variacao.cor
             tamanho = variacao.tamanho
-            total_estoque_geral += estoque
 
             try:
                 if variacao.imagem:
@@ -1425,9 +1457,9 @@ def estoque(request):
 
     context = {
         'produtos': produtos_com_precos,
-        'total_produtos': produtos.count(),
-        'produtos_ativos': produtos.filter(ativo=True).count(),
-        'produtos_inativos': produtos.filter(ativo=False).count(),
+        'total_produtos': Produto.objects.count(),
+        'produtos_ativos': Produto.objects.filter(ativo=True).count(),
+        'produtos_inativos': Produto.objects.filter(ativo=False).count(),
         'total_estoque': total_estoque_geral,
     }
 
