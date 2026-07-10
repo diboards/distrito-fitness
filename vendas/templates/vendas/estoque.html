@@ -84,13 +84,13 @@
                     <!-- Botões de ação -->
                     <div class="card-footer">
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-warning btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#editarModal{{ produit.id }}">
+                            <button type="button" class="btn btn-warning btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#editarModal{{ produto.id }}">
                                 <i class="bi bi-pencil"></i> Editar
                             </button>
-                            <button type="button" class="btn btn-info btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#detalhesModal{{ produit.id }}">
+                            <button type="button" class="btn btn-info btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#detalhesModal{{ produto.id }}">
                                 <i class="bi bi-eye"></i> Detalhes
                             </button>
-                            <form method="POST" action="{% url 'deletar_produto' produit.id %}" onsubmit="return confirm('Tem certeza que deseja excluir este produto?');">
+                            <form method="POST" action="{% url 'deletar_produto' produto.id %}" onsubmit="return confirm('Tem certeza que deseja excluir este produto?');">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-danger btn-sm">
                                     <i class="bi bi-trash"></i> Excluir
@@ -98,8 +98,8 @@
                             </form>
                         </div>
                         <small class="text-muted mt-2 d-block">
-                            <i class="bi bi-calendar"></i> {{ produit.data_cadastro|date:"d/m/Y" }}
-                            {% if produit.quantidade_estoque <= 5 %}
+                            <i class="bi bi-calendar"></i> {{ produto.data_cadastro|date:"d/m/Y" }}
+                            {% if produto.quantidade_estoque <= 5 %}
                             <span class="badge bg-danger float-end">
                                 <i class="bi bi-exclamation-triangle"></i> Baixo Estoque
                             </span>
@@ -109,17 +109,17 @@
                 </div>
             </div>
 
-            <!-- MODAL DE EDIÇÃO -->
-            <div class="modal fade" id="editarModal{{ produit.id }}" tabindex="-1" aria-labelledby="editarModalLabel{{ produit.id }}" aria-hidden="true">
+            <!-- 🔥 MODAL DE EDIÇÃO - CORRIGIDO -->
+            <div class="modal fade" id="editarModal{{ produto.id }}" tabindex="-1" aria-labelledby="editarModalLabel{{ produto.id }}" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="editarModalLabel{{ produit.id }}">
-                                <i class="bi bi-pencil"></i> Editar Produto: {{ produit.nome }}
+                            <h5 class="modal-title" id="editarModalLabel{{ produto.id }}">
+                                <i class="bi bi-pencil"></i> Editar Produto: {{ produto.nome }}
                             </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form method="POST" action="{% url 'editar_produto' produit.id %}" enctype="multipart/form-data">
+                        <form method="POST" action="{% url 'editar_produto' produto.id %}" enctype="multipart/form-data">
                             {% csrf_token %}
                             <div class="modal-body">
                                 <h6 class="border-bottom pb-2">Informações Básicas</h6>
@@ -127,17 +127,17 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label">Nome do Produto *</label>
-                                            <input type="text" class="form-control" name="nome" value="{{ produit.nome }}" required>
+                                            <input type="text" class="form-control" name="nome" value="{{ produto.nome }}" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label">Categoria *</label>
                                             <select class="form-select" name="categoria" required>
-                                                <option value="lancamentos" {% if produit.categoria == 'Lançamentos' %}selected{% endif %}>Lançamentos</option>
-                                                <option value="promocoes" {% if produit.categoria == 'Promoções' %}selected{% endif %}>Promoções</option>
-                                                <option value="conjuntos" {% if produit.categoria == 'Conjuntos' %}selected{% endif %}>Conjuntos</option>
-                                                <option value="outros" {% if produit.categoria == 'Outros' %}selected{% endif %}>Outros</option>
+                                                <option value="lancamentos" {% if produto.categoria == 'Lançamentos' %}selected{% endif %}>Lançamentos</option>
+                                                <option value="promocoes" {% if produto.categoria == 'Promoções' %}selected{% endif %}>Promoções</option>
+                                                <option value="conjuntos" {% if produto.categoria == 'Conjuntos' %}selected{% endif %}>Conjuntos</option>
+                                                <option value="outros" {% if produto.categoria == 'Outros' %}selected{% endif %}>Outros</option>
                                             </select>
                                         </div>
                                     </div>
@@ -145,7 +145,7 @@
                                 
                                 <div class="mb-3">
                                     <label class="form-label">Descrição</label>
-                                    <textarea class="form-control" name="descricao" rows="2">{{ produit.descricao }}</textarea>
+                                    <textarea class="form-control" name="descricao" rows="2">{{ produto.descricao }}</textarea>
                                 </div>
                                 
                                 <h6 class="border-bottom pb-2 mt-3">Variação do Produto</h6>
@@ -153,21 +153,21 @@
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label class="form-label">Preço *</label>
-                                            <input type="number" class="form-control" name="preco" value="{{ produit.preco }}" step="0.01" min="0.01" required>
+                                            <input type="number" class="form-control" name="preco" value="{{ produto.preco }}" step="0.01" min="0.01" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label class="form-label">Quantidade em Estoque *</label>
-                                            <input type="number" class="form-control" name="quantidade_estoque" value="{{ produit.quantidade_estoque }}" min="0" required>
+                                            <input type="number" class="form-control" name="quantidade_estoque" value="{{ produto.quantidade_estoque }}" min="0" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label class="form-label">Status</label>
                                             <select class="form-select" name="ativo">
-                                                <option value="1" {% if produit.ativo %}selected{% endif %}>Ativo</option>
-                                                <option value="0" {% if not produit.ativo %}selected{% endif %}>Inativo</option>
+                                                <option value="1" {% if produto.ativo %}selected{% endif %}>Ativo</option>
+                                                <option value="0" {% if not produto.ativo %}selected{% endif %}>Inativo</option>
                                             </select>
                                         </div>
                                     </div>
@@ -178,14 +178,14 @@
                                         <div class="mb-3">
                                             <label class="form-label">Cor *</label>
                                             <select class="form-select" name="cor" required>
-                                                <option value="Vermelho" {% if produit.cor == 'Vermelho' %}selected{% endif %}>Vermelho</option>
-                                                <option value="Azul" {% if produit.cor == 'Azul' %}selected{% endif %}>Azul</option>
-                                                <option value="Preto" {% if produit.cor == 'Preto' %}selected{% endif %}>Preto</option>
-                                                <option value="Branco" {% if produit.cor == 'Branco' %}selected{% endif %}>Branco</option>
-                                                <option value="Cinza" {% if produit.cor == 'Cinza' %}selected{% endif %}>Cinza</option>
-                                                <option value="Rosa" {% if produit.cor == 'Rosa' %}selected{% endif %}>Rosa</option>
-                                                <option value="Verde" {% if produit.cor == 'Verde' %}selected{% endif %}>Verde</option>
-                                                <option value="Amarelo" {% if produit.cor == 'Amarelo' %}selected{% endif %}>Amarelo</option>
+                                                <option value="Vermelho" {% if produto.cor == 'Vermelho' %}selected{% endif %}>Vermelho</option>
+                                                <option value="Azul" {% if produto.cor == 'Azul' %}selected{% endif %}>Azul</option>
+                                                <option value="Preto" {% if produto.cor == 'Preto' %}selected{% endif %}>Preto</option>
+                                                <option value="Branco" {% if produto.cor == 'Branco' %}selected{% endif %}>Branco</option>
+                                                <option value="Cinza" {% if produto.cor == 'Cinza' %}selected{% endif %}>Cinza</option>
+                                                <option value="Rosa" {% if produto.cor == 'Rosa' %}selected{% endif %}>Rosa</option>
+                                                <option value="Verde" {% if produto.cor == 'Verde' %}selected{% endif %}>Verde</option>
+                                                <option value="Amarelo" {% if produto.cor == 'Amarelo' %}selected{% endif %}>Amarelo</option>
                                             </select>
                                         </div>
                                     </div>
@@ -193,12 +193,12 @@
                                         <div class="mb-3">
                                             <label class="form-label">Tamanho *</label>
                                             <select class="form-select" name="tamanho" required>
-                                                <option value="PP" {% if produit.tamanho == 'PP' %}selected{% endif %}>PP</option>
-                                                <option value="P" {% if produit.tamanho == 'P' %}selected{% endif %}>P</option>
-                                                <option value="M" {% if produit.tamanho == 'M' %}selected{% endif %}>M</option>
-                                                <option value="G" {% if produit.tamanho == 'G' %}selected{% endif %}>G</option>
-                                                <option value="GG" {% if produit.tamanho == 'GG' %}selected{% endif %}>GG</option>
-                                                <option value="U" {% if produit.tamanho == 'U' %}selected{% endif %}>Único</option>
+                                                <option value="PP" {% if produto.tamanho == 'PP' %}selected{% endif %}>PP</option>
+                                                <option value="P" {% if produto.tamanho == 'P' %}selected{% endif %}>P</option>
+                                                <option value="M" {% if produto.tamanho == 'M' %}selected{% endif %}>M</option>
+                                                <option value="G" {% if produto.tamanho == 'G' %}selected{% endif %}>G</option>
+                                                <option value="GG" {% if produto.tamanho == 'GG' %}selected{% endif %}>GG</option>
+                                                <option value="U" {% if produto.tamanho == 'U' %}selected{% endif %}>Único</option>
                                             </select>
                                         </div>
                                     </div>
@@ -207,9 +207,9 @@
                                 <div class="mb-3">
                                     <label class="form-label">Imagem do Produto</label>
                                     <input type="file" class="form-control" name="imagem" accept="image/*">
-                                    {% if produit.imagem %}
+                                    {% if produto.imagem %}
                                     <div class="mt-2">
-                                        <img src="{{ produit.imagem }}" alt="Imagem atual" class="img-thumbnail" style="max-height: 80px;">
+                                        <img src="{{ produto.imagem }}" alt="Imagem atual" class="img-thumbnail" style="max-height: 80px;">
                                         <small class="text-muted d-block">Imagem atual</small>
                                     </div>
                                     {% endif %}
@@ -226,12 +226,12 @@
                 </div>
             </div>
 
-            <!-- MODAL DE DETALHES -->
-            <div class="modal fade" id="detalhesModal{{ produit.id }}" tabindex="-1" aria-labelledby="detalhesModalLabel{{ produit.id }}" aria-hidden="true">
+            <!-- 🔥 MODAL DE DETALHES -->
+            <div class="modal fade" id="detalhesModal{{ produto.id }}" tabindex="-1" aria-labelledby="detalhesModalLabel{{ produto.id }}" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="detalhesModalLabel{{ produit.id }}">
+                            <h5 class="modal-title" id="detalhesModalLabel{{ produto.id }}">
                                 <i class="bi bi-info-circle"></i> Detalhes do Produto
                             </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -239,27 +239,27 @@
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <img src="{{ produit.imagem }}" class="img-fluid rounded" alt="{{ produit.nome }}"
+                                    <img src="{{ produto.imagem }}" class="img-fluid rounded" alt="{{ produto.nome }}"
                                          onerror="this.src='https://placehold.co/300x200?text=Sem+Imagem'">
                                 </div>
                                 <div class="col-md-6">
-                                    <h4>{{ produit.nome }}</h4>
-                                    <p><strong>Descrição:</strong> {{ produit.descricao|default:"Nenhuma descrição" }}</p>
-                                    <p><strong>Preço:</strong> R$ {{ produit.preco|floatformat:2 }}</p>
-                                    <p><strong>Estoque:</strong> {{ produit.quantidade_estoque }} unidades</p>
-                                    <p><strong>Cor:</strong> {{ produit.cor }}</p>
-                                    <p><strong>Tamanho:</strong> {{ produit.tamanho }}</p>
-                                    <p><strong>Categoria:</strong> {{ produit.categoria }}</p>
+                                    <h4>{{ produto.nome }}</h4>
+                                    <p><strong>Descrição:</strong> {{ produto.descricao|default:"Nenhuma descrição" }}</p>
+                                    <p><strong>Preço:</strong> R$ {{ produto.preco|floatformat:2 }}</p>
+                                    <p><strong>Estoque:</strong> {{ produto.quantidade_estoque }} unidades</p>
+                                    <p><strong>Cor:</strong> {{ produto.cor }}</p>
+                                    <p><strong>Tamanho:</strong> {{ produto.tamanho }}</p>
+                                    <p><strong>Categoria:</strong> {{ produto.categoria }}</p>
                                     <p><strong>Status:</strong> 
-                                        <span class="badge {% if produit.ativo %}bg-success{% else %}bg-danger{% endif %}">
-                                            {% if produit.ativo %}Ativo{% else %}Inativo{% endif %}
+                                        <span class="badge {% if produto.ativo %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if produto.ativo %}Ativo{% else %}Inativo{% endif %}
                                         </span>
                                     </p>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editarModal{{ produit.id }}">
+                            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editarModal{{ produto.id }}">
                                 <i class="bi bi-pencil"></i> Editar
                             </button>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
