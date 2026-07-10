@@ -22,6 +22,7 @@ urlpatterns = [
     path('vendas/nova/', views_principais.nova_venda, name='nova_venda'),
     path('relatorios/', views_principais.relatorios, name='relatorios'),
     path('editar/<int:venda_id>/', views_principais.editar_venda, name='editar_venda'),
+    path('deletar/<int:produto_id>/', views_principais.deletar_produto, name='deletar_produto'),
     path('venda/atualizar/<int:venda_id>/', views_principais.atualizar_venda, name='atualizar_venda'),
     
     # CORRIGIDO: use views_principais em vez de vendas_views
