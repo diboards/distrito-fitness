@@ -1,20 +1,21 @@
-"""
-WSGI config for distrito_fitness project.
-"""
+#!/bin/bash
 
-import os
-from django.core.wsgi import get_wsgi_application
-from django.core.management import call_command
+echo "========================================="
+echo "🚀 BUILD.SH EXECUTANDO"
+echo "========================================="
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'distrito_fitness.settings')
+pip install -r requirements.txt
 
-# 🔥 EXECUTAR MIGRAÇÕES NA INICIALIZAÇÃO
-try:
-    print("🔄 Executando migrações...")
-    call_command('makemigrations', 'vendas', interactive=False)
-    call_command('migrate', interactive=False)
-    print("✅ Migrações aplicadas com sucesso!")
-except Exception as e:
-    print(f"⚠️ Erro nas migrações: {e}")
+# 🔥 REMOVER MIGRAÇÕES ANTIGAS E RECRIAR
+echo "📝 Recriando migrações..."
+rm -f vendas/migrations/00*.py
+python manage.py makemigrations vendas --noinput
 
-application = get_wsgi_application()
+echo "⚡ Aplicando migrações FORÇADAMENTE..."
+python manage.py migrate vendas --noinput
+python manage.py migrate --noinput
+
+echo "📁 Coletando arquivos estáticos..."
+python manage.py collectstatic --noinput
+
+echo "✅ Build concluído!"
