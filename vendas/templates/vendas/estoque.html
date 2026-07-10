@@ -90,6 +90,12 @@
                             <button type="button" class="btn btn-info btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#detalhesModal{{ produto.id }}">
                                 <i class="bi bi-eye"></i> Detalhes
                             </button>
+                            <form method="POST" action="{% url 'deletar_produto' produto.id %}" onsubmit="return confirm('Tem certeza que deseja excluir este produto?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="bi bi-trash"></i> Excluir
+                            </button>
+                        </form
                         </div>
                         <small class="text-muted mt-2 d-block">
                             <i class="bi bi-calendar"></i> {{ produto.data_cadastro|date:"d/m/Y" }}
