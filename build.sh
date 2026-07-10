@@ -1,11 +1,5 @@
 #!/bin/bash
 
-echo "========================================="
-echo "🚀 BUILD.SH EXECUTANDO"
-echo "========================================="
-
-pip install -r requirements.txt
-python manage.py migrate --noinput
-python manage.py collectstatic --noinput
-
-echo "✅ Build concluído!"
+git add distrito_fitness/wsgi.py build.sh
+git commit -m "Corrige wsgi.py e build.sh"
+git push
