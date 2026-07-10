@@ -1435,18 +1435,59 @@ def estoque(request):
 
 @superuser_required
 @login_required
+@user_passes_test(lambda u: u.is_superuser)
 def editar_produto(request, produto_id):
     produto = get_object_or_404(Produto, id=produto_id)
+    
     if request.method == 'POST':
-        form = ProdutoForm(request.POST, request.FILES, instance=produto)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Produto atualizado com sucesso!')
-            return redirect('estoque')
-    else:
-        form = ProdutoForm(instance=produto)
-    return render(request, 'vendas/estoque.html', {'form': form, 'produto': produto})
-
+        # Atualizar dados do produto base
+        produto.nome = request.POST.get('nome')
+        produto.descricao = request.POST.get('descricao')
+        produto.categoria = request.POST.get('categoria')
+        produto.ativo = request.POST.get('ativo') == 'on'
+        
+        # Atualizar imagem do produto se enviada
+        if request.FILES.get('imagem'):
+            produto.imagem = request.FILES['imagem']
+        
+        produto.save()
+        
+        # 🔥 Atualizar a primeira variação (ou criar uma)
+        variacao = produto.variacoes.first()
+        if variacao:
+            variacao.preco = request.POST.get('preco')
+            variacao.quantidade_estoque = request.POST.get('quantidade_estoque')
+            variacao.cor = request.POST.get('cor')
+            variacao.tamanho = request.POST.get('tamanho')
+            
+            # Atualizar imagem da variação se enviada
+            if request.FILES.get('imagem_variacao'):
+                variacao.imagem = request.FILES['imagem_variacao']
+            
+            variacao.save()
+        else:
+            # Criar variação se não existir
+            ProdutoVariacao.objects.create(
+                produto=produto,
+                preco=request.POST.get('preco'),
+                quantidade_estoque=request.POST.get('quantidade_estoque'),
+                cor=request.POST.get('cor'),
+                tamanho=request.POST.get('tamanho'),
+                imagem=request.FILES.get('imagem_variacao')
+            )
+        
+        messages.success(request, 'Produto atualizado com sucesso!')
+        return redirect('estoque')
+    
+    # Buscar a primeira variação para exibir no formulário
+    variacao = produto.variacoes.first()
+    
+    context = {
+        'produto': produto,
+        'variacao': variacao,
+    }
+    return render(request, 'vendas/editar_produto.html', context)
+    
 @superuser_required
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
