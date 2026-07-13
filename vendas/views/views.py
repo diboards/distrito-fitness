@@ -26,7 +26,7 @@ from django.http import HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from vendas.models import Produto, ProdutoVariacao, Venda, CarrinhoItem, EnderecoEntrega, Pedido, ItemPedido, COR_CHOICES, TAMANHO_CHOICES
 from vendas.forms import VendaForm, ProdutoForm, ProdutoVariacaoForm, ProdutoVariacaoInlineFormSet, UsuarioComEnderecoForm
-
+from vendas.forms import ContatoForm  # ← IMPORTAR O NOVO FORM
 import json, os
 import requests
 import mercadopago
@@ -1696,9 +1696,12 @@ def login_view(request):
     
     return render(request, 'vendas/login.html')
 
+# vendas/views/views.py
+
+
 def contato(request):
     if request.method == 'POST':
-        form = OrcamentoForm(request.POST)  # ou ContatoForm, se preferir
+        form = ContatoForm(request.POST)  # ← USAR O NOVO FORM
         if form.is_valid():
             nome = form.cleaned_data['nome']
             telefone = form.cleaned_data['telefone']
@@ -1716,6 +1719,6 @@ Por favor, entre em contato para discutir este projeto."""
         else:
             return JsonResponse({'errors': form.errors}, status=400)
     else:
-        form = OrcamentoForm()
+        form = ContatoForm()
     return render(request, 'vendas/contato.html', {'form': form})
 
