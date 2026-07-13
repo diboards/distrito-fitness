@@ -26,7 +26,7 @@ from django.http import HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from vendas.models import Produto, ProdutoVariacao, Venda, CarrinhoItem, EnderecoEntrega, Pedido, ItemPedido, COR_CHOICES, TAMANHO_CHOICES
 from vendas.forms import VendaForm, ProdutoForm, ProdutoVariacaoForm, ProdutoVariacaoInlineFormSet, UsuarioComEnderecoForm
-from vendas.forms import ContatoForm  # ← IMPORTAR O NOVO FORM
+
 import json, os
 import requests
 import mercadopago
