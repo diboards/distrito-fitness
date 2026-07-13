@@ -108,3 +108,37 @@ class PerfilForm(forms.ModelForm):
             usuario.email = self.cleaned_data.get('email', '')
             usuario.save()
         return perfil
+
+# vendas/forms.py
+
+class ContatoForm(forms.Form):
+    nome = forms.CharField(
+        label='Seu nome',
+        max_length=100,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Digite seu nome'})
+    )
+    telefone = forms.CharField(
+        label='DDD + Whatsapp',
+        max_length=15,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'})
+    )
+    ambiente = forms.ChoiceField(
+        choices=AMBIENTE_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    orcamento = forms.ChoiceField(
+        choices=ORCAMENTO_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    def clean_telefone(self):
+        telefone = self.cleaned_data.get('telefone')
+        # Remove caracteres não numéricos
+        telefone = re.sub(r'\D', '', telefone)
+        if len(telefone) < 10:
+            raise forms.ValidationError('Digite um telefone válido com DDD')
+        return telefone
