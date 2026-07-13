@@ -29,7 +29,7 @@ urlpatterns = [
     path('login/', views_principais.login_view, name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='pagina_inicial'), name='logout'),
     path('registrar/', views_principais.registrar_usuario, name='registrar'),
-    path('orcamento/', views_principais.solicitar_orcamento, name='orcamento'),
+    path('contato/', views_principais.contato, name='contato'),
     
     path('meu-perfil/', meu_perfil, name='meu_perfil'),
     # Estoque
