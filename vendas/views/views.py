@@ -1699,15 +1699,15 @@ def login_view(request):
 # vendas/views/views.py
 
 
-def contato(request):
+def solicitar_orcamento(request):
     if request.method == 'POST':
-        form = ContatoForm(request.POST)  # ← USAR O NOVO FORM
+        form = OrcamentoForm(request.POST)
         if form.is_valid():
             nome = form.cleaned_data['nome']
             telefone = form.cleaned_data['telefone']
             ambiente = dict(form.fields['ambiente'].choices)[form.cleaned_data['ambiente']]
             orcamento = dict(form.fields['orcamento'].choices)[form.cleaned_data['orcamento']]
-            mensagem = f"""*NOVA MENSAGEM DE CONTATO*
+            mensagem = f"""*SOLICITAÇÃO DE ORÇAMENTO*
 
 *Nome:* {nome}
 *Telefone:* {telefone}
@@ -1719,6 +1719,5 @@ Por favor, entre em contato para discutir este projeto."""
         else:
             return JsonResponse({'errors': form.errors}, status=400)
     else:
-        form = ContatoForm()
-    return render(request, 'vendas/contato.html', {'form': form})
-
+        form = OrcamentoForm()
+    return render(request, 'vendas/orcamento.html', {'form': form})
