@@ -38,7 +38,7 @@
       <ul class="navbar-nav me-auto">
          
         <li class="nav-item"><a class="nav-link" href="{% url 'lista_vendas' %}"><i class="bi bi-card-list"></i> Quem somos?</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'orcamento' %}"><i class="bi bi-card-list"></i>Contato</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'contato' %}"><i class="bi bi-card-list"></i>Contato</a></li>
         {% if user.is_authenticated and user.is_superuser %}
         <li class="nav-item"><a class="nav-link orcamento-link-navbar" href="{% url 'estoque' %}"><i class="bi bi-card-list"></i> Estoque</a></li>
                
