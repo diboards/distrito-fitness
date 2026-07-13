@@ -1696,15 +1696,15 @@ def login_view(request):
     
     return render(request, 'vendas/login.html')
 
-def solicitar_orcamento(request):
+def contato(request):
     if request.method == 'POST':
-        form = OrcamentoForm(request.POST)
+        form = OrcamentoForm(request.POST)  # ou ContatoForm, se preferir
         if form.is_valid():
             nome = form.cleaned_data['nome']
             telefone = form.cleaned_data['telefone']
             ambiente = dict(form.fields['ambiente'].choices)[form.cleaned_data['ambiente']]
             orcamento = dict(form.fields['orcamento'].choices)[form.cleaned_data['orcamento']]
-            mensagem = f"""*SOLICITAÇÃO DE ORÇAMENTO*
+            mensagem = f"""*NOVA MENSAGEM DE CONTATO*
 
 *Nome:* {nome}
 *Telefone:* {telefone}
@@ -1717,5 +1717,5 @@ Por favor, entre em contato para discutir este projeto."""
             return JsonResponse({'errors': form.errors}, status=400)
     else:
         form = OrcamentoForm()
-    return render(request, 'vendas/orcamento.html', {'form': form})
+    return render(request, 'vendas/contato.html', {'form': form})
 
