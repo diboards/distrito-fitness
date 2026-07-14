@@ -4,13 +4,13 @@ echo "========================================="
 echo "🚀 BUILD.SH EXECUTANDO"
 echo "========================================="
 
-# Instalar dependências
 pip install -r requirements.txt
 
-# Aplicar migrações
+# 🔥 FORÇAR MIGRAÇÕES NO DEPLOY
+python manage.py makemigrations vendas --noinput
+python manage.py migrate vendas --noinput
 python manage.py migrate --noinput
 
-# Coletar arquivos estáticos
 python manage.py collectstatic --noinput
 
 echo "✅ Build concluído!"
