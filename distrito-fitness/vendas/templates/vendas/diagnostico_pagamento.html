@@ -1,0 +1,155 @@
+{% extends 'vendas/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h3>🔧 Diagnóstico do Pagamento - Pedido #{{ pedido.id }}</h3>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Informações do Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th>ID do Pedido:</th>
+                            <td>{{ pedido.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>ID Mercado Pago:</th>
+                            <td>{{ pedido.id_mercado_pago }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status no Sistema:</th>
+                            <td><span class="badge bg-warning">{{ pedido.status }}</span></td>
+                        </tr>
+                        <tr>
+                            <th>Total:</th>
+                            <td>R$ {{ pedido.total }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Status no Mercado Pago</h5>
+                </div>
+                <div class="card-body">
+                    {% if status_info.erro %}
+                        <div class="alert alert-danger">
+                            <strong>Erro ao consultar:</strong> {{ status_info.erro }}
+                        </div>
+                    {% else %}
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Status MP:</th>
+                                <td><span class="badge bg-success">{{ status_info.status_mp }}</span></td>
+                            </tr>
+                            <tr>
+                                <th>Detalhe:</th>
+                                <td>{{ status_info.status_detail }}</td>
+                            </tr>
+                            <tr>
+                                <th>Aprovado em:</th>
+                                <td>{{ status_info.date_approved|default:"N/A" }}</td>
+                            </tr>
+                            <tr>
+                                <th>External Reference:</th>
+                                <td>{{ status_info.external_reference }}</td>
+                            </tr>
+                        </table>
+                        
+                        {% if status_info.status_mp == 'approved' and pedido.status != 'aprovado' %}
+                        <div class="alert alert-warning">
+                            <strong>⚠️ Status divergente!</strong> 
+                            O pagamento está aprovado no Mercado Pago mas não no sistema.
+                            <div class="mt-2">
+                                <button onclick="forcarAtualizacao()" class="btn btn-warning btn-sm">
+                                    🔄 Forçar Atualização
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Ações</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button onclick="testarWebhook()" class="btn btn-info">
+                            🔔 Testar Webhook Manualmente
+                        </button>
+                        <button onclick="verificarStatus()" class="btn btn-primary">
+                            🔄 Verificar Status Agora
+                        </button>
+                        <a href="{% url 'detalhes_pedido' pedido.id %}" class="btn btn-success">
+                            📋 Voltar para Detalhes do Pedido
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function forcarAtualizacao() {
+    console.log('Forçando atualização do status...');
+    
+    fetch("{% url 'verificar_status_pagamento' pedido.id %}")
+        .then(response => response.json())
+        .then(data => {
+            console.log('Resposta:', data);
+            if (data.status === 'success') {
+                alert('✅ Status atualizado com sucesso!');
+                location.reload();
+            } else {
+                alert('❌ Erro: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('💥 Erro na requisição');
+        });
+}
+
+function testarWebhook() {
+    console.log('Testando webhook...');
+    
+    // Simular notificação do Mercado Pago
+    const webhookData = {
+        "action": "payment.updated",
+        "data": {"id": "{{ pedido.id_mercado_pago }}"},
+        "type": "payment"
+    };
+    
+    fetch("{% url 'webhook_mercadopago' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Resposta webhook:', data);
+        alert('Webhook testado: ' + JSON.stringify(data));
+    })
+    .catch(error => {
+        console.error('Erro webhook:', error);
+        alert('Erro no webhook: ' + error);
+    });
+}
+
+function verificarStatus() {
+    forcarAtualizacao();
+}
+</script>
+{% endblock %}
