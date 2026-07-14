@@ -111,34 +111,54 @@ class PerfilForm(forms.ModelForm):
 
 # vendas/forms.py
 
-class ContatoForm(forms.Form):
+class OrcamentoForm(forms.Form):
+    AMBIENTE_CHOICES = [
+        ('', 'Escolha uma opção'),
+        ('sala', 'Sala de Estar'),
+        ('quarto', 'Quarto'),
+        ('cozinha', 'Cozinha'),
+        ('banheiro', 'Banheiro'),
+        ('escritorio', 'Escritório'),
+        ('outro', 'Outro'),
+    ]
+    ORCAMENTO_CHOICES = [
+        ('', 'Escolha uma opção'),
+        ('5-10', 'R$ 5.000 - R$ 10.000'),
+        ('10-20', 'R$ 10.000 - R$ 20.000'),
+        ('20-50', 'R$ 20.000 - R$ 50.000'),
+        ('50+', 'Acima de R$ 50.000'),
+    ]
+
     nome = forms.CharField(
         label='Seu nome',
-        max_length=100,
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Digite seu nome'})
+        error_messages={'required': 'Insira seu nome.'}
     )
     telefone = forms.CharField(
         label='DDD + Whatsapp',
         max_length=15,
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'})
+        error_messages={'required': 'Insira o número de WhatsApp.'}
     )
     ambiente = forms.ChoiceField(
         choices=AMBIENTE_CHOICES,
         required=True,
-        widget=forms.Select(attrs={'class': 'form-control'})
+        error_messages={'required': 'Escolha um ambiente.'}
     )
     orcamento = forms.ChoiceField(
         choices=ORCAMENTO_CHOICES,
         required=True,
-        widget=forms.Select(attrs={'class': 'form-control'})
+        error_messages={'required': 'Escolha um orçamento.'}
     )
-    
-    def clean_telefone(self):
-        telefone = self.cleaned_data.get('telefone')
-        # Remove caracteres não numéricos
-        telefone = re.sub(r'\D', '', telefone)
-        if len(telefone) < 10:
-            raise forms.ValidationError('Digite um telefone válido com DDD')
-        return telefone
+
+    def clean_ambiente(self):
+        data = self.cleaned_data.get('ambiente')
+        if data == '':
+            raise forms.ValidationError('Escolha um ambiente.')
+        return data
+
+    def clean_orcamento(self):
+        data = self.cleaned_data.get('orcamento')
+        if data == '':
+            raise forms.ValidationError('Escolha um orçamento.')
+        return data
