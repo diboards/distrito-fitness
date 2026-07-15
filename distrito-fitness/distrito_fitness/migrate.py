@@ -7,7 +7,7 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'distrito_fitness.settings')
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Inicializar o Django
+# Inicializar
 django.setup()
 
 from django.core.management import call_command
