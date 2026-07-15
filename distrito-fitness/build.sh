@@ -6,10 +6,7 @@ echo "========================================="
 
 pip install -r requirements.txt
 
-# 🔥 Executar migrações via script
-echo "📝 Executando migrações..."
-python distrito_fitness/startup.py
-
+# Apenas coleta de estáticos (as migrações serão no wsgi.py)
 python manage.py collectstatic --noinput
 
 echo "✅ Build concluído!"
