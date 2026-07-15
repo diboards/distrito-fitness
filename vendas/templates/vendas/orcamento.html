@@ -1,0 +1,145 @@
+{% extends 'vendas/base.html' %}
+{% load extras %}
+{%load widget_tweaks%}
+{% block content %}
+
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="p-4 rounded-4" style="background-color: #000;">
+                <h2 class="mb-4 text-white">Comece seu projeto</h2>
+                <form method="post" id="orcamentoForm" novalidate action="{% url 'orcamento' %}">
+                    {% csrf_token %}
+                  
+                    <div class="form-group mb-3">
+  <label for="id_nome" class="visually-hidden">Seu nome</label>
+  <input type="text" name="nome" id="id_nome" class="form-control" placeholder="Seu nome" value="{{ form.nome.value|default:'' }}">
+  {% if form.nome.errors %}
+    <small class="text-danger small">⚠️ {{ form.nome.errors.0 }}</small>
+  {% endif %}
+</div>
+                  
+                    <div class="form-group mb-3">
+  <label for="id_telefone" class="visually-hidden">DDD + Whatsapp</label>
+  <input type="text" name="telefone" id="id_telefone" class="form-control" placeholder="DDD + Whatsapp" value="{{ form.telefone.value|default:'' }}">
+  {% if form.telefone.errors %}
+    <small class="text-danger small">⚠️ {{ form.telefone.errors.0 }}</small>
+  {% endif %}
+</div>
+                  
+            <div class="form-group">
+                <label for="{{ form.ambiente.id_for_label }}" class="orcamento-label">
+                   * Qual ambiente deseja planejar? 
+                </label>
+                {{ form.ambiente|add_class:"form-control" }}
+                {% if form.ambiente.errors %}
+                    <small class="text-danger small">{{ form.ambiente.errors.0 }}</small>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.orcamento.id_for_label }}" class="orcamento-label">
+                    * Orçamento estimado para o projeto
+                </label>
+                {{ form.orcamento|add_class:"form-control" }}
+                {% if form.orcamento.errors %}
+                    <small class="text-danger small">{{ form.orcamento.errors.0 }}</small>
+                {% endif %}
+            </div>       
+                 
+                        <button type="submit" class="btn btn-success btn-block mt-2">
+                            <i class="bi bi-whatsapp fs-4 me-2 text-white"></i>Solicitar orçamento
+                        </button>
+                   
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<style>
+    .form-control, select.form-select {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #ccc;
+    }
+    .form-control:focus, select.form-select:focus {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    .form-control::placeholder {
+        color: #6c757d !important;
+        opacity: 1 !important;
+    }
+    .text-danger.small {
+        color: #f44336;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .visually-hidden {
+  position: absolute !important;
+  height: 1px; width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const telefoneInput = document.getElementById('id_telefone');
+    telefoneInput.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, '');
+        let formatted = '';
+        if (value.length > 0) formatted = '(' + value.substring(0, 2);
+        if (value.length > 2) formatted += ') ' + value.substring(2, 7);
+        if (value.length > 7) formatted += '-' + value.substring(7, 11);
+        e.target.value = formatted;
+    });
+
+    const form = document.getElementById('orcamentoForm');
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    document.querySelectorAll('.text-danger').forEach(el => el.remove());
+                    for (const field in data.errors) {
+                        const input = document.getElementById(`id_${field}`);
+                        const errorMsg = data.errors[field][0];
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'text-danger small';
+                        errorDiv.innerHTML = `⚠️ ${errorMsg}`;
+                        input.insertAdjacentElement('afterend', errorDiv);
+                    }
+                    throw new Error('Erro de validação');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            const numeroWhatsapp = "5561991485382";
+            const mensagem = encodeURIComponent(data.mensagem);
+            const link = `https://wa.me/${numeroWhatsapp}?text=${mensagem}`;
+            window.location.href = link;
+        })
+        .catch(error => console.error(error));
+    });
+});
+</script>
+{% endblock %}

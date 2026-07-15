@@ -1,0 +1,30 @@
+<!-- vendas/teste_conexao.html -->
+{% extends 'vendas/base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <h2>Teste de Conexão Mercado Pago</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            <h5>Credencial usada:</h5>
+            <code>{{ credencial }}</code>
+            
+            {% if error %}
+                <div class="alert alert-danger mt-3">
+                    <strong>Erro:</strong> {{ error }}
+                </div>
+            {% else %}
+                <div class="alert alert-{% if status == 200 %}success{% else %}danger{% endif %} mt-3">
+                    <strong>Status:</strong> {{ status }}
+                </div>
+                {% if message %}
+                    <pre class="mt-3">{{ message }}</pre>
+                {% endif %}
+            {% endif %}
+            
+            <a href="{% url 'checkout' %}" class="btn btn-primary mt-3">Voltar ao Checkout</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
