@@ -6,9 +6,9 @@ echo "========================================="
 
 pip install -r requirements.txt
 
-# 🔥 EXECUTAR MIGRAÇÕES VIA SCRIPT
+# 🔥 EXECUTAR MIGRAÇÕES
 echo "📝 Executando migrações..."
-python migrate.py
+python distrito_fitness/migrate.py
 
 python manage.py collectstatic --noinput
 
