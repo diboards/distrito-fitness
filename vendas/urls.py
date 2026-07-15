@@ -108,3 +108,19 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# distrito_fitness/urls.py
+from django.http import HttpResponse
+from django.core.management import call_command
+
+def migrate_view(request):
+    try:
+        call_command('makemigrations', 'vendas', interactive=False)
+        call_command('migrate', interactive=False)
+        return HttpResponse("✅ Migrações aplicadas com sucesso!")
+    except Exception as e:
+        return HttpResponse(f"❌ Erro: {e}")
+
+urlpatterns = [
+    # ... suas URLs existentes ...
+    path('migrar/', migrate_view, name='migrar'),
+]
