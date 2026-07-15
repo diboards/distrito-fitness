@@ -6,10 +6,9 @@ echo "========================================="
 
 pip install -r requirements.txt
 
-# 🔥 FORÇAR MIGRAÇÕES NO DEPLOY
-python manage.py makemigrations vendas --noinput
-python manage.py migrate vendas --noinput
-python manage.py migrate --noinput
+# 🔥 Executar migrações via script
+echo "📝 Executando migrações..."
+python distrito_fitness/startup.py
 
 python manage.py collectstatic --noinput
 
