@@ -81,16 +81,21 @@ class ProdutoVariacao(models.Model):
 
 class CarrinhoItem(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
-    variacao = models.ForeignKey(ProdutoVariacao, on_delete=models.CASCADE)
+    # 🔥 ADICIONAR null=True, blank=True
+    variacao = models.ForeignKey(ProdutoVariacao, on_delete=models.CASCADE, null=True, blank=True)
     quantidade = models.PositiveIntegerField(default=1)
     data_adicionado = models.DateTimeField(auto_now_add=True)
     
     @property
     def subtotal(self):
-        return self.variacao.preco * self.quantidade
+        if self.variacao:
+            return self.variacao.preco * self.quantidade
+        return 0
     
     def __str__(self):
-        return f"{self.variacao.produto.nome} - {self.usuario.username}"
+        if self.variacao:
+            return f"{self.variacao.produto.nome} - {self.usuario.username}"
+        return f"Carrinho - {self.usuario.username}"
 
 
 class ItemPedido(models.Model):
