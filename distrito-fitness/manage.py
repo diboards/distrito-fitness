@@ -2,11 +2,22 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from django.core.management import call_command
 
 
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'distrito_fitness.settings')
+    
+    # 🔥 FORÇAR MIGRAÇÕES ANTES DE QUALQUER COISA
+    try:
+        print("🔄 Executando migrações...")
+        call_command('makemigrations', 'vendas', interactive=False)
+        call_command('migrate', interactive=False)
+        print("✅ Migrações aplicadas com sucesso!")
+    except Exception as e:
+        print(f"⚠️ Erro nas migrações: {e}")
+    
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
