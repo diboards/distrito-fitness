@@ -77,7 +77,10 @@ ROOT_URLCONF = 'distrito_fitness.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [
+            BASE_DIR / 'templates',  # Já existe
+            BASE_DIR / 'vendas' / 'templates',  # ← ADICIONE ESTA LINHA
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
