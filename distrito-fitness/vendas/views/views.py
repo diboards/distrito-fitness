@@ -458,31 +458,50 @@ def calcular_frete_ajax(request):
 
 @login_required
 def comprar_agora(request, produto_id):
-    """Adiciona produto ao carrinho e redireciona para checkout"""
+    """Adiciona produto ao carrinho via sessão e redireciona para checkout"""
     if request.method == 'POST':
         produto = get_object_or_404(Produto, id=produto_id)
         quantidade = int(request.POST.get('quantidade', 1))
         cor = request.POST.get('cor', '')
         tamanho = request.POST.get('tamanho', '')
         
-        # 🔥 Limpa o carrinho atual (substitui pelo novo produto)
-        CarrinhoItem.objects.filter(usuario=request.user).delete()
-        
-        # Adiciona o produto ao carrinho
-        CarrinhoItem.objects.create(
-            usuario=request.user,
+        # Busca a variação correspondente
+        from vendas.models import ProdutoVariacao
+        variacao = ProdutoVariacao.objects.filter(
             produto=produto,
-            quantidade=quantidade,
-            cor_selecionada=cor,
-            tamanho_selecionado=tamanho
-        )
+            cor=cor,
+            tamanho=tamanho
+        ).first()
+        
+        if not variacao:
+            messages.error(request, 'Variação do produto não encontrada.')
+            return redirect('detalhes_produto', produto_id=produto_id)
+        
+        # 🔥 Limpa o carrinho atual na sessão (substitui pelo novo produto)
+        request.session['carrinho'] = {}
+        
+        # Adiciona o produto ao carrinho na sessão
+        carrinho = request.session.get('carrinho', {})
+        chave = f"variacao_{variacao.id}"  # Chave única para cada variação
+        
+        carrinho[chave] = {
+            'variacao_id': variacao.id,
+            'produto_id': produto.id,
+            'nome': produto.nome,
+            'quantidade': quantidade,
+            'preco': float(variacao.preco),
+            'cor': cor,
+            'tamanho': tamanho,
+            'imagem': variacao.imagem.url if variacao.imagem else None
+        }
+        
+        request.session['carrinho'] = carrinho
+        request.session.modified = True  # Garante que a sessão seja salva
         
         messages.success(request, f'{produto.nome} adicionado ao carrinho!')
         return redirect('checkout')
     
     return redirect('detalhes_produto', produto_id=produto_id)
-
-#redirecionar não-logados para o login com produto na sessão:
 
 
 
