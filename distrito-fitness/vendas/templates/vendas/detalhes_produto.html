@@ -7,12 +7,15 @@
         <!-- Imagem do Produto -->
         <div class="col-md-6">
             <div class="product-image-container">
-                {% if produto.imagem %}
-                <img src="{{ produto.imagem.url }}" class="img-fluid rounded shadow" alt="{{ produto.nome}}" 
-                     id="main-product-image" style="max-height: 500px; width: 100%; object-fit: cover;">
+                {% if variacao and variacao.imagem %}
+                    <img src="{{ variacao.imagem.url }}" class="img-fluid rounded shadow" alt="{{ produto.nome }}" 
+                         id="main-product-image" style="max-height: 500px; width: 100%; object-fit: cover;">
+                {% elif colors_list.0.imagem %}
+                    <img src="{{ colors_list.0.imagem }}" class="img-fluid rounded shadow" alt="{{ produto.nome }}" 
+                         id="main-product-image" style="max-height: 500px; width: 100%; object-fit: cover;">
                 {% else %}
-                <img src="{% static 'vendas/images/default-product.png' %}" class="img-fluid rounded shadow" 
-                     alt="{{ produto.nome }}" style="max-height: 500px; width: 100%; object-fit: cover;">
+                    <img src="{% static 'vendas/images/default-product.png' %}" class="img-fluid rounded shadow" 
+                         alt="{{ produto.nome }}" style="max-height: 500px; width: 100%; object-fit: cover;">
                 {% endif %}
             </div>
             
@@ -134,8 +137,9 @@
                 <!-- 🔥 FORMULÁRIO PARA ADICIONAR AO CARRINHO (não limpa carrinho) -->
                 <form method="POST" action="{% url 'adicionar_carrinho' produto.id %}" class="buy-form">
                     {% csrf_token %}
-                    <input type="hidden" name="cor" id="input-cor-carrinho" value="{{ produto.cor }}">
-                    <input type="hidden" name="tamanho" id="input-tamanho-carrinho" value="{{ produto.tamanho }}">
+                    <input type="hidden" name="cor" id="input-cor-comprar" value="">
+                    <input type="hidden" name="tamanho" id="input-tamanho-comprar" value="">
+                    
                     <input type="hidden" name="quantidade" id="quantidade-carrinho" value="1">
                     <input type="hidden" name="action" value="carrinho">
                     
@@ -326,24 +330,30 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Função para definir cor
     function setColor(cor) {
-        // Atualizar campos hidden
-        if (inputCorComprar) inputCorComprar.value = cor;
-        if (inputCorCarrinho) inputCorCarrinho.value = cor;
-        
-        // Atualizar display
-        if (corDisplay) corDisplay.textContent = cor;
-        
-        // Remover destaque de outros botões
-        corButtons.forEach(btn => {
-            btn.classList.remove('border-primary', 'border-2');
-        });
-        
-        // Destacar botão selecionado
-        const selectedBtn = Array.from(corButtons).find(btn => btn.dataset.cor === cor);
-        if (selectedBtn) {
-            selectedBtn.classList.add('border-primary', 'border-2');
-        }
+    // Atualizar campos hidden
+    if (inputCorComprar) inputCorComprar.value = cor;
+    if (inputCorCarrinho) inputCorCarrinho.value = cor;
+    
+    // Atualizar display
+    if (corDisplay) corDisplay.textContent = cor;
+    
+    // Buscar a imagem desta cor
+    const selectedBtn = Array.from(corButtons).find(btn => btn.dataset.cor === cor);
+    if (selectedBtn) {
+        const imagem = selectedBtn.dataset.imagem;
+        if (imagem && mainImage) mainImage.src = imagem;
     }
+    
+    // Remover destaque de outros botões
+    corButtons.forEach(btn => {
+        btn.classList.remove('border-primary', 'border-2');
+    });
+    
+    // Destacar botão selecionado
+    if (selectedBtn) {
+        selectedBtn.classList.add('border-primary', 'border-2');
+    }
+}
     
     // Função para definir tamanho
     function setTamanho(tamanho, label) {
