@@ -176,7 +176,6 @@ def testar_conexao_mp(request):
 #Sacola de compras
 
 # vendas/views/views.py - SUBSTITUIR a função
-
 def detalhes_produto(request, produto_id):
     produto = get_object_or_404(Produto, id=produto_id, ativo=True)
     
@@ -188,7 +187,6 @@ def detalhes_produto(request, produto_id):
         return redirect('pagina_inicial')
     
     # Organizar por cor e tamanho
-    from collections import OrderedDict
     colors = OrderedDict()
     sizes_by_color = {}
     
@@ -221,13 +219,24 @@ def detalhes_produto(request, produto_id):
     # Mapeamento de tamanhos
     size_labels = {'PP': 'PP', 'P': 'P', 'M': 'M', 'G': 'G', 'GG': 'GG', 'U': 'Único'}
     
+    # 🔥 CRIAR LISTA DE TAMANHOS PARA O TEMPLATE
+    tamanhos_disponiveis = []
+    for tamanho in size_labels.keys():
+        tamanhos_disponiveis.append({
+            'valor': tamanho,
+            'label': size_labels[tamanho],
+            'disponivel': any(tamanho in sizes for sizes in sizes_by_color.values())
+        })
+    
     context = {
         'produto': produto,
+        'variacoes': variacoes,  # Passa todas as variações
         'preco_pix': preco_pix.quantize(Decimal("0.01")),
         'preco_parcela': preco_parcela.quantize(Decimal("0.01")),
         'colors_list': list(colors.values()),
         'sizes_by_color': sizes_by_color,
         'size_labels': size_labels,
+        'tamanhos_disponiveis': tamanhos_disponiveis,  # 🔥 NOVO
         'colors_json': json.dumps(list(colors.values())),
         'sizes_json': json.dumps(sizes_by_color),
         'size_labels_json': json.dumps(size_labels),
