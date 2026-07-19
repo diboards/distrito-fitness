@@ -7,11 +7,11 @@
         <!-- Imagem do Produto -->
         <div class="col-md-6">
             <div class="product-image-container">
-                {% if variacao and variacao.imagem %}
-                    <img src="{{ variacao.imagem.url }}" class="img-fluid rounded shadow" alt="{{ produto.nome }}" 
+                {% if primeira_variacao and primeira_variacao.imagem %}
+                    <img src="{{ primeira_variacao.imagem.url }}" class="img-fluid rounded shadow" alt="{{ produto.nome }}" 
                          id="main-product-image" style="max-height: 500px; width: 100%; object-fit: cover;">
-                {% elif colors_list.0.imagem %}
-                    <img src="{{ colors_list.0.imagem }}" class="img-fluid rounded shadow" alt="{{ produto.nome }}" 
+                {% elif cores_com_imagem.0.imagem %}
+                    <img src="{{ cores_com_imagem.0.imagem }}" class="img-fluid rounded shadow" alt="{{ produto.nome }}" 
                          id="main-product-image" style="max-height: 500px; width: 100%; object-fit: cover;">
                 {% else %}
                     <img src="{% static 'vendas/images/default-product.png' %}" class="img-fluid rounded shadow" 
@@ -19,7 +19,7 @@
                 {% endif %}
             </div>
             
-            <!-- Calculadora de Frete - ATUALIZADA -->
+            <!-- Calculadora de Frete -->
             <div class="card mt-4">
                 <div class="card-header bg-light">
                     <h6 class="mb-0">🚚 Calcular Frete</h6>
@@ -63,7 +63,7 @@
                                 💳 Parcelado em 3x: <span id="preco-parcelado">R$ {{ preco_parcela }}</span> sem juros
                             </p>
                             <p class="text-muted">
-                                Preço original: <s>R$ {{ produto.preco }}</s>
+                                Preço original: <s>R$ {{ preco }}</s>
                             </p>
                         </div>
                     </div>
@@ -78,52 +78,66 @@
                 
                 <p class="product-description">{{ produto.descricao }}</p>
 
-                <!-- 🔥 FORMULÁRIO PARA COMPRAR AGORA (limpa carrinho e vai para checkout) -->
+                <!-- 🔥 FORMULÁRIO PARA COMPRAR AGORA -->
                 <form method="POST" action="{% url 'comprar_agora' produto.id %}" class="buy-form mb-3">
                     {% csrf_token %}
-                    <input type="hidden" name="cor" id="input-cor-comprar" value="{{ produto.cor }}">
-                    <input type="hidden" name="tamanho" id="input-tamanho-comprar" value="{{ produto.tamanho }}">
+                    <input type="hidden" name="cor" id="input-cor-comprar" value="">
+                    <input type="hidden" name="tamanho" id="input-tamanho-comprar" value="">
                     <input type="hidden" name="quantidade" id="quantidade-comprar" value="1">
                     
-                    <!-- Miniaturas de cores (mesmo visual, mas atualiza os campos do form) -->
-                    <div class="d-flex gap-2 mb-3" id="cores-container">
-                        {% for c in colors_list %}
-                        <button type="button" class="btn p-0 border cor-btn" 
-                                data-cor="{{ c.cor }}" 
-                                data-cor-display="{{ c.cor_display }}" 
-                                data-imagem="{{ c.imagem }}"
-                                data-target="comprar">
-                            {% if c.imagem %}
-                                <img src="{{ c.imagem }}" alt="{{ c.cor_display }}" 
-                                     class="img-thumbnail" style="width:60px; height:80px; object-fit:cover;">
-                            {% else %}
-                                <div class="img-thumbnail d-flex align-items-center justify-content-center"
-                                     style="width:60px;height:80px;background:#f4f4f4;">
-                                    {{ c.cor_display }}
-                                </div>
-                            {% endif %}
-                        </button>
-                        {% endfor %}
+                    <!-- Miniaturas de cores -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Selecione a cor:</label>
+                        <div class="d-flex gap-2" id="cores-container">
+                            {% for cor_info in cores_com_imagem %}
+                            <button type="button" class="btn p-0 border cor-btn" 
+                                    data-cor="{{ cor_info.cor }}" 
+                                    data-cor-display="{{ cor_info.cor_display }}" 
+                                    data-imagem="{{ cor_info.imagem }}"
+                                    data-target="comprar">
+                                {% if cor_info.imagem %}
+                                    <img src="{{ cor_info.imagem }}" alt="{{ cor_info.cor_display }}" 
+                                         class="img-thumbnail" style="width:60px; height:80px; object-fit:cover;">
+                                {% else %}
+                                    <div class="img-thumbnail d-flex align-items-center justify-content-center"
+                                         style="width:60px;height:80px;background:#f4f4f4;">
+                                        {{ cor_info.cor_display }}
+                                    </div>
+                                {% endif %}
+                            </button>
+                            {% endfor %}
+                        </div>
                     </div>
 
                     <!-- Tamanhos -->
-                    <div id="tamanhos-container" class="d-flex gap-2 flex-wrap mb-3">
-                        {% for val, label in produto.TAMANHO_CHOICES %}
-                        <button type="button" class="btn btn-outline-dark tamanho-btn" 
-                                data-tamanho="{{ val }}"
-                                data-target="comprar">
-                            {{ label }}
-                        </button>
-                        {% endfor %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Selecione o tamanho:</label>
+                        <div id="tamanhos-container" class="d-flex gap-2 flex-wrap">
+                            {% for tamanho in tamanhos_disponiveis %}
+                            <button type="button" 
+                                    class="btn tamanho-btn {% if tamanho.disponivel %}btn-outline-dark{% else %}btn-outline-secondary disabled{% endif %}" 
+                                    data-tamanho="{{ tamanho.valor }}"
+                                    data-target="comprar"
+                                    {% if not tamanho.disponivel %}disabled{% endif %}
+                                    style="min-width: 50px; {% if not tamanho.disponivel %}opacity: 0.5;{% endif %}">
+                                {{ tamanho.label }}
+                                {% if not tamanho.disponivel %}
+                                    <span class="d-block small text-muted">indisponível</span>
+                                {% endif %}
+                            </button>
+                            {% empty %}
+                            <p class="text-muted">Nenhum tamanho disponível.</p>
+                            {% endfor %}
+                        </div>
                     </div>
 
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <label for="quantidade-input-comprar" class="form-label">Quantidade:</label>
                             <input type="number" id="quantidade-input-comprar" 
-                                   class="form-control" min="1" value="1" max="{{ produto.quantidade_estoque }}"
+                                   class="form-control" min="1" value="1" 
                                    onchange="document.getElementById('quantidade-comprar').value = this.value">
-                            <small class="text-muted">Disponível: {{ produto.quantidade_estoque }} unidades</small>
+                            <small class="text-muted">Disponível: {{ primeira_variacao.quantidade_estoque|default:0 }} unidades</small>
                         </div>
                     </div>
 
@@ -134,12 +148,11 @@
                     </div>
                 </form>
 
-                <!-- 🔥 FORMULÁRIO PARA ADICIONAR AO CARRINHO (não limpa carrinho) -->
+                <!-- 🔥 FORMULÁRIO PARA ADICIONAR AO CARRINHO -->
                 <form method="POST" action="{% url 'adicionar_carrinho' produto.id %}" class="buy-form">
                     {% csrf_token %}
-                    <input type="hidden" name="cor" id="input-cor-comprar" value="">
-                    <input type="hidden" name="tamanho" id="input-tamanho-comprar" value="">
-                    
+                    <input type="hidden" name="cor" id="input-cor-carrinho" value="">
+                    <input type="hidden" name="tamanho" id="input-tamanho-carrinho" value="">
                     <input type="hidden" name="quantidade" id="quantidade-carrinho" value="1">
                     <input type="hidden" name="action" value="carrinho">
                     
@@ -152,9 +165,9 @@
 
                 <!-- Informações de Estoque -->
                 <div class="mt-4">
-                    {% if produto.quantidade_estoque > 10 %}
+                    {% if primeira_variacao.quantidade_estoque > 10 %}
                     <span class="text-success"><i class="bi bi-check-circle"></i> Em estoque</span>
-                    {% elif produto.quantidade_estoque > 0 %}
+                    {% elif primeira_variacao.quantidade_estoque > 0 %}
                     <span class="text-warning"><i class="bi bi-exclamation-triangle"></i> Últimas unidades</span>
                     {% else %}
                     <span class="text-danger"><i class="bi bi-x-circle"></i> Fora de estoque</span>
@@ -165,7 +178,7 @@
     </div>
 </div>
 
-<!-- JAVASCRIPT COM CÁLCULO DE FRETE -->
+<!-- JAVASCRIPT -->
 <script>
 // ============================================
 // FUNÇÕES DE FORMATAÇÃO E FRETE
@@ -245,7 +258,7 @@ function consultarFrete(cep) {
     return new Promise((resolve) => {
         setTimeout(() => {
             const regiao = encontrarRegiaoPorCEP(cep);
-            const precoProduto = parseFloat("{{ produto.preco|floatformat:2 }}".replace(",", ".")) || 0;
+            const precoProduto = parseFloat("{{ preco|floatformat:2 }}".replace(",", ".")) || 0;
             if (precoProduto > 200) {
                 regiao.valor = 0;
                 regiao.prazo = '3-5 dias (FRETE GRÁTIS)';
@@ -293,10 +306,9 @@ async function calcularFrete() {
 
 function atualizarPrecos() {
     let quantidadeInput = document.getElementById('quantidade-input-comprar');
-    if (!quantidadeInput) quantidadeInput = document.getElementById('quantidade');
     if (!quantidadeInput) return;
     
-    const precoProduto = parseFloat("{{ produto.preco|floatformat:2 }}".replace(",", ".")) || 0;
+    const precoProduto = parseFloat("{{ preco|floatformat:2 }}".replace(",", ".")) || 0;
     const qtd = parseInt(quantidadeInput.value) || 1;
     const total = precoProduto * qtd;
     const precoPix = total * 0.90;
@@ -316,7 +328,6 @@ function atualizarPrecos() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM carregado - Inicializando página de produto');
     
-    // Verificar se os elementos existem antes de configurar
     const mainImage = document.getElementById('main-product-image');
     const corDisplay = document.getElementById('cor-display');
     const tamanhoDisplay = document.getElementById('tamanho-display');
@@ -330,30 +341,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Função para definir cor
     function setColor(cor) {
-    // Atualizar campos hidden
-    if (inputCorComprar) inputCorComprar.value = cor;
-    if (inputCorCarrinho) inputCorCarrinho.value = cor;
-    
-    // Atualizar display
-    if (corDisplay) corDisplay.textContent = cor;
-    
-    // Buscar a imagem desta cor
-    const selectedBtn = Array.from(corButtons).find(btn => btn.dataset.cor === cor);
-    if (selectedBtn) {
-        const imagem = selectedBtn.dataset.imagem;
-        if (imagem && mainImage) mainImage.src = imagem;
+        if (inputCorComprar) inputCorComprar.value = cor;
+        if (inputCorCarrinho) inputCorCarrinho.value = cor;
+        if (corDisplay) corDisplay.textContent = cor;
+        
+        const selectedBtn = Array.from(corButtons).find(btn => btn.dataset.cor === cor);
+        if (selectedBtn) {
+            const imagem = selectedBtn.dataset.imagem;
+            if (imagem && mainImage) mainImage.src = imagem;
+        }
+        
+        corButtons.forEach(btn => {
+            btn.classList.remove('border-primary', 'border-2');
+        });
+        
+        if (selectedBtn) {
+            selectedBtn.classList.add('border-primary', 'border-2');
+        }
     }
-    
-    // Remover destaque de outros botões
-    corButtons.forEach(btn => {
-        btn.classList.remove('border-primary', 'border-2');
-    });
-    
-    // Destacar botão selecionado
-    if (selectedBtn) {
-        selectedBtn.classList.add('border-primary', 'border-2');
-    }
-}
     
     // Função para definir tamanho
     function setTamanho(tamanho, label) {
@@ -373,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Adicionar eventos aos botões de cor
+    // Eventos das cores
     corButtons.forEach(btn => {
         btn.addEventListener('click', function() {
             const cor = this.dataset.cor;
@@ -387,12 +392,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Adicionar eventos aos botões de tamanho
+    // Eventos dos tamanhos
     tamanhoButtons.forEach(btn => {
         btn.addEventListener('click', function() {
-            if (this.classList.contains('disabled')) return;
+            if (this.disabled) return;
             const tamanho = this.dataset.tamanho;
-            const label = this.textContent;
+            const label = this.textContent.trim();
             setTamanho(tamanho, label);
         });
     });
@@ -415,6 +420,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // 🔥 INICIALIZAR: selecionar primeira cor e primeiro tamanho
+    if (corButtons.length > 0) {
+        corButtons[0].click();
+    }
+    if (tamanhoButtons.length > 0) {
+        const primeiroTamanho = Array.from(tamanhoButtons).find(btn => !btn.disabled);
+        if (primeiroTamanho) primeiroTamanho.click();
+    }
+    
     console.log('Inicialização concluída');
 });
 </script>
@@ -424,9 +438,6 @@ document.addEventListener('DOMContentLoaded', function() {
     border-left: 3px solid #007bff;
     padding-left: 10px;
     background-color: #f8f9ff;
-}
-.cor-btn.active {
-    border: 2px solid #007bff !important;
 }
 .cor-btn {
     cursor: pointer;
@@ -443,6 +454,10 @@ document.addEventListener('DOMContentLoaded', function() {
 .tamanho-btn.disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+.tamanho-btn:not(.disabled):hover {
+    background-color: #007bff;
+    color: white;
 }
 </style>
 {% endblock %}
