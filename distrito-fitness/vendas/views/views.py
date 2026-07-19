@@ -186,60 +186,57 @@ def detalhes_produto(request, produto_id):
         messages.warning(request, 'Este produto não está disponível no momento.')
         return redirect('pagina_inicial')
     
-    # Organizar por cor e tamanho
-    colors = OrderedDict()
-    sizes_by_color = {}
-    
-    for var in variacoes:
-        cor = var.cor
-        if cor not in colors:
-            # Extrair URL da imagem
-            imagem_url = None
-            if var.imagem:
-                try:
-                    imagem_url = var.imagem.url.replace("http://", "https://")
-                except:
-                    imagem_url = None
-            
-            colors[cor] = {
-                'cor': cor,
-                'cor_display': cor,
-                'imagem': imagem_url
-            }
-            sizes_by_color[cor] = []
-        if var.tamanho not in sizes_by_color[cor]:
-            sizes_by_color[cor].append(var.tamanho)
-    
-    # Preço mínimo (da primeira variação)
-    primeira_variacao = variacoes.first()
-    preco_minimo = primeira_variacao.preco if primeira_variacao else 0
-    preco_pix = Decimal(str(preco_minimo)) * Decimal("0.90")
-    preco_parcela = Decimal(str(preco_minimo)) / Decimal("3")
-    
-    # Mapeamento de tamanhos
-    size_labels = {'PP': 'PP', 'P': 'P', 'M': 'M', 'G': 'G', 'GG': 'GG', 'U': 'Único'}
-    
-    # 🔥 CRIAR LISTA DE TAMANHOS PARA O TEMPLATE
+    # --- LISTA DE TODOS OS TAMANHOS (com disponibilidade) ---
     tamanhos_disponiveis = []
-    for tamanho in size_labels.keys():
-        tamanhos_disponiveis.append({
-            'valor': tamanho,
-            'label': size_labels[tamanho],
-            'disponivel': any(tamanho in sizes for sizes in sizes_by_color.values())
-        })
+    for var in variacoes:
+        tamanho_info = {
+            'valor': var.tamanho,
+            'label': dict(TAMANHO_CHOICES).get(var.tamanho, var.tamanho),
+            'disponivel': True
+        }
+        # Evita duplicatas
+        if tamanho_info not in tamanhos_disponiveis:
+            tamanhos_disponiveis.append(tamanho_info)
+    
+    # --- LISTA DE CORES COM IMAGENS ---
+    cores_com_imagem = []
+    for var in variacoes:
+        imagem_url = None
+        if var.imagem:
+            try:
+                imagem_url = var.imagem.url.replace("http://", "https://")
+            except:
+                imagem_url = None
+        
+        # Evita duplicatas de cor
+        cor_ja_existe = False
+        for c in cores_com_imagem:
+            if c['cor'] == var.cor:
+                cor_ja_existe = True
+                break
+        
+        if not cor_ja_existe:
+            cores_com_imagem.append({
+                'cor': var.cor,
+                'cor_display': var.cor,
+                'imagem': imagem_url
+            })
+    
+    # --- PREÇOS ---
+    primeira_variacao = variacoes.first()
+    preco = primeira_variacao.preco
+    preco_pix = preco * Decimal("0.90")
+    preco_parcela = preco / Decimal("3")
     
     context = {
         'produto': produto,
-        'variacoes': variacoes,  # Passa todas as variações
+        'variacoes': variacoes,
+        'preco': preco,
         'preco_pix': preco_pix.quantize(Decimal("0.01")),
         'preco_parcela': preco_parcela.quantize(Decimal("0.01")),
-        'colors_list': list(colors.values()),
-        'sizes_by_color': sizes_by_color,
-        'size_labels': size_labels,
-        'tamanhos_disponiveis': tamanhos_disponiveis,  # 🔥 NOVO
-        'colors_json': json.dumps(list(colors.values())),
-        'sizes_json': json.dumps(sizes_by_color),
-        'size_labels_json': json.dumps(size_labels),
+        'cores_com_imagem': cores_com_imagem,
+        'tamanhos_disponiveis': tamanhos_disponiveis,  # 🔥 NOME CORRETO
+        'primeira_variacao': primeira_variacao,
     }
     return render(request, 'vendas/detalhes_produto.html', context)
 
