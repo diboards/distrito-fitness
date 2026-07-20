@@ -37,6 +37,10 @@ from vendas.utils import get_itens_carrinho
 
 
 
+
+
+
+
 # vendas/views/views.py
 
 def calcular_precos(produto_list):
@@ -1553,35 +1557,62 @@ def deletar_produto(request, produto_id):
 @superuser_required
 @login_required
 
+
+
 def cadastrar_produto(request):
     if request.method == 'POST':
-        # Criar o produto base
+        # --- VALIDAÇÃO BÁSICA ---
+        nome = request.POST.get('nome', '').strip()
+        if not nome:
+            messages.error(request, 'O nome do produto é obrigatório.')
+            return render(request, 'vendas/cadastrar_produto.html')
+        
+        # --- 1. CRIAR O PRODUTO BASE ---
         produto = Produto.objects.create(
-            nome=request.POST.get('nome'),
-            descricao=request.POST.get('descricao'),
-            categoria=request.POST.get('categoria'),
+            nome=nome,
+            descricao=request.POST.get('descricao', ''),
+            categoria=request.POST.get('categoria', 'outros'),
             ativo=True
         )
         
-        # Criar as variações do produto
+        # --- 2. PROCESSAR AS VARIAÇÕES ---
         cores = request.POST.getlist('cor[]')
         tamanhos = request.POST.getlist('tamanho[]')
         precos = request.POST.getlist('preco[]')
         estoques = request.POST.getlist('quantidade_estoque[]')
         imagens = request.FILES.getlist('imagem_variacao[]')
         
+        # Remove valores vazios
+        variacoes_criadas = 0
         for i in range(len(cores)):
-            if i < len(precos) and precos[i]:
+            preco_str = precos[i] if i < len(precos) else ''
+            if not preco_str:
+                continue  # Pula se não tiver preço
+                
+            try:
+                preco = Decimal(preco_str)
+                if preco <= 0:
+                    continue
+                    
                 ProdutoVariacao.objects.create(
                     produto=produto,
                     cor=cores[i] if i < len(cores) else 'Branco',
                     tamanho=tamanhos[i] if i < len(tamanhos) else 'M',
-                    preco=Decimal(precos[i]),
-                    quantidade_estoque=int(estoques[i]) if i < len(estoques) else 0,
-                    imagem=imagens[i] if i < len(imagens) else None
+                    preco=preco,
+                    quantidade_estoque=int(estoques[i]) if i < len(estoques) and estoques[i] else 0,
+                    imagem=imagens[i] if i < len(imagens) and imagens[i] else None
                 )
+                variacoes_criadas += 1
+            except (ValueError, TypeError, Decimal.InvalidOperation):
+                continue  # Pula se houver erro nos dados
         
-        messages.success(request, 'Produto cadastrado com sucesso!')
+        if variacoes_criadas == 0:
+            # Se nenhuma variação foi criada, exclui o produto e avisa
+            produto.delete()
+            messages.error(request, 'É necessário cadastrar pelo menos uma variação válida (com preço).')
+            return render(request, 'vendas/cadastrar_produto.html')
+        
+        messages.success(request, f'Produto "{produto.nome}" cadastrado com {variacoes_criadas} variações!')
         return redirect('estoque')
     
     return render(request, 'vendas/cadastrar_produto.html')
