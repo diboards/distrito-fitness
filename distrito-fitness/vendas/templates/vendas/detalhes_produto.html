@@ -110,26 +110,27 @@
                     </div>
 
                     <!-- Tamanhos -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Selecione o tamanho:</label>
-                        <div id="tamanhos-container" class="d-flex gap-2 flex-wrap">
-                            {% for tamanho in tamanhos_disponiveis %}
-                            <button type="button" 
-                                    class="btn tamanho-btn {% if tamanho.disponivel %}btn-outline-dark{% else %}btn-outline-secondary disabled{% endif %}" 
-                                    data-tamanho="{{ tamanho.valor }}"
-                                    data-target="comprar"
-                                    {% if not tamanho.disponivel %}disabled{% endif %}
-                                    style="min-width: 50px; {% if not tamanho.disponivel %}opacity: 0.5;{% endif %}">
-                                {{ tamanho.label }}
-                                {% if not tamanho.disponivel %}
-                                    <span class="d-block small text-muted">indisponível</span>
-                                {% endif %}
-                            </button>
-                            {% empty %}
-                            <p class="text-muted">Nenhum tamanho disponível.</p>
-                            {% endfor %}
-                        </div>
-                    </div>
+<div class="mb-3">
+    <label class="form-label fw-bold">Selecione o tamanho:</label>
+    <div id="tamanhos-container" class="d-flex gap-2 flex-wrap">
+        {% for tamanho in tamanhos_disponiveis %}
+        <button type="button" 
+                class="btn tamanho-btn {% if tamanho.disponivel %}btn-outline-dark{% else %}btn-outline-secondary disabled{% endif %}" 
+                data-tamanho="{{ tamanho.valor }}"
+                data-disponivel="{% if tamanho.disponivel %}true{% else %}false{% endif %}"
+                data-target="comprar"
+                {% if not tamanho.disponivel %}disabled{% endif %}
+                style="min-width: 50px; {% if not tamanho.disponivel %}opacity: 0.5;{% endif %}">
+            {{ tamanho.label }}
+            {% if not tamanho.disponivel %}
+                <span class="d-block small text-muted">indisponível</span>
+            {% endif %}
+        </button>
+        {% empty %}
+        <p class="text-muted">Nenhum tamanho disponível.</p>
+        {% endfor %}
+    </div>
+</div>
 
                     <div class="row mb-4">
                         <div class="col-md-6">
@@ -323,8 +324,9 @@ function atualizarPrecos() {
 }
 
 // ============================================
-// INICIALIZAÇÃO PRINCIPAL
+// SELEÇÃO DE COR E TAMANHO (DINÂMICO)
 // ============================================
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM carregado - Inicializando página de produto');
     
@@ -338,29 +340,99 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const corButtons = document.querySelectorAll('.cor-btn');
     const tamanhoButtons = document.querySelectorAll('.tamanho-btn');
-    
-    // Função para definir cor
+
+    // 🔥 DADOS DE CORES E TAMANHOS (passados pela view)
+    const sizesByColor = {{ sizes_by_color|safe }};
+    const sizeLabels = {{ size_labels|safe }};
+
+    // --- FUNÇÃO PARA ATUALIZAR TAMANHOS POR COR ---
+    function atualizarTamanhos(corSelecionada) {
+        // Obtém os tamanhos disponíveis para a cor selecionada
+        const tamanhosDisponiveis = sizesByColor[corSelecionada] || [];
+        
+        // Itera sobre todos os botões de tamanho
+        tamanhoButtons.forEach(btn => {
+            const tamanho = btn.dataset.tamanho;
+            const isDisponivel = tamanhosDisponiveis.includes(tamanho);
+            
+            // Atualiza o estado do botão
+            if (isDisponivel) {
+                btn.disabled = false;
+                btn.classList.remove('btn-outline-secondary', 'disabled');
+                btn.classList.add('btn-outline-dark');
+                btn.style.opacity = '1';
+                // Remove o texto "indisponível" se existir
+                const span = btn.querySelector('span.d-block');
+                if (span) span.remove();
+            } else {
+                btn.disabled = true;
+                btn.classList.remove('btn-outline-dark', 'active', 'btn-dark');
+                btn.classList.add('btn-outline-secondary', 'disabled');
+                btn.style.opacity = '0.5';
+                // Adiciona texto "indisponível" se não existir
+                if (!btn.querySelector('span.d-block')) {
+                    const span = document.createElement('span');
+                    span.className = 'd-block small text-muted';
+                    span.textContent = 'indisponível';
+                    btn.appendChild(span);
+                }
+            }
+        });
+        
+        // 🔥 Se o tamanho atualmente selecionado não está mais disponível, limpa a seleção
+        const tamanhoAtual = inputTamanhoComprar ? inputTamanhoComprar.value : '';
+        if (tamanhoAtual && !tamanhosDisponiveis.includes(tamanhoAtual)) {
+            if (inputTamanhoComprar) inputTamanhoComprar.value = '';
+            if (inputTamanhoCarrinho) inputTamanhoCarrinho.value = '';
+            if (tamanhoDisplay) tamanhoDisplay.textContent = 'Selecione o tamanho';
+            // Remove destaque de todos os botões
+            tamanhoButtons.forEach(btn => {
+                btn.classList.remove('active', 'btn-dark');
+                btn.classList.add('btn-outline-dark');
+            });
+        }
+        
+        // 🔥 Se só tem um tamanho disponível, seleciona automaticamente
+        if (tamanhosDisponiveis.length === 1) {
+            const unicoTamanho = tamanhosDisponiveis[0];
+            const btnUnico = Array.from(tamanhoButtons).find(btn => btn.dataset.tamanho === unicoTamanho);
+            if (btnUnico && !btnUnico.disabled) {
+                btnUnico.click();
+            }
+        }
+    }
+
+    // --- FUNÇÃO PARA DEFINIR COR (com atualização de tamanhos) ---
     function setColor(cor) {
+        // Atualiza campos hidden
         if (inputCorComprar) inputCorComprar.value = cor;
         if (inputCorCarrinho) inputCorCarrinho.value = cor;
+        
+        // Atualiza display
         if (corDisplay) corDisplay.textContent = cor;
         
+        // Busca a imagem desta cor
         const selectedBtn = Array.from(corButtons).find(btn => btn.dataset.cor === cor);
         if (selectedBtn) {
             const imagem = selectedBtn.dataset.imagem;
             if (imagem && mainImage) mainImage.src = imagem;
         }
         
+        // Remove destaque de outros botões
         corButtons.forEach(btn => {
             btn.classList.remove('border-primary', 'border-2');
         });
         
+        // Destaca botão selecionado
         if (selectedBtn) {
             selectedBtn.classList.add('border-primary', 'border-2');
         }
+        
+        // 🔥 ATUALIZA OS TAMANHOS DISPONÍVEIS PARA ESTA COR
+        atualizarTamanhos(cor);
     }
-    
-    // Função para definir tamanho
+
+    // --- FUNÇÃO PARA DEFINIR TAMANHO ---
     function setTamanho(tamanho, label) {
         if (inputTamanhoComprar) inputTamanhoComprar.value = tamanho;
         if (inputTamanhoCarrinho) inputTamanhoCarrinho.value = tamanho;
@@ -372,13 +444,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         const selectedBtn = Array.from(tamanhoButtons).find(btn => btn.dataset.tamanho === tamanho);
-        if (selectedBtn) {
+        if (selectedBtn && !selectedBtn.disabled) {
             selectedBtn.classList.remove('btn-outline-dark');
             selectedBtn.classList.add('active', 'btn-dark');
         }
     }
-    
-    // Eventos das cores
+
+    // --- EVENTOS DAS CORES ---
     corButtons.forEach(btn => {
         btn.addEventListener('click', function() {
             const cor = this.dataset.cor;
@@ -391,8 +463,8 @@ document.addEventListener('DOMContentLoaded', function() {
             setColor(cor);
         });
     });
-    
-    // Eventos dos tamanhos
+
+    // --- EVENTOS DOS TAMANHOS ---
     tamanhoButtons.forEach(btn => {
         btn.addEventListener('click', function() {
             if (this.disabled) return;
@@ -401,18 +473,18 @@ document.addEventListener('DOMContentLoaded', function() {
             setTamanho(tamanho, label);
         });
     });
-    
-    // Configurar campo de quantidade
+
+    // --- CONFIGURAR CAMPO DE QUANTIDADE ---
     const qtdInput = document.getElementById('quantidade-input-comprar');
     if (qtdInput) {
         qtdInput.addEventListener('input', atualizarPrecos);
         qtdInput.addEventListener('change', atualizarPrecos);
     }
     
-    // Inicializar preços
+    // --- INICIALIZAR PREÇOS ---
     atualizarPrecos();
     
-    // Configurar frete com Enter
+    // --- CONFIGURAR FRETE COM ENTER ---
     const cepFrete = document.getElementById('cep-frete');
     if (cepFrete) {
         cepFrete.addEventListener('keypress', function(e) {
@@ -420,13 +492,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 🔥 INICIALIZAR: selecionar primeira cor e primeiro tamanho
+    // --- INICIALIZAR: selecionar primeira cor e atualizar tamanhos ---
     if (corButtons.length > 0) {
-        corButtons[0].click();
-    }
-    if (tamanhoButtons.length > 0) {
-        const primeiroTamanho = Array.from(tamanhoButtons).find(btn => !btn.disabled);
-        if (primeiroTamanho) primeiroTamanho.click();
+        const primeiraCor = corButtons[0].dataset.cor;
+        setColor(primeiraCor);
+        // Atualiza a imagem
+        if (corButtons[0].dataset.imagem && mainImage) {
+            mainImage.src = corButtons[0].dataset.imagem;
+        }
     }
     
     console.log('Inicialização concluída');
