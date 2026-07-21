@@ -367,24 +367,45 @@ def carrinho_count_api(request):
 
 @login_required
 def visualizar_carrinho(request):
-    # busca todos os itens do carrinho do usuário logado
-    itens_carrinho = CarrinhoItem.objects.filter(usuario=request.user)
-
-    # soma dos subtotais
-    total = sum(item.subtotal for item in itens_carrinho)
-
-    # pega o endereço principal
-    endereco_principal = None
-    enderecos = request.user.enderecos.all()
-    if enderecos.exists():
-        endereco_principal = enderecos.filter(principal=True).first() or enderecos.first()
-
-    return render(request, 'vendas/carrinho.html', {
-        'itens_carrinho': itens_carrinho,
+    """Exibe o carrinho (funciona para logados e anônimos)"""
+    carrinho = request.session.get('carrinho', {})
+    itens = []
+    total = 0
+    total_itens = 0
+    
+    for chave, item in carrinho.items():
+        subtotal = item['quantidade'] * item['preco']
+        total += subtotal
+        total_itens += item['quantidade']
+        
+        # Busca a variação para verificar estoque
+        try:
+            variacao = ProdutoVariacao.objects.get(id=item['variacao_id'])
+            estoque_disponivel = variacao.quantidade_estoque
+        except ProdutoVariacao.DoesNotExist:
+            estoque_disponivel = 0
+        
+        itens.append({
+            'chave': chave,
+            'variacao_id': item['variacao_id'],
+            'produto_id': item['produto_id'],
+            'nome': item['nome'],
+            'quantidade': item['quantidade'],
+            'preco': item['preco'],
+            'cor': item['cor'],
+            'tamanho': item['tamanho'],
+            'imagem': item['imagem'],
+            'subtotal': subtotal,
+            'estoque_disponivel': estoque_disponivel,
+        })
+    
+    context = {
+        'itens_carrinho': itens,  # ← NOME CORRETO (seu template usa isso)
         'total': total,
-        'endereco_principal': endereco_principal,
-        'enderecos': enderecos,
-    })
+        'total_itens': total_itens,
+        'carrinho_vazio': len(itens) == 0,
+    }
+    return render(request, 'vendas/carrinho.html', context)
 
 
 
