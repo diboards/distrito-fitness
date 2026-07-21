@@ -367,70 +367,25 @@ def carrinho_count_api(request):
 
 @login_required
 def visualizar_carrinho(request):
-    """Exibe o carrinho (funciona para logados e anônimos)"""
-    carrinho = request.session.get('carrinho', {})
-    itens = []
-    total = 0
-    total_itens = 0
-    
-    for chave, item in carrinho.items():
-        # 🔥 VERIFICA SE OS CAMPOS EXISTEM
-        # Se for da estrutura antiga (sem 'variacao_id')
-        if 'variacao_id' not in item:
-            # Tenta buscar a variação pelo produto_id
-            try:
-                produto_id = item.get('produto_id') or item.get('id')
-                if produto_id:
-                    variacao = ProdutoVariacao.objects.filter(produto_id=produto_id).first()
-                    if variacao:
-                        item['variacao_id'] = variacao.id
-                        item['preco'] = float(variacao.preco)
-                        item['nome'] = variacao.produto.nome
-                        item['cor'] = item.get('cor', 'Branco')
-                        item['tamanho'] = item.get('tamanho', 'M')
-                        item['imagem'] = variacao.imagem.url if variacao.imagem else None
-            except:
-                pass
-        
-        # Pula se não tiver variacao_id ou preco
-        if 'variacao_id' not in item or 'preco' not in item:
-            continue
-        
-        # 🔥 CALCULA O SUBTOTAL
-        quantidade = item.get('quantidade', 1)
-        preco = item.get('preco', 0)
-        subtotal = quantidade * preco
-        total += subtotal
-        total_itens += quantidade
-        
-        # Busca a variação para verificar estoque
-        try:
-            variacao = ProdutoVariacao.objects.get(id=item['variacao_id'])
-            estoque_disponivel = variacao.quantidade_estoque
-        except ProdutoVariacao.DoesNotExist:
-            estoque_disponivel = 0
-        
-        itens.append({
-            'chave': chave,
-            'variacao_id': item.get('variacao_id'),
-            'produto_id': item.get('produto_id') or item.get('id'),
-            'nome': item.get('nome', 'Produto'),
-            'quantidade': quantidade,
-            'preco': preco,
-            'cor': item.get('cor', 'Branco'),
-            'tamanho': item.get('tamanho', 'M'),
-            'imagem': item.get('imagem'),
-            'subtotal': subtotal,
-            'estoque_disponivel': estoque_disponivel,
-        })
-    
-    context = {
-        'itens_carrinho': itens,  # Nome usado no template
+    # busca todos os itens do carrinho do usuário logado
+    itens_carrinho = CarrinhoItem.objects.filter(usuario=request.user)
+
+    # soma dos subtotais
+    total = sum(item.subtotal for item in itens_carrinho)
+
+    # pega o endereço principal
+    endereco_principal = None
+    enderecos = request.user.enderecos.all()
+    if enderecos.exists():
+        endereco_principal = enderecos.filter(principal=True).first() or enderecos.first()
+
+    return render(request, 'vendas/carrinho.html', {
+        'itens_carrinho': itens_carrinho,
         'total': total,
-        'total_itens': total_itens,
-        'carrinho_vazio': len(itens) == 0,
-    }
-    return render(request, 'vendas/carrinho.html', context)
+        'endereco_principal': endereco_principal,
+        'enderecos': enderecos,
+    })
+
 
 
 @login_required
