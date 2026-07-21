@@ -488,15 +488,13 @@ def calcular_frete_ajax(request):
 
 @login_required
 def comprar_agora(request, produto_id):
-    """Adiciona produto ao carrinho via sessão e redireciona para checkout"""
     if request.method == 'POST':
-        produto = get_object_or_404(Produto, id=produto_id)
+        produto = get_object_or_404(Produto, id=produto_id, ativo=True)
         quantidade = int(request.POST.get('quantidade', 1))
         cor = request.POST.get('cor', '')
         tamanho = request.POST.get('tamanho', '')
         
-        # Busca a variação correspondente
-        from vendas.models import ProdutoVariacao
+        # Busca a variação
         variacao = ProdutoVariacao.objects.filter(
             produto=produto,
             cor=cor,
@@ -507,12 +505,9 @@ def comprar_agora(request, produto_id):
             messages.error(request, 'Variação do produto não encontrada.')
             return redirect('detalhes_produto', produto_id=produto_id)
         
-        # 🔥 Limpa o carrinho atual na sessão (substitui pelo novo produto)
-        request.session['carrinho'] = {}
-        
-        # Adiciona o produto ao carrinho na sessão
-        carrinho = request.session.get('carrinho', {})
-        chave = f"variacao_{variacao.id}"  # Chave única para cada variação
+        # 🔥 CRIA UM NOVO CARRINHO NA SESSÃO
+        carrinho = {}
+        chave = f"variacao_{variacao.id}"
         
         carrinho[chave] = {
             'variacao_id': variacao.id,
@@ -525,12 +520,14 @@ def comprar_agora(request, produto_id):
             'imagem': variacao.imagem.url if variacao.imagem else None
         }
         
+        # 🔥 SALVA NA SESSÃO E GARANTE QUE FOI SALVO
         request.session['carrinho'] = carrinho
-        request.session.modified = True  # Garante que a sessão seja salva
+        request.session.modified = True  # ← ESSENCIAL!
+        
+        # 🔥 FORÇA O SALVAMENTO DA SESSÃO
+        request.session.save()
         
         messages.success(request, f'{produto.nome} adicionado ao carrinho!')
-        
-        # 🔥 REDIRECIONA PARA O CARRINHO (NÃO PARA O CHECKOUT)
         return redirect('visualizar_carrinho')
     
     return redirect('detalhes_produto', produto_id=produto_id)
