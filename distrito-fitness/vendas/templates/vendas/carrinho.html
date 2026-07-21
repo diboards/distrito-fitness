@@ -5,10 +5,10 @@
 <div class="container my-4">
     <h1 class="mb-4">🛒 Minha Sacola</h1>
 
-    {% if itens %}
+    {% if itens_carrinho %}
     <div class="row">
         <div class="col-md-8">
-            <!-- Consulta de Frete -->
+            <!-- Consulta de Frete (agora no topo) -->
             <div class="card mb-4 border-0 shadow-sm">
                 <div class="card-body">
                     <h6 class="card-title fw-bold">📦 Calcular Frete</h6>
@@ -42,31 +42,36 @@
                 </div>
             </div>
 
-            {% for item in itens %}
-            <div class="card mb-3 border-0 shadow-sm" id="cart-item-{{ item.chave|default:item.id }}">
+            {% for item in itens_carrinho %}
+            <div class="card mb-3 border-0 shadow-sm" id="cart-item-{{ item.id }}">
                 <div class="card-body">
                     <div class="row align-items-center">
-                        <!-- Imagem do produto (da variação) -->
+                        <!-- Imagem do produto -->
                         <div class="col-md-2 position-relative">
-                            {% if item.imagem %}
-                                <img src="{{ item.imagem }}" 
-                                    class="img-fluid rounded" alt="{{ item.nome }}" 
-                                    style="height: 100px; width: 100%; object-fit: cover;">
+                            {% if item.imagem_selecionada %}
+                                <img src="{{ item.imagem_selecionada.url }}" 
+                                    class="img-fluid rounded" alt="{{ item.produto.nome }}" 
+                                    style="height: 100px; object-fit: cover;">
+                            {% elif item.produto.imagem %}
+                                <img src="{{ item.produto.imagem.url }}" 
+                                    class="img-fluid rounded" alt="{{ item.produto.nome }}" 
+                                    style="height: 100px; object-fit: cover;">
                             {% else %}
                                 <img src="{% static 'vendas/images/default-product.png' %}" 
-                                    class="img-fluid rounded" alt="{{ item.nome }}" 
-                                    style="height: 100px; width: 100%; object-fit: cover;">
+                                    class="img-fluid rounded" alt="{{ item.produto.nome }}" 
+                                    style="height: 100px; object-fit: cover;">
                             {% endif %}
                         </div>
 
                         <!-- Informações do produto -->
                         <div class="col-md-4">
-                            <h5 class="mb-2 fw-bold">{{ item.nome }}</h5>
-                            <p class="mb-1 text-muted small">Ref: #{{ item.produto_id|stringformat:"06d" }}</p>
-                            <p class="mb-1 text-muted small">Vendido por <strong>Distrito Fitness</strong></p>
+                            <h5 class="mb-2 fw-bold">{{ item.produto.nome }}</h5>
+                            <p class="mb-1 text-muted small">Ref: #{{ item.produto.id|stringformat:"06d" }}</p>
+                            <p class="mb-1 text-muted small">Vendido por <strong>Mirna Boutique</strong></p>
+                            <p class="mb-1 text-muted small">Entregue por <strong>FULL</strong></p>
                             <div class="mt-2">
-                                <span class="badge bg-light text-dark border">Cor: {{ item.cor|default:"Branco" }}</span>
-                                <span class="badge bg-light text-dark border">Tamanho: {{ item.tamanho|default:"M" }}</span>
+                                <span class="badge bg-light text-dark border">Cor: {{ item.cor_selecionada|default:"Branco" }}</span>
+                                <span class="badge bg-light text-dark border">Tamanho: {{ item.tamanho_selecionado|default:"39" }}</span>
                             </div>
                         </div>
 
@@ -74,9 +79,9 @@
                         <div class="col-md-3">
                             <div class="d-flex align-items-center justify-content-start mb-2">
                                 <p class="mb-0 me-2 small fw-bold">Quantidade:</p>
-                                <form method="POST" action="{% if user.is_authenticated %}{% url 'atualizar_carrinho' item.id %}{% else %}{% url 'atualizar_carrinho_chave' item.chave %}{% endif %}" 
+                                <form method="POST" action="{% url 'atualizar_carrinho' item.id %}" 
                                       class="cart-update-form d-flex align-items-center" 
-                                      data-item-id="{{ item.id|default:item.chave }}">
+                                      data-item-id="{{ item.id }}">
                                     {% csrf_token %}
                                     <button type="button" class="btn btn-outline-secondary btn-sm minus-btn" 
                                             style="width: 30px; height: 30px; border-radius: 50%;">-</button>
@@ -93,7 +98,7 @@
                         <div class="col-md-3 text-end">
                             <!-- Botão excluir -->
                             <div class="mb-2">
-                                <form method="POST" action="{% if user.is_authenticated %}{% url 'remover_carrinho' item.id %}{% else %}{% url 'remover_carrinho_chave' item.chave %}{% endif %}">
+                                <form method="POST" action="{% url 'remover_carrinho' item.id %}">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-danger btn-sm">
                                         <i class="bi bi-trash"></i>
@@ -103,26 +108,20 @@
 
                             <!-- Preço normal riscado -->
                             <p class="text-muted mb-1">
-                                <del>R$ {{ item.preco|floatformat:2 }}</del>
+                                <del>R$ {{ item.produto.preco|floatformat:2 }}</del>
                             </p>
 
                             <!-- Preço no PIX com 10% OFF -->
-                            <p class="fw-bold text-success mb-1" id="preco-pix-{{ forloop.counter }}">
-                                R$ {{ item.preco|mul:0.90|floatformat:2 }} (10% OFF)
-                            </p>
+                            <p class="fw-bold text-success mb-1" id="preco-pix-{{ item.id }}"></p>
 
                             <!-- Preço parcelado -->
-                            <p class="text-primary mb-2 small" id="preco-parcela-{{ forloop.counter }}">
-                                ou 3x de R$ {{ item.preco|div:3|floatformat:2 }} sem juros
-                            </p>
+                            <p class="text-primary mb-2 small" id="preco-parcela-{{ item.id }}"></p>
 
                             <!-- Subtotal deste item -->
-                            <p class="fw-bold border-top pt-2 mt-2" id="subtotal-normal-{{ forloop.counter }}">
+                            <p class="fw-bold border-top pt-2 mt-2" id="subtotal-normal-{{ item.id }}">
                                 Subtotal: R$ {{ item.subtotal|floatformat:2 }}
                             </p>
-                            <p class="text-success small" id="subtotal-pix-{{ forloop.counter }}">
-                                PIX: R$ {{ item.subtotal|mul:0.90|floatformat:2 }}
-                            </p>
+                            <p class="text-success small" id="subtotal-pix-{{ item.id }}"></p>
                         </div>
                     </div>
                 </div>
@@ -138,7 +137,7 @@
                     
                     <!-- Subtotal -->
                     <div class="d-flex justify-content-between mb-2 small">
-                        <span>Subtotal ({{ total_itens|default:itens|length }} item{{ itens|length|pluralize }})</span>
+                        <span>Subtotal ({{ itens_carrinho|length }} item{{ itens_carrinho|length|pluralize }})</span>
                         <span>R$ {{ total|floatformat:2 }}</span>
                     </div>
                     
@@ -169,7 +168,7 @@
                     <!-- CÁLCULOS FINAIS -->
                     <div class="mb-2">
                         <strong>Total à vista no Pix:</strong>
-                        <span id="total-pix" class="text-success fw-bold">R$ {{ total|mul:0.90|floatformat:2 }}</span>
+                        <span id="total-pix" class="text-success fw-bold">R$ {{ total|floatformat:2 }}</span>
                     </div>
                     
                     <div class="mb-3">
@@ -178,7 +177,7 @@
                     </div>
 
                     <div class="mb-2 small text-muted">
-                        <p id="valor-parcela">3x de R$ {{ total|div:3|floatformat:2 }} sem juros</p>
+                        <p id="valor-parcela">3x de R$ {{ total|div:4|floatformat:2 }} sem juros</p>
                     </div>
 
                     <div class="form-check mb-2">
@@ -255,8 +254,9 @@
 </style>
 
 <script>
-// Banco de dados de CEPs e regiões
+// Banco de dados de CEPs e regiões (simulado)
 const regioesFrete = {
+    // Distrito Federal - Região Metropolitana
     '70000000-72799999': { cidade: 'Brasília-DF (Plano Piloto)', valor: 8.90, prazo: '2-3 dias', regiao: 'capital' },
     '71587040-71588238': { cidade: 'Paranoá-DF', valor: 8.90, prazo: '2-3 dias', regiao: 'rmdf' },
     '71590000-71590245': { cidade: 'Itapoã-DF', valor: 8.90, prazo: '2-3 dias', regiao: 'rmdf' },
@@ -268,18 +268,25 @@ const regioesFrete = {
     '73300000-73399999': { cidade: 'Planaltina-DF', valor: 10.90, prazo: '3-5 dias', regiao: 'rmdf' },
     '73200000-73299999': { cidade: 'Sobradinho-DF', valor: 10.90, prazo: '3-5 dias', regiao: 'rmdf' },
     '73500000-73599999': { cidade: 'Brazlândia-DF', valor: 11.90, prazo: '3-5 dias', regiao: 'rmdf' },
+    
+    // Goiás - Cidades próximas
     '74000000-74899999': { cidade: 'Goiânia-GO', valor: 12.90, prazo: '4-6 dias', regiao: 'goias' },
     '75000000-75999999': { cidade: 'Anápolis-GO', valor: 15.90, prazo: '5-8 dias', regiao: 'interior-go' },
     '72800000-72999999': { cidade: 'Luziânia-GO', valor: 13.90, prazo: '4-6 dias', regiao: 'goias' },
     '73800000-73999999': { cidade: 'Formosa-GO', valor: 14.90, prazo: '5-7 dias', regiao: 'goias' },
+    
+    // Outros estados
     '01000000-09999999': { cidade: 'São Paulo-SP', valor: 22.90, prazo: '8-12 dias', regiao: 'sul' },
     '20000000-28999999': { cidade: 'Rio de Janeiro-RJ', valor: 24.90, prazo: '8-12 dias', regiao: 'sudeste' },
     '30000000-39999999': { cidade: 'Belo Horizonte-MG', valor: 19.90, prazo: '7-10 dias', regiao: 'sudeste' },
     '50000000-56999999': { cidade: 'Recife-PE', valor: 29.90, prazo: '10-15 dias', regiao: 'nordeste' },
     '80000000-87999999': { cidade: 'Curitiba-PR', valor: 19.90, prazo: '7-10 dias', regiao: 'sul' },
+    
+    // Padrão para CEPs não mapeados
     'default': { cidade: 'sua cidade', valor: 15.90, prazo: '5-10 dias', regiao: 'default' }
 };
 
+// Variável global para armazenar o valor do frete
 let valorFreteAtual = null;
 let cidadeFreteAtual = 'sua região';
 let prazoFreteAtual = '';
@@ -288,23 +295,32 @@ function formatBR(value){
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+// Formatar CEP (XXXXX-XXX)
 function formatarCEP(input) {
     let cep = input.value.replace(/\D/g, '');
+    
     if (cep.length > 5) {
         cep = cep.substring(0, 5) + '-' + cep.substring(5, 8);
     }
+    
     input.value = cep;
 }
 
+// Validar CEP
 function validarCEP(cep) {
     cep = cep.replace(/\D/g, '');
     return cep.length === 8;
 }
 
+// Função otimizada para debug
 function encontrarRegiaoPorCEP(cep) {
+    // Remove caracteres não numéricos e converte para string
     cep = cep.replace(/\D/g, '');
+    
+    // Converte para número, mas trata como string para comparação
     const cepNum = parseInt(cep, 10);
     
+    // Verifica se o CEP é válido
     if (isNaN(cepNum) || cep.length !== 8) {
         return regioesFrete['default'];
     }
@@ -313,25 +329,47 @@ function encontrarRegiaoPorCEP(cep) {
 
     for (const faixa in regioesFrete) {
         if (faixa === 'default') continue;
+
         const [inicioStr, fimStr] = faixa.split('-');
         const inicio = parseInt(inicioStr, 10);
         const fim = parseInt(fimStr, 10);
+
+        // Debug: verificar cada faixa
+        console.log(`Verificando faixa: ${faixa}, CEP: ${cepNum}, Início: ${inicio}, Fim: ${fim}`);
+
         if (cepNum >= inicio && cepNum <= fim) {
+            // Calcula o "tamanho" do intervalo
             const tamanhoFaixa = fim - inicio;
+            
+            console.log(`✅ CEP ${cepNum} encontrado na faixa ${faixa}`);
+
             if (!melhorMatch || tamanhoFaixa < melhorMatch.tamanho) {
-                melhorMatch = { dados: regioesFrete[faixa], tamanho: tamanhoFaixa };
+                melhorMatch = {
+                    dados: regioesFrete[faixa],
+                    tamanho: tamanhoFaixa
+                };
             }
         }
     }
-    return melhorMatch ? melhorMatch.dados : regioesFrete['default'];
-}
 
+    if (melhorMatch) {
+        console.log(`🎯 Melhor match: ${melhorMatch.dados.cidade}`);
+        return melhorMatch.dados;
+    } else {
+        console.log('❌ Nenhuma faixa encontrada, usando default');
+        return regioesFrete['default'];
+    }
+}
+    
+
+// Consultar frete com lógica regional
 function consultarFrete(cep) {
     return new Promise((resolve) => {
         setTimeout(() => {
             const regiao = encontrarRegiaoPorCEP(cep);
             const totalCompra = parseFloat("{{ total }}") || 0;
             
+            // Frete grátis para compras acima de R$ 200
             if (totalCompra > 200) {
                 regiao.valor = 0;
                 regiao.prazo = regiao.prazo.replace(/\d+-\d+/, '3-5') + ' (FRETE GRÁTIS)';
@@ -342,6 +380,43 @@ function consultarFrete(cep) {
     });
 }
 
+function calcularPrecosItem(preco, quantidade) {
+    const precoPix = preco * 0.90;
+    const precoParcela = preco / 3;
+    const subtotalNormal = preco * quantidade;
+    const subtotalPix = subtotalNormal * 0.90;
+    
+    return {
+        precoPix: precoPix.toFixed(2),
+        precoParcela: precoParcela.toFixed(2),
+        subtotalNormal: subtotalNormal.toFixed(2),
+        subtotalPix: subtotalPix.toFixed(2)
+    };
+}
+
+function atualizarPrecosItens() {
+    {% for item in itens_carrinho %}
+    const precoItem{{ item.id }} = parseFloat({{ item.produto.preco }});
+    const quantidadeItem{{ item.id }} = parseInt({{ item.quantidade }});
+    
+    const calculos{{ item.id }} = calcularPrecosItem(precoItem{{ item.id }}, quantidadeItem{{ item.id }});
+    
+    const precoPixEl{{ item.id }} = document.getElementById('preco-pix-{{ item.id }}');
+    const precoParcelaEl{{ item.id }} = document.getElementById('preco-parcela-{{ item.id }}');
+    const subtotalPixEl{{ item.id }} = document.getElementById('subtotal-pix-{{ item.id }}');
+    
+    if (precoPixEl{{ item.id }}) {
+        precoPixEl{{ item.id }}.textContent = `R$ ${calculos{{ item.id }}.precoPix} (10% OFF)`;
+    }
+    if (precoParcelaEl{{ item.id }}) {
+        precoParcelaEl{{ item.id }}.textContent = `ou 3x de R$ ${calculos{{ item.id }}.precoParcela} sem juros`;
+    }
+    if (subtotalPixEl{{ item.id }}) {
+        subtotalPixEl{{ item.id }}.textContent = `PIX: R$ ${calculos{{ item.id }}.subtotalPix}`;
+    }
+    {% endfor %}
+}
+
 function atualizarResumoPedido(total, freteInfo = null) {
     const frete = freteInfo ? freteInfo.valor : 0;
     const totalComFrete = total + frete;
@@ -349,6 +424,7 @@ function atualizarResumoPedido(total, freteInfo = null) {
     const parcela = totalComFrete / 3;
     const economia = total * 0.10;
     
+    // Atualizar elementos do resumo
     const totalPixEl = document.getElementById('total-pix');
     const totalParceladoEl = document.getElementById('total-parcelado');
     const valorParcelaEl = document.getElementById('valor-parcela');
@@ -365,6 +441,7 @@ function atualizarResumoPedido(total, freteInfo = null) {
     if (valorParcelaEl) valorParcelaEl.textContent = `3x de ${formatBR(parcela)} sem juros`;
     if (economiaEl) economiaEl.textContent = formatBR(economia);
     
+    // Atualizar informações de frete
     if (freteInfo) {
         if (frete === 0) {
             valorFreteEl.textContent = 'GRÁTIS';
@@ -407,27 +484,15 @@ function mostrarLoadingFrete(mostrar) {
     }
 }
 
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
 document.addEventListener("DOMContentLoaded", function() {
-    const csrftoken = getCookie('csrftoken');
+    // Inicializar preços
+    atualizarPrecosItens();
     const totalInitial = parseFloat("{{ total }}") || 0;
     atualizarResumoPedido(totalInitial);
 
-    // Botão calcular frete
+    const csrftoken = getCookie('csrftoken');
+
+    // Consulta de frete principal
     document.getElementById('btn-frete-principal').addEventListener('click', async function() {
         const cepInput = document.getElementById('cep-principal');
         const cep = cepInput.value.replace(/\D/g, '');
@@ -446,6 +511,7 @@ document.addEventListener("DOMContentLoaded", function() {
             cidadeFreteAtual = resultado.cidade;
             prazoFreteAtual = resultado.prazo;
             
+            // Atualizar resultado principal
             const resultadoEl = document.querySelector('.resultado-frete-principal');
             const textoResultado = document.getElementById('resultado-frete-principal');
             const prazoResultado = document.getElementById('prazo-entrega-principal');
@@ -461,6 +527,7 @@ document.addEventListener("DOMContentLoaded", function() {
             prazoResultado.textContent = `📍 ${resultado.cidade} • ⏱️ ${resultado.prazo}`;
             resultadoEl.style.display = 'block';
             
+            // Atualizar resumo do pedido
             atualizarResumoPedido(totalInitial, resultado);
             
         } catch (error) {
@@ -471,13 +538,14 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    // Permitir consulta pressionando Enter
     document.getElementById('cep-principal').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             document.getElementById('btn-frete-principal').click();
         }
     });
 
-    // Botões de quantidade
+    // Botões de quantidade (mantido igual)
     document.querySelectorAll('.plus-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const input = this.parentNode.querySelector('input[name="quantidade"]');
@@ -525,5 +593,58 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 });
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+async function calcularFretePorCEP(cep) {
+        mostrarLoadingFrete(true);
+        try {
+            const resultado = await consultarFrete(cep);
+            valorFreteAtual = resultado.valor;
+            cidadeFreteAtual = resultado.cidade;
+            prazoFreteAtual = resultado.prazo;
+
+            const totalInitial = parseFloat("{{ total }}") || 0;
+            atualizarResumoPedido(totalInitial, resultado);
+
+            // Atualizar UI principal
+            const resultadoEl = document.querySelector('.resultado-frete-principal');
+            const textoResultado = document.getElementById('resultado-frete-principal');
+            const prazoResultado = document.getElementById('prazo-entrega-principal');
+
+            if (resultado.valor === 0) {
+                textoResultado.textContent = '🎉 FRETE GRÁTIS';
+            } else {
+                textoResultado.textContent = `Frete: ${formatBR(resultado.valor)}`;
+            }
+            prazoResultado.textContent = `📍 ${resultado.cidade} • ⏱️ ${resultado.prazo}`;
+            resultadoEl.style.display = 'block';
+        } finally {
+            mostrarLoadingFrete(false);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        {% if endereco_principal %}
+            calcularFretePorCEP("{{ endereco_principal.cep|cut:"-" }}");
+        {% endif %}
+
+        document.getElementById("enderecoSelect")?.addEventListener("change", function(e) {
+            calcularFretePorCEP(e.target.value.replace(/\D/g, ""));
+        });
+    });
 </script>
 {% endblock %}
