@@ -71,23 +71,29 @@
                         </div>
             
                         <!-- Quantidade -->
-                        <div class="col-md-3">
-                            <div class="d-flex align-items-center justify-content-start mb-2">
-                                <p class="mb-0 me-2 small fw-bold">Quantidade:</p>
-                                <form method="POST" action="{% if user.is_authenticated %}{% url 'atualizar_carrinho' item.id %}{% else %}{% url 'atualizar_carrinho_chave' item.chave %}{% endif %}" 
-                                      class="cart-update-form d-flex align-items-center" 
-                                      data-item-id="{{ item.id|default:item.chave }}">
-                                    {% csrf_token %}
-                                    <button type="button" class="btn btn-outline-secondary btn-sm minus-btn" 
-                                            style="width: 30px; height: 30px; border-radius: 50%;">-</button>
-                                    <input type="number" name="quantidade" value="{{ item.quantidade }}" 
-                                           min="1" class="form-control form-control-sm mx-1 text-center" 
-                                           style="width: 60px;">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm plus-btn" 
-                                            style="width: 30px; height: 30px; border-radius: 50%;">+</button>
-                                </form>
-                            </div>
-                        </div>
+<div class="col-md-3">
+    <div class="d-flex align-items-center justify-content-start mb-2">
+        <p class="mb-0 me-2 small fw-bold">Quantidade:</p>
+        <form method="POST" 
+              action="
+                {% if user.is_authenticated and item.id %}
+                    {% url 'atualizar_carrinho' item.id %}
+                {% elif item.chave %}
+                    {% url 'atualizar_carrinho_chave' item.chave %}
+                {% endif %}" 
+              class="cart-update-form d-flex align-items-center" 
+              data-item-id="{{ item.id|default:item.chave }}">
+            {% csrf_token %}
+            <button type="button" class="btn btn-outline-secondary btn-sm minus-btn" 
+                    style="width: 30px; height: 30px; border-radius: 50%;">-</button>
+            <input type="number" name="quantidade" value="{{ item.quantidade }}" 
+                   min="1" class="form-control form-control-sm mx-1 text-center" 
+                   style="width: 60px;">
+            <button type="button" class="btn btn-outline-secondary btn-sm plus-btn" 
+                    style="width: 30px; height: 30px; border-radius: 50%;">+</button>
+        </form>
+    </div>
+</div>
             
                         <!-- Preços -->
                         <div class="col-md-3 text-end">
