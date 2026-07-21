@@ -430,27 +430,43 @@ def calcular_frete_ajax(request):
 
 
 @login_required
+@login_required
 def comprar_agora(request, produto_id):
     if request.method == 'POST':
-        produto = get_object_or_404(Produto, id=produto_id)
+        produto = get_object_or_404(Produto, id=produto_id, ativo=True)
         quantidade = int(request.POST.get('quantidade', 1))
-        cor = request.POST.get('cor', '')
-        tamanho = request.POST.get('tamanho', '')
+        cor = request.POST.get('cor', '').strip()
+        tamanho = request.POST.get('tamanho', '').strip()
         
-        # Limpa o carrinho atual
+        # 🔥 Busca a variação específica
+        if not cor or not tamanho:
+            messages.error(request, 'Selecione cor e tamanho do produto.')
+            return redirect('detalhes_produto', produto_id=produto_id)
+        
+        from ..models import ProdutoVariacao
+        variacao = ProdutoVariacao.objects.filter(
+            produto=produto,
+            cor=cor,
+            tamanho=tamanho
+        ).first()
+        
+        if not variacao:
+            messages.error(request, 'Variação do produto não encontrada.')
+            return redirect('detalhes_produto', produto_id=produto_id)
+        
+        # 🔥 Usuário logado: salva no BANCO (usando variacao)
+        # Limpa o carrinho anterior
         CarrinhoItem.objects.filter(usuario=request.user).delete()
         
-        # Adiciona o produto ao carrinho
+        # Cria o novo item usando a variação
         CarrinhoItem.objects.create(
             usuario=request.user,
-            produto=produto,
-            quantidade=quantidade,
-            cor_selecionada=cor,
-            tamanho_selecionado=tamanho
+            variacao=variacao,  # ← USA A VARIAÇÃO!
+            quantidade=quantidade
         )
         
-        messages.success(request, f'{produto.nome} adicionado ao carrinho!')
-        return redirect('checkout')
+        messages.success(request, f'{produto.nome} ({cor}/{tamanho}) adicionado ao carrinho!')
+        return redirect('visualizar_carrinho')
     
     return redirect('detalhes_produto', produto_id=produto_id)
 
