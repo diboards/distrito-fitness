@@ -374,9 +374,34 @@ def visualizar_carrinho(request):
     total_itens = 0
     
     for chave, item in carrinho.items():
-        subtotal = item['quantidade'] * item['preco']
+        # 🔥 VERIFICA SE OS CAMPOS EXISTEM
+        # Se for da estrutura antiga (sem 'variacao_id')
+        if 'variacao_id' not in item:
+            # Tenta buscar a variação pelo produto_id
+            try:
+                produto_id = item.get('produto_id') or item.get('id')
+                if produto_id:
+                    variacao = ProdutoVariacao.objects.filter(produto_id=produto_id).first()
+                    if variacao:
+                        item['variacao_id'] = variacao.id
+                        item['preco'] = float(variacao.preco)
+                        item['nome'] = variacao.produto.nome
+                        item['cor'] = item.get('cor', 'Branco')
+                        item['tamanho'] = item.get('tamanho', 'M')
+                        item['imagem'] = variacao.imagem.url if variacao.imagem else None
+            except:
+                pass
+        
+        # Pula se não tiver variacao_id ou preco
+        if 'variacao_id' not in item or 'preco' not in item:
+            continue
+        
+        # 🔥 CALCULA O SUBTOTAL
+        quantidade = item.get('quantidade', 1)
+        preco = item.get('preco', 0)
+        subtotal = quantidade * preco
         total += subtotal
-        total_itens += item['quantidade']
+        total_itens += quantidade
         
         # Busca a variação para verificar estoque
         try:
@@ -387,26 +412,25 @@ def visualizar_carrinho(request):
         
         itens.append({
             'chave': chave,
-            'variacao_id': item['variacao_id'],
-            'produto_id': item['produto_id'],
-            'nome': item['nome'],
-            'quantidade': item['quantidade'],
-            'preco': item['preco'],
-            'cor': item['cor'],
-            'tamanho': item['tamanho'],
-            'imagem': item['imagem'],
+            'variacao_id': item.get('variacao_id'),
+            'produto_id': item.get('produto_id') or item.get('id'),
+            'nome': item.get('nome', 'Produto'),
+            'quantidade': quantidade,
+            'preco': preco,
+            'cor': item.get('cor', 'Branco'),
+            'tamanho': item.get('tamanho', 'M'),
+            'imagem': item.get('imagem'),
             'subtotal': subtotal,
             'estoque_disponivel': estoque_disponivel,
         })
     
     context = {
-        'itens_carrinho': itens,  # ← NOME CORRETO (seu template usa isso)
+        'itens_carrinho': itens,  # Nome usado no template
         'total': total,
         'total_itens': total_itens,
         'carrinho_vazio': len(itens) == 0,
     }
     return render(request, 'vendas/carrinho.html', context)
-
 
 
 @login_required
