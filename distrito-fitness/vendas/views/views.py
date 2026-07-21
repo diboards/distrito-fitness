@@ -364,8 +364,6 @@ def carrinho_count_api(request):
 
 
 
-
-@login_required
 def visualizar_carrinho(request):
     """Exibe o carrinho da sessão (funciona para logados e anônimos)"""
     carrinho = request.session.get('carrinho', {})
@@ -552,26 +550,40 @@ def comprar_agora_anonimo(request, produto_id):
     cor = request.GET.get('cor', '').strip()
     tamanho = request.GET.get('tamanho', '').strip()
     
-    # 🔥 Limpa o carrinho da sessão (substitui pelo novo produto)
-    carrinho = {}
+    # Buscar a variação
+    variacao = ProdutoVariacao.objects.filter(
+        produto=produto,
+        cor=cor,
+        tamanho=tamanho
+    ).first()
     
-    produto_key = f"{produto_id}_{cor}_{tamanho}"
-    carrinho[produto_key] = {
-        'id': produto_id,
+    if not variacao:
+        messages.error(request, 'Variação do produto não encontrada.')
+        return redirect('detalhes_produto', produto_id=produto_id)
+    
+    # 🔥 CRIA O CARRINHO NA SESSÃO
+    carrinho = {}
+    chave = f"variacao_{variacao.id}"
+    
+    carrinho[chave] = {
+        'variacao_id': variacao.id,
+        'produto_id': produto.id,
         'nome': produto.nome,
-        'preco': float(produto.preco),
         'quantidade': quantidade,
+        'preco': float(variacao.preco),
         'cor': cor,
         'tamanho': tamanho,
-        'imagem': produto.imagem.url if produto.imagem else None
+        'imagem': variacao.imagem.url if variacao.imagem else None
     }
     
     request.session['carrinho'] = carrinho
     request.session.modified = True
+    request.session.save()
     
-    print(f"DEBUG - Carrinho salvo na sessão (comprar_agora_anonimo): {carrinho}")
+    print(f"DEBUG - Carrinho salvo na sessão (anonimo): {carrinho}")
     
-    return redirect('login')
+    # Redireciona para o login com next apontando para o carrinho
+    return redirect(f'{settings.LOGIN_URL}?next=/carrinho/')
 
 @login_required
 def finalizar_pedido(request):
