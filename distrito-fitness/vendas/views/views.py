@@ -177,9 +177,7 @@ def testar_conexao_mp(request):
             'credencial': settings.MERCADOPAGO_ACCESS_TOKEN
         })
 
-#Sacola de compras
 
-# vendas/views/views.py - SUBSTITUIR a função
 def detalhes_produto(request, produto_id):
     produto = get_object_or_404(Produto, id=produto_id, ativo=True)
     
@@ -245,7 +243,6 @@ def detalhes_produto(request, produto_id):
     return render(request, 'vendas/detalhes_produto.html', context)
 
 
-# vendas/views/views.py - SUBSTITUIR a função
 
 def adicionar_carrinho(request, produto_id):
     if request.method == 'POST':
@@ -370,7 +367,7 @@ def carrinho_count_api(request):
 
 @login_required
 def visualizar_carrinho(request):
-    """Exibe o carrinho com todos os itens"""
+    """Exibe o carrinho da sessão (funciona para logados e anônimos)"""
     carrinho = request.session.get('carrinho', {})
     itens = []
     total = 0
@@ -505,30 +502,43 @@ def comprar_agora(request, produto_id):
             messages.error(request, 'Variação do produto não encontrada.')
             return redirect('detalhes_produto', produto_id=produto_id)
         
-        # 🔥 CRIA UM NOVO CARRINHO NA SESSÃO
-        carrinho = {}
-        chave = f"variacao_{variacao.id}"
+        # 🔥 Usuário logado: salva no BANCO
+        if request.user.is_authenticated:
+            # Limpa o carrinho anterior
+            CarrinhoItem.objects.filter(usuario=request.user).delete()
+            
+            # Cria o novo item
+            CarrinhoItem.objects.create(
+                usuario=request.user,
+                variacao=variacao,
+                quantidade=quantidade
+            )
+            
+            messages.success(request, f'{produto.nome} adicionado ao carrinho!')
+            return redirect('visualizar_carrinho')
         
-        carrinho[chave] = {
-            'variacao_id': variacao.id,
-            'produto_id': produto.id,
-            'nome': produto.nome,
-            'quantidade': quantidade,
-            'preco': float(variacao.preco),
-            'cor': cor,
-            'tamanho': tamanho,
-            'imagem': variacao.imagem.url if variacao.imagem else None
-        }
-        
-        # 🔥 SALVA NA SESSÃO E GARANTE QUE FOI SALVO
-        request.session['carrinho'] = carrinho
-        request.session.modified = True  # ← ESSENCIAL!
-        
-        # 🔥 FORÇA O SALVAMENTO DA SESSÃO
-        request.session.save()
-        
-        messages.success(request, f'{produto.nome} adicionado ao carrinho!')
-        return redirect('visualizar_carrinho')
+        # 🔥 Usuário anônimo: salva na SESSÃO
+        else:
+            carrinho = {}
+            chave = f"variacao_{variacao.id}"
+            
+            carrinho[chave] = {
+                'variacao_id': variacao.id,
+                'produto_id': produto.id,
+                'nome': produto.nome,
+                'quantidade': quantidade,
+                'preco': float(variacao.preco),
+                'cor': cor,
+                'tamanho': tamanho,
+                'imagem': variacao.imagem.url if variacao.imagem else None
+            }
+            
+            request.session['carrinho'] = carrinho
+            request.session.modified = True
+            request.session.save()
+            
+            messages.success(request, f'{produto.nome} adicionado ao carrinho!')
+            return redirect('visualizar_carrinho')
     
     return redirect('detalhes_produto', produto_id=produto_id)
 
