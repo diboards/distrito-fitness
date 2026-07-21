@@ -79,74 +79,147 @@
                 <p class="product-description">{{ produto.descricao }}</p>
 
                 <!-- 🔥 FORMULÁRIO PARA COMPRAR AGORA -->
-                <form method="POST" action="{% url 'comprar_agora' produto.id %}" class="buy-form mb-3">
-                    {% csrf_token %}
-                    <input type="hidden" name="cor" id="input-cor-comprar" value="">
-                    <input type="hidden" name="tamanho" id="input-tamanho-comprar" value="">
-                    <input type="hidden" name="quantidade" id="quantidade-comprar" value="1">
-                    
-                    <!-- Miniaturas de cores -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Selecione a cor:</label>
-                        <div class="d-flex gap-2" id="cores-container">
-                            {% for cor_info in cores_com_imagem %}
-                            <button type="button" class="btn p-0 border cor-btn" 
-                                    data-cor="{{ cor_info.cor }}" 
-                                    data-cor-display="{{ cor_info.cor_display }}" 
-                                    data-imagem="{{ cor_info.imagem }}"
-                                    data-target="comprar">
-                                {% if cor_info.imagem %}
-                                    <img src="{{ cor_info.imagem }}" alt="{{ cor_info.cor_display }}" 
-                                         class="img-thumbnail" style="width:60px; height:80px; object-fit:cover;">
-                                {% else %}
-                                    <div class="img-thumbnail d-flex align-items-center justify-content-center"
-                                         style="width:60px;height:80px;background:#f4f4f4;">
-                                        {{ cor_info.cor_display }}
-                                    </div>
-                                {% endif %}
-                            </button>
-                            {% endfor %}
+{% if user.is_authenticated %}
+    <!-- Usuário logado → usa POST com @login_required -->
+    <form method="POST" action="{% url 'comprar_agora' produto.id %}" class="buy-form mb-3">
+        {% csrf_token %}
+        <input type="hidden" name="cor" id="input-cor-comprar" value="">
+        <input type="hidden" name="tamanho" id="input-tamanho-comprar" value="">
+        <input type="hidden" name="quantidade" id="quantidade-comprar" value="1">
+        
+        <!-- Miniaturas de cores -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">Selecione a cor:</label>
+            <div class="d-flex gap-2" id="cores-container">
+                {% for cor_info in cores_com_imagem %}
+                <button type="button" class="btn p-0 border cor-btn" 
+                        data-cor="{{ cor_info.cor }}" 
+                        data-cor-display="{{ cor_info.cor_display }}" 
+                        data-imagem="{{ cor_info.imagem }}"
+                        data-target="comprar">
+                    {% if cor_info.imagem %}
+                        <img src="{{ cor_info.imagem }}" alt="{{ cor_info.cor_display }}" 
+                             class="img-thumbnail" style="width:60px; height:80px; object-fit:cover;">
+                    {% else %}
+                        <div class="img-thumbnail d-flex align-items-center justify-content-center"
+                             style="width:60px;height:80px;background:#f4f4f4;">
+                            {{ cor_info.cor_display }}
                         </div>
-                    </div>
+                    {% endif %}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
 
-                    <!-- Tamanhos -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Selecione o tamanho:</label>
-                        <div id="tamanhos-container" class="d-flex gap-2 flex-wrap">
-                            {% for tamanho in tamanhos_disponiveis %}
-                            <button type="button" 
-                                    class="btn tamanho-btn {% if tamanho.disponivel %}btn-outline-dark{% else %}btn-outline-secondary disabled{% endif %}" 
-                                    data-tamanho="{{ tamanho.valor }}"
-                                    data-target="comprar"
-                                    {% if not tamanho.disponivel %}disabled{% endif %}
-                                    style="min-width: 50px; {% if not tamanho.disponivel %}opacity: 0.5;{% endif %}">
-                                {{ tamanho.label }}
-                                {% if not tamanho.disponivel %}
-                                    <span class="d-block small text-muted">indisponível</span>
-                                {% endif %}
-                            </button>
-                            {% empty %}
-                            <p class="text-muted">Nenhum tamanho disponível.</p>
-                            {% endfor %}
+        <!-- Tamanhos -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">Selecione o tamanho:</label>
+            <div id="tamanhos-container" class="d-flex gap-2 flex-wrap">
+                {% for tamanho in tamanhos_disponiveis %}
+                <button type="button" 
+                        class="btn tamanho-btn {% if tamanho.disponivel %}btn-outline-dark{% else %}btn-outline-secondary disabled{% endif %}" 
+                        data-tamanho="{{ tamanho.valor }}"
+                        data-target="comprar"
+                        {% if not tamanho.disponivel %}disabled{% endif %}
+                        style="min-width: 50px; {% if not tamanho.disponivel %}opacity: 0.5;{% endif %}">
+                    {{ tamanho.label }}
+                    {% if not tamanho.disponivel %}
+                        <span class="d-block small text-muted">indisponível</span>
+                    {% endif %}
+                </button>
+                {% empty %}
+                <p class="text-muted">Nenhum tamanho disponível.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label for="quantidade-input-comprar" class="form-label">Quantidade:</label>
+                <input type="number" id="quantidade-input-comprar" 
+                       class="form-control" min="1" value="1" 
+                       onchange="document.getElementById('quantidade-comprar').value = this.value">
+                <small class="text-muted">Disponível: {{ primeira_variacao.quantidade_estoque|default:0 }} unidades</small>
+            </div>
+        </div>
+
+        <div class="d-grid">
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="bi bi-bag-check"></i> Comprar Agora
+            </button>
+        </div>
+    </form>
+
+{% else %}
+    <!-- Usuário NÃO logado → usa GET com comprar_agora_anonimo -->
+    <form method="GET" action="{% url 'comprar_agora_anonimo' produto.id %}" class="buy-form mb-3">
+        <input type="hidden" name="cor" id="input-cor-comprar-anonimo" value="">
+        <input type="hidden" name="tamanho" id="input-tamanho-comprar-anonimo" value="">
+        <input type="hidden" name="quantidade" id="quantidade-comprar-anonimo" value="1">
+        
+        <!-- Miniaturas de cores -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">Selecione a cor:</label>
+            <div class="d-flex gap-2" id="cores-container-anonimo">
+                {% for cor_info in cores_com_imagem %}
+                <button type="button" class="btn p-0 border cor-btn" 
+                        data-cor="{{ cor_info.cor }}" 
+                        data-cor-display="{{ cor_info.cor_display }}" 
+                        data-imagem="{{ cor_info.imagem }}"
+                        data-target="anonimo">
+                    {% if cor_info.imagem %}
+                        <img src="{{ cor_info.imagem }}" alt="{{ cor_info.cor_display }}" 
+                             class="img-thumbnail" style="width:60px; height:80px; object-fit:cover;">
+                    {% else %}
+                        <div class="img-thumbnail d-flex align-items-center justify-content-center"
+                             style="width:60px;height:80px;background:#f4f4f4;">
+                            {{ cor_info.cor_display }}
                         </div>
-                    </div>
+                    {% endif %}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
 
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="quantidade-input-comprar" class="form-label">Quantidade:</label>
-                            <input type="number" id="quantidade-input-comprar" 
-                                   class="form-control" min="1" value="1" 
-                                   onchange="document.getElementById('quantidade-comprar').value = this.value">
-                            <small class="text-muted">Disponível: {{ primeira_variacao.quantidade_estoque|default:0 }} unidades</small>
-                        </div>
-                    </div>
+        <!-- Tamanhos -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">Selecione o tamanho:</label>
+            <div id="tamanhos-container-anonimo" class="d-flex gap-2 flex-wrap">
+                {% for tamanho in tamanhos_disponiveis %}
+                <button type="button" 
+                        class="btn tamanho-btn {% if tamanho.disponivel %}btn-outline-dark{% else %}btn-outline-secondary disabled{% endif %}" 
+                        data-tamanho="{{ tamanho.valor }}"
+                        data-target="anonimo"
+                        {% if not tamanho.disponivel %}disabled{% endif %}
+                        style="min-width: 50px; {% if not tamanho.disponivel %}opacity: 0.5;{% endif %}">
+                    {{ tamanho.label }}
+                    {% if not tamanho.disponivel %}
+                        <span class="d-block small text-muted">indisponível</span>
+                    {% endif %}
+                </button>
+                {% empty %}
+                <p class="text-muted">Nenhum tamanho disponível.</p>
+                {% endfor %}
+            </div>
+        </div>
 
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-success btn-lg">
-                            <i class="bi bi-bag-check"></i> Comprar Agora
-                        </button>
-                    </div>
-                </form>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label for="quantidade-input-comprar-anonimo" class="form-label">Quantidade:</label>
+                <input type="number" id="quantidade-input-comprar-anonimo" 
+                       class="form-control" min="1" value="1" 
+                       onchange="document.getElementById('quantidade-comprar-anonimo').value = this.value">
+                <small class="text-muted">Disponível: {{ primeira_variacao.quantidade_estoque|default:0 }} unidades</small>
+            </div>
+        </div>
+
+        <div class="d-grid">
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="bi bi-bag-check"></i> Comprar Agora
+            </button>
+        </div>
+    </form>
+{% endif %}
 
                 <!-- 🔥 FORMULÁRIO PARA ADICIONAR AO CARRINHO -->
                 <form method="POST" action="{% url 'adicionar_carrinho' produto.id %}" class="buy-form">
