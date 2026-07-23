@@ -30,9 +30,12 @@
                 {% for pedido in pedidos %}
                 <div class="card mb-4 shadow-sm" data-status="{{ pedido.status_entrega }}" data-id="{{ pedido.id }}">
                     <div class="card-body">
-                        <div class="row">
-                            <!-- LADO ESQUERDO: ITENS DO PEDIDO -->
-                            <div class="col-md-7">
+                        <div class="row align-items-start">
+                            
+                            <!-- ========================================================== -->
+                            <!-- COLUNA A ESQUERDA 1: PRODUTO (Imagem + Informações)                   -->
+                            <!-- ========================================================== -->
+                            <div class="col-md-4">
                                 {% for item in pedido.itens_pedido.all %}
                                 <div class="d-flex align-items-start mb-3">
                                     <!-- Imagem -->
@@ -47,7 +50,7 @@
                                     {% endif %}
                                     
                                     <div>
-                                        <h5 class="mb-1">{{ item.variacao.produto.nome }}</h5>
+                                        <h6 class="mb-1">{{ item.variacao.produto.nome }}</h6>
                                         <p class="mb-0 text-muted small">
                                             Sabor: {{ item.variacao.cor|default:"-" }}<br>
                                             Tamanho: {{ item.variacao.tamanho|default:"-" }}<br>
@@ -59,78 +62,41 @@
                                 {% endfor %}
                             </div>
                             
-                            <!-- LADO DIREITO: STATUS + RESUMO -->
-                            <div class="col-md-5">
-                                <!-- ========================== -->
-                                <!-- STATUS TIMELINE (EM CIMA) -->
-                                <!-- ========================== -->
-                                <div class="status-timeline mb-3">
-                                    <!-- Barra de progresso -->
-                                    <div class="timeline-progress" style="width: {{ pedido.progresso }}%;"></div>
-
-                                    <!-- Pedido realizado -->
-                                    <div class="status-step">
-                                        <div class="status-icon {% if pedido.progresso >= 0 %}active{% endif %}">
-                                            <i class="bi bi-cart"></i>
-                                        </div>
-                                        <div class="status-text {% if pedido.progresso >= 0 %}active{% endif %}">
-                                            Pedido<br>realizado
-                                        </div>
+                            <!-- ========================================================== -->
+                            <!-- COLUNA NO CENTRO 2: STATUS (em coluna)                              -->
+                            <!-- ========================================================== -->
+                            <div class="col-md-4">
+                                <div class="status-list">
+                                    <div class="status-item {% if pedido.progresso >= 0 %}active{% endif %}">
+                                        <span class="status-dot"></span>
+                                        Pedido realizado
                                     </div>
-
-                                    <!-- Pagamento -->
-                                    <div class="status-step">
-                                        <div class="status-icon 
-                                            {% if pedido.status_pagamento == 'aprovado' %}active
-                                            {% elif pedido.status_pagamento == 'pendente' %}bg-warning
-                                            {% else %}inactive{% endif %}">
-                                            <i class="bi bi-credit-card"></i>
-                                        </div>
-                                        <div class="status-text 
-                                            {% if pedido.status_pagamento == 'aprovado' %}active
-                                            {% elif pedido.status_pagamento == 'pendente' %}text-warning
-                                            {% else %}inactive{% endif %}">
-                                            {% if pedido.status_pagamento == 'aprovado' %}Pagamento<br>confirmado
-                                            {% elif pedido.status_pagamento == 'pendente' %}Aguardando<br>pagamento
-                                            {% else %}Pagamento<br>recusado{% endif %}
-                                        </div>
+                                    <div class="status-item {% if pedido.status_pagamento == 'aprovado' %}active{% elif pedido.status_pagamento == 'pendente' %}pending{% endif %}">
+                                        <span class="status-dot"></span>
+                                        {% if pedido.status_pagamento == 'aprovado' %}Pagamento confirmado
+                                        {% elif pedido.status_pagamento == 'pendente' %}Aguardando pagamento
+                                        {% else %}Pagamento recusado{% endif %}
                                     </div>
-
-                                    <!-- Em separação -->
-                                    <div class="status-step">
-                                        <div class="status-icon {% if pedido.status_entrega in 'preparando,enviado,entregue,retirado' %}active{% endif %}">
-                                            <i class="bi bi-gear"></i>
-                                        </div>
-                                        <div class="status-text {% if pedido.status_entrega in 'preparando,enviado,entregue,retirado' %}active{% endif %}">
-                                            Em<br>separação
-                                        </div>
+                                    <div class="status-item {% if pedido.status_entrega in 'preparando,enviado,entregue,retirado' %}active{% endif %}">
+                                        <span class="status-dot"></span>
+                                        Em separação
                                     </div>
-
-                                    <!-- Em transporte -->
-                                    <div class="status-step">
-                                        <div class="status-icon {% if pedido.status_entrega in 'enviado,entregue,retirado' %}active{% endif %}">
-                                            <i class="bi bi-truck"></i>
-                                        </div>
-                                        <div class="status-text {% if pedido.status_entrega in 'enviado,entregue,retirado' %}active{% endif %}">
-                                            Em<br>transporte
-                                        </div>
+                                    <div class="status-item {% if pedido.status_entrega in 'enviado,entregue,retirado' %}active{% endif %}">
+                                        <span class="status-dot"></span>
+                                        Em transporte
                                     </div>
-
-                                    <!-- Pedido entregue -->
-                                    <div class="status-step">
-                                        <div class="status-icon {% if pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}active{% endif %}">
-                                            <i class="bi bi-check-circle"></i>
-                                        </div>
-                                        <div class="status-text {% if pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}active{% endif %}">
-                                            Pedido<br>entregue
-                                        </div>
+                                    <div class="status-item {% if pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}active{% endif %}">
+                                        <span class="status-dot"></span>
+                                        Pedido entregue
                                     </div>
                                 </div>
-
-                                <!-- ========================== -->
-                                <!-- RESUMO (EMBAIXO)          -->
-                                <!-- ========================== -->
-                                <div class="bg-light p-3 rounded mt-3">
+                            </div>
+                            
+                            <!-- ========================================================== -->
+                            <!-- COLUNA A DIREITA 3: RESUMO (Pedido, Data, Valor, Botões)            -->
+                            <!-- ========================================================== -->
+                            <div class="col-md-4">
+                                <div class="bg-light p-3 rounded">
                                     <div class="d-flex justify-content-between mb-1">
                                         <span class="text-muted">Pedido:</span>
                                         <span class="fw-bold">#{{ pedido.id }}</span>
@@ -150,6 +116,7 @@
                                     </div>
                                 </div>
                             </div>
+                            
                         </div>
                     </div>
                 </div>
@@ -187,94 +154,50 @@
     }
     
     /* ========================== */
-    /* STATUS TIMELINE           */
+    /* STATUS EM COLUNA          */
     /* ========================== */
-    .status-timeline {
-        display: flex;
-        justify-content: space-between;
-        position: relative;
-        padding: 0 5px;
-        margin-top: 10px;
-    }
-    .status-timeline::before {
-        content: '';
-        position: absolute;
-        top: 15px;
-        left: 10%;
-        width: 80%;
-        height: 3px;
-        background: #ddd;
-        border-radius: 2px;
-    }
-    .timeline-progress {
-        position: absolute;
-        top: 15px;
-        left: 10%;
-        height: 3px;
-        background: #0d6efd;
-        border-radius: 2px;
-        transition: width 0.6s ease;
-        z-index: 1;
-    }
-    .status-step {
-        text-align: center;
-        z-index: 2;
-        width: 20%;
+    .status-list {
         display: flex;
         flex-direction: column;
-        align-items: center;
+        gap: 6px;
+        padding: 5px 0;
     }
-    .status-icon {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        border: 2px solid #ddd;
-        background: white;
+    .status-item {
         display: flex;
         align-items: center;
-        justify-content: center;
-        font-size: 14px;
+        gap: 10px;
+        font-size: 0.9rem;
         color: #999;
+        padding: 3px 0;
         transition: all 0.3s ease;
-        margin-bottom: 4px;
     }
-    .status-icon.active {
-        border-color: #0d6efd;
-        background: #0d6efd;
-        color: white;
-    }
-    .status-icon.bg-warning {
-        border-color: #ffc107;
-        background: #ffc107;
-        color: #000;
-    }
-    .status-icon.inactive {
-        border-color: #ddd;
-        background: #f5f5f5;
-        color: #bbb;
-    }
-    .status-text {
-        font-size: 0.65rem;
-        color: #999;
-        line-height: 1.2;
-        text-align: center;
-    }
-    .status-text.active {
+    .status-item.active {
         color: #0d6efd;
         font-weight: 600;
     }
-    .status-text.text-warning {
-        color: #ffc107 !important;
+    .status-item.pending {
+        color: #ffc107;
         font-weight: 600;
     }
-    .status-text.inactive {
-        color: #bbb;
+    .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid #ddd;
+        background: white;
+        display: inline-block;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+    .status-item.active .status-dot {
+        border-color: #0d6efd;
+        background: #0d6efd;
+    }
+    .status-item.pending .status-dot {
+        border-color: #ffc107;
+        background: #ffc107;
     }
     
-    .badge {
-        font-size: 0.8rem;
-        padding: 0.4em 0.8em;
-    }
     .shadow-sm {
         box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
