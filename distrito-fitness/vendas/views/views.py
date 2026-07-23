@@ -635,8 +635,8 @@ def finalizar_pedido(request):
 def meus_pedidos(request):
     pedidos = Pedido.objects.filter(usuario=request.user).prefetch_related(
         'itens_pedido', 
-        'itens_pedido__variacao',  # ← Busca a variação
-        'itens_pedido__variacao__produto'  # ← Busca o produto através da variação
+        'itens_pedido__variacao',  # ← BUSCA A VARIAÇÃO
+        'itens_pedido__variacao__produto'  # ← BUSCA O PRODUTO ATRAVÉS DA VARIAÇÃO
     )
 
     for pedido in pedidos:
