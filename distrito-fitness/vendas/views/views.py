@@ -641,6 +641,7 @@ def meus_pedidos(request):
 
     for pedido in pedidos:
         status = pedido.status
+        status_entrega = pedido.status_entrega
 
         pedido.is_pendente = status in ['pendente', 'aguardando_aprovacao']
         pedido.is_aprovado = status in ['aprovado']
@@ -1395,7 +1396,9 @@ def pagamento_sucesso(request, pedido_id):
 
     if pedido.status_pagamento != 'aprovado':
         pedido.status_pagamento = 'aprovado'
-        pedido.status = 'aprovado'  # ✅ corrigido
+        pedido.status = 'aprovado'  # ✅ mantido
+        # 🔥 CORRIGIDO: define status_entrega para 'preparando'
+        pedido.status_entrega = 'preparando'
         pedido.save()
 
     CarrinhoItem.objects.filter(usuario=request.user).delete()
@@ -1406,8 +1409,9 @@ def pagamento_sucesso(request, pedido_id):
 def pagamento_falha(request, pedido_id):
     pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
 
-    pedido.status_pagamento = 'rejeitado'  # melhor que "cancelado"
-    pedido.status = 'cancelado'  # ✅ corrigido
+    pedido.status_pagamento = 'rejeitado'
+    pedido.status = 'cancelado'
+    pedido.status_entrega = 'cancelado'  # ✅ Adicionado
     pedido.save()
 
     return render(request, 'vendas/pagamento_falha.html', {'pedido': pedido})
@@ -1418,49 +1422,52 @@ def pagamento_pendente(request, pedido_id):
 
     pedido.status_pagamento = 'pendente'
     pedido.status = 'pendente'
+    pedido.status_entrega = 'aguardando'  # ✅ Adicionado
     pedido.save()
 
-    return render(request, 'vendas/pagamento_pendente.html', {'pedido': pedido})    
-
+    return render(request, 'vendas/pagamento_pendente.html', {'pedido': pedido})
+    
 @staff_member_required
 def atualizar_status_pedido(pedido):
     try:
         sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
         payment_info = sdk.payment().get(pedido.id_mercado_pago)
 
-        if payment_info["status"] == 200:
-            payment = payment_info["response"]
-            status_mp = payment["status"]
+        if payment_info['status'] == 200:
+            payment = payment_info['response']
+            status_mp = payment['status']
 
             status_map = {
-                "pending": "pendente",
-                "approved": "aprovado",
-                "rejected": "rejeitado",
-                "cancelled": "rejeitado",
+                'pending': 'pendente',
+                'approved': 'aprovado',
+                'rejected': 'rejeitado',
+                'cancelled': 'rejeitado'
             }
 
-            novo_status = status_map.get(status_mp, "pendente")
+            novo_status_pagamento = status_map.get(status_mp, 'pendente')
 
-            if pedido.status_pagamento != novo_status:
-                pedido.status_pagamento = novo_status
+            if pedido.status_pagamento != novo_status_pagamento:
+                pedido.status_pagamento = novo_status_pagamento
 
-                if novo_status == "aprovado":
+                if novo_status_pagamento == 'aprovado':
                     pedido.data_pagamento = timezone.now()
-
-                    # Inicia a logística
-                    if not pedido.status_entrega:
-                        pedido.status_entrega = "preparando"
-
-                    CarrinhoItem.objects.filter(
-                        usuario=pedido.usuario
-                    ).delete()
+                    # 🔥 CORRIGIDO: define status_entrega corretamente
+                    pedido.status_entrega = 'preparando'
+                    pedido.status = 'aprovado'  # ✅ Adicionado
+                    CarrinhoItem.objects.filter(usuario=pedido.usuario).delete()
+                elif novo_status_pagamento == 'pendente':
+                    pedido.status_entrega = 'aguardando'
+                    pedido.status = 'pendente'
+                elif novo_status_pagamento == 'rejeitado':
+                    pedido.status_entrega = 'cancelado'
+                    pedido.status = 'cancelado'
 
                 pedido.save()
 
         return True
 
     except Exception as e:
-        print(e)
+        print(f"Erro ao atualizar status do pedido {pedido.id}: {e}")
         return False
 
 # Views lista todos pedidos
