@@ -327,6 +327,10 @@ function atualizarPrecos() {
 // SELEÇÃO DE COR E TAMANHO (DINÂMICO)
 // ============================================
 
+// ============================================
+// SELEÇÃO DE COR E TAMANHO (DINÂMICO)
+// ============================================
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM carregado - Inicializando página de produto');
     
@@ -345,10 +349,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const sizesByColor = {{ sizes_by_color|safe }};
     const sizeLabels = {{ size_labels|safe }};
 
+    console.log('sizesByColor:', sizesByColor);
+    console.log('sizeLabels:', sizeLabels);
+
     // --- FUNÇÃO PARA ATUALIZAR TAMANHOS POR COR ---
     function atualizarTamanhos(corSelecionada) {
         // Obtém os tamanhos disponíveis para a cor selecionada
         const tamanhosDisponiveis = sizesByColor[corSelecionada] || [];
+        console.log('Tamanhos disponíveis para', corSelecionada, ':', tamanhosDisponiveis);
         
         // Itera sobre todos os botões de tamanho
         tamanhoButtons.forEach(btn => {
@@ -404,6 +412,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- FUNÇÃO PARA DEFINIR COR (com atualização de tamanhos) ---
     function setColor(cor) {
+        console.log('setColor chamado com cor:', cor);
+        
         // Atualiza campos hidden
         if (inputCorComprar) inputCorComprar.value = cor;
         if (inputCorCarrinho) inputCorCarrinho.value = cor;
@@ -415,7 +425,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedBtn = Array.from(corButtons).find(btn => btn.dataset.cor === cor);
         if (selectedBtn) {
             const imagem = selectedBtn.dataset.imagem;
-            if (imagem && mainImage) mainImage.src = imagem;
+            console.log('Imagem encontrada para cor', cor, ':', imagem);
+            if (imagem && mainImage) {
+                mainImage.src = imagem;
+                console.log('Imagem principal atualizada para:', imagem);
+            }
         }
         
         // Remove destaque de outros botões
@@ -457,7 +471,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const imagem = this.dataset.imagem;
             const corDisplayName = this.dataset.corDisplay;
             
-            if (imagem && mainImage) mainImage.src = imagem;
+            console.log('Clique na cor:', cor, 'Imagem:', imagem);
+            
+            if (imagem && mainImage) {
+                mainImage.src = imagem;
+                console.log('Imagem principal atualizada para:', imagem);
+            }
             if (corDisplay) corDisplay.textContent = corDisplayName || cor;
             
             setColor(cor);
@@ -495,6 +514,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- INICIALIZAR: selecionar primeira cor e atualizar tamanhos ---
     if (corButtons.length > 0) {
         const primeiraCor = corButtons[0].dataset.cor;
+        console.log('Inicializando com primeira cor:', primeiraCor);
         setColor(primeiraCor);
         // Atualiza a imagem
         if (corButtons[0].dataset.imagem && mainImage) {
