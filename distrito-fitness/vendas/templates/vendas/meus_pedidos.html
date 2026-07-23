@@ -35,32 +35,32 @@
                             <!-- ========================================================== -->
                             <!-- COLUNA A ESQUERDA 1: PRODUTO (Imagem + Informações)                   -->
                             <!-- ========================================================== -->
-                            <div class="col-md-4">
-                                {% for item in pedido.itens_pedido.all %}
-                                <div class="d-flex align-items-start mb-3">
-                                    <!-- Imagem -->
-                                    {% if item.variacao and item.variacao.imagem %}
-                                        <img src="{{ item.variacao.imagem.url }}" 
-                                             alt="{{ item.variacao.produto.nome }}" 
-                                             class="rounded me-3" style="width: 80px; height: 80px; object-fit: cover;">
-                                    {% else %}
-                                        <img src="{% static 'vendas/images/default-product.png' %}" 
-                                             alt="{{ item.variacao.produto.nome }}" 
-                                             class="rounded me-3" style="width: 80px; height: 80px; object-fit: cover;">
-                                    {% endif %}
-                                    
-                                    <div>
-                                        <h6 class="mb-1">{{ item.variacao.produto.nome }}</h6>
-                                        <p class="mb-0 text-muted small">
-                                            Sabor: {{ item.variacao.cor|default:"-" }}<br>
-                                            Tamanho: {{ item.variacao.tamanho|default:"-" }}<br>
-                                            Quantidade: {{ item.quantidade }}
-                                        </p>
-                                        <p class="fw-bold mb-0">R$ {{ item.subtotal|floatformat:2 }}</p>
+                            <div class="col-md-6">
+                                <!-- Status em coluna -->
+                                <div class="status-list mb-3">
+                                    <div class="status-item {% if pedido.progresso >= 0 %}active{% endif %}">
+                                        <span class="status-dot"></span>
+                                        Pedido realizado
+                                    </div>
+                                    <div class="status-item {% if pedido.status_pagamento == 'aprovado' %}active{% elif pedido.status_pagamento == 'pendente' %}pending{% endif %}">
+                                        <span class="status-dot"></span>
+                                        {% if pedido.status_pagamento == 'aprovado' %}Pagamento confirmado
+                                        {% elif pedido.status_pagamento == 'pendente' %}Aguardando pagamento
+                                        {% else %}Pagamento recusado{% endif %}
+                                    </div>
+                                    <div class="status-item {% if pedido.status_entrega in 'preparando,enviado,entregue,retirado' %}active{% endif %}">
+                                        <span class="status-dot"></span>
+                                        Em separação
+                                    </div>
+                                    <div class="status-item {% if pedido.status_entrega in 'enviado,entregue,retirado' %}active{% endif %}">
+                                        <span class="status-dot"></span>
+                                        Em transporte
+                                    </div>
+                                    <div class="status-item {% if pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}active{% endif %}">
+                                        <span class="status-dot"></span>
+                                        Pedido entregue
                                     </div>
                                 </div>
-                                {% endfor %}
-                            </div>
                             
                             <!-- ========================================================== -->
                             <!-- COLUNA NO CENTRO 2: STATUS (em coluna)                              -->
