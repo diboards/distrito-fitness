@@ -86,28 +86,28 @@
                     <input type="hidden" name="quantidade" id="quantidade-comprar" value="1">
                     
                     <!-- Miniaturas de cores -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Selecione a cor:</label>
-                        <div class="d-flex gap-2" id="cores-container">
-                            {% for cor_info in cores_com_imagem %}
-                            <button type="button" class="btn p-0 border cor-btn" 
-                                    data-cor="{{ cor_info.cor }}" 
-                                    data-cor-display="{{ cor_info.cor_display }}" 
-                                    data-imagem="{{ cor_info.imagem }}"
-                                    data-target="comprar">
-                                {% if cor_info.imagem %}
-                                    <img src="{{ cor_info.imagem }}" alt="{{ cor_info.cor_display }}" 
-                                         class="img-thumbnail" style="width:60px; height:80px; object-fit:cover;">
-                                {% else %}
-                                    <div class="img-thumbnail d-flex align-items-center justify-content-center"
-                                         style="width:60px;height:80px;background:#f4f4f4;">
-                                        {{ cor_info.cor_display }}
-                                    </div>
-                                {% endif %}
-                            </button>
-                            {% endfor %}
-                        </div>
-                    </div>
+<div class="mb-3">
+    <label class="form-label fw-bold">Selecione a cor:</label>
+    <div class="d-flex gap-2" id="cores-container">
+        {% for cor_info in cores_com_imagem %}
+        <button type="button" class="btn p-0 border cor-btn" 
+                data-cor="{{ cor_info.cor }}" 
+                data-cor-display="{{ cor_info.cor_display }}" 
+                data-imagem="{{ cor_info.imagem|default:'' }}"
+                data-target="comprar">
+            {% if cor_info.imagem %}
+                <img src="{{ cor_info.imagem }}" alt="{{ cor_info.cor_display }}" 
+                     class="img-thumbnail" style="width:60px; height:80px; object-fit:cover;">
+            {% else %}
+                <div class="img-thumbnail d-flex align-items-center justify-content-center"
+                     style="width:60px;height:80px;background:#f4f4f4;">
+                    {{ cor_info.cor_display }}
+                </div>
+            {% endif %}
+        </button>
+        {% endfor %}
+    </div>
+</div>
 
                     <!-- Tamanhos -->
 <div class="mb-3">
