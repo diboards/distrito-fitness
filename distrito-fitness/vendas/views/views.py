@@ -178,6 +178,12 @@ def testar_conexao_mp(request):
         })
 
 
+from decimal import Decimal
+from collections import OrderedDict
+from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib import messages
+from ..models import Produto, ProdutoVariacao, TAMANHO_CHOICES  # 🔥 IMPORTE A CONSTANTE
+
 def detalhes_produto(request, produto_id):
     produto = get_object_or_404(Produto, id=produto_id, ativo=True)
     
@@ -189,7 +195,6 @@ def detalhes_produto(request, produto_id):
         return redirect('pagina_inicial')
     
     # 🔥 ORGANIZAR CORES E TAMANHOS POR COR
-    from collections import OrderedDict
     colors = OrderedDict()
     sizes_by_color = {}
     
@@ -212,10 +217,11 @@ def detalhes_produto(request, produto_id):
         if var.tamanho not in sizes_by_color[cor]:
             sizes_by_color[cor].append(var.tamanho)
     
-    # 🔥 LISTA DE TAMANHOS (TODOS OS POSSÍVEIS)
-    TAMANHO_CHOICES = dict(ProdutoVariacao.TAMANHO_CHOICES)
+    # 🔥 LISTA DE TAMANHOS (TODOS OS POSSÍVEIS) - CORRIGIDO
+    # Usa a constante importada do models.py
+    TAMANHO_CHOICES_DICT = dict(TAMANHO_CHOICES)  # Agora TAMANHO_CHOICES é a constante do models.py
     tamanhos_disponiveis = []
-    for val, label in TAMANHO_CHOICES.items():
+    for val, label in TAMANHO_CHOICES_DICT.items():
         # Verifica se o tamanho existe em alguma cor
         existe = any(val in sizes for sizes in sizes_by_color.values())
         tamanhos_disponiveis.append({
@@ -238,12 +244,11 @@ def detalhes_produto(request, produto_id):
         'preco_parcela': preco_parcela.quantize(Decimal("0.01")),
         'cores_com_imagem': list(colors.values()),
         'tamanhos_disponiveis': tamanhos_disponiveis,
-        'sizes_by_color': sizes_by_color,  # 🔥 ESSENCIAL PARA O JAVASCRIPT
-        'size_labels': TAMANHO_CHOICES,     # 🔥 ESSENCIAL PARA O JAVASCRIPT
+        'sizes_by_color': sizes_by_color,  # 🔥 PARA O JAVASCRIPT
+        'size_labels': TAMANHO_CHOICES_DICT,  # 🔥 PARA O JAVASCRIPT
         'primeira_variacao': primeira_variacao,
     }
     return render(request, 'vendas/detalhes_produto.html', context)
-
 
 
 
