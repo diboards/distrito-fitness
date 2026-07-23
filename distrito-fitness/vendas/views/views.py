@@ -1423,17 +1423,45 @@ def pagamento_pendente(request, pedido_id):
     return render(request, 'vendas/pagamento_pendente.html', {'pedido': pedido})    
 
 @staff_member_required
-def atualizar_status_entrega(request, pedido_id):
-    if request.method == 'POST':
-        pedido = get_object_or_404(Pedido, id=pedido_id)
+def atualizar_status_pedido(pedido):
+    try:
+        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+        payment_info = sdk.payment().get(pedido.id_mercado_pago)
 
-        novo_status = request.POST.get('status_entrega')
-        pedido.status_entrega = novo_status
-        pedido.save()
+        if payment_info["status"] == 200:
+            payment = payment_info["response"]
+            status_mp = payment["status"]
 
-        return redirect('gerenciar_pedidos')
+            status_map = {
+                "pending": "pendente",
+                "approved": "aprovado",
+                "rejected": "rejeitado",
+                "cancelled": "rejeitado",
+            }
 
-    return redirect('gerenciar_pedidos')
+            novo_status = status_map.get(status_mp, "pendente")
+
+            if pedido.status_pagamento != novo_status:
+                pedido.status_pagamento = novo_status
+
+                if novo_status == "aprovado":
+                    pedido.data_pagamento = timezone.now()
+
+                    # Inicia a logística
+                    if not pedido.status_entrega:
+                        pedido.status_entrega = "preparando"
+
+                    CarrinhoItem.objects.filter(
+                        usuario=pedido.usuario
+                    ).delete()
+
+                pedido.save()
+
+        return True
+
+    except Exception as e:
+        print(e)
+        return False
 
 # Views lista todos pedidos
 
