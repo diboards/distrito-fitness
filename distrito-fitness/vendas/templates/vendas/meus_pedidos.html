@@ -30,23 +30,23 @@
                 {% for pedido in pedidos %}
                 <div class="card mb-4 shadow-sm" data-status="{{ pedido.status_entrega }}" data-id="{{ pedido.id }}">
                     <div class="card-body">
-                        <div class="row align-items-start">
+                        <div class="row">
                             
                             <!-- ========================================================== -->
-                            <!-- COLUNA 1: PRODUTO (Imagem + Informações)                   -->
+                            <!-- COLUNA 1: PRODUTO (40%)                                   -->
                             <!-- ========================================================== -->
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 {% for item in pedido.itens_pedido.all %}
-                                <div class="d-flex align-items-start mb-3">
+                                <div class="d-flex align-items-start">
                                     <!-- Imagem -->
                                     {% if item.variacao and item.variacao.imagem %}
                                         <img src="{{ item.variacao.imagem.url }}" 
                                              alt="{{ item.variacao.produto.nome }}" 
-                                             class="rounded me-3" style="width: 80px; height: 80px; object-fit: cover;">
+                                             class="rounded me-3" style="width: 70px; height: 70px; object-fit: cover;">
                                     {% else %}
                                         <img src="{% static 'vendas/images/default-product.png' %}" 
                                              alt="{{ item.variacao.produto.nome }}" 
-                                             class="rounded me-3" style="width: 80px; height: 80px; object-fit: cover;">
+                                             class="rounded me-3" style="width: 70px; height: 70px; object-fit: cover;">
                                     {% endif %}
                                     
                                     <div>
@@ -63,59 +63,40 @@
                             </div>
                             
                             <!-- ========================================================== -->
-                            <!-- COLUNA 2: STATUS (com ícones)                             -->
+                            <!-- COLUNA 2: STATUS (30%)                                   -->
                             <!-- ========================================================== -->
-                            <div class="col-md-4">
+                            <div class="col-3">
                                 <div class="status-list">
-                                    <!-- Pedido realizado -->
                                     <div class="status-item {% if pedido.progresso >= 0 %}active{% endif %}">
-                                        <span class="status-icon">
-                                            <i class="bi bi-cart"></i>
-                                        </span>
+                                        <span class="status-icon"><i class="bi bi-cart"></i></span>
                                         Pedido realizado
                                     </div>
-                                    
-                                    <!-- Pagamento -->
                                     <div class="status-item {% if pedido.status_pagamento == 'aprovado' %}active{% elif pedido.status_pagamento == 'pendente' %}pending{% endif %}">
-                                        <span class="status-icon">
-                                            <i class="bi bi-credit-card"></i>
-                                        </span>
+                                        <span class="status-icon"><i class="bi bi-credit-card"></i></span>
                                         {% if pedido.status_pagamento == 'aprovado' %}Pagamento confirmado
                                         {% elif pedido.status_pagamento == 'pendente' %}Aguardando pagamento
                                         {% else %}Pagamento recusado{% endif %}
                                     </div>
-                                    
-                                    <!-- Em separação -->
                                     <div class="status-item {% if pedido.status_entrega in 'preparando,enviado,entregue,retirado' %}active{% endif %}">
-                                        <span class="status-icon">
-                                            <i class="bi bi-gear"></i>
-                                        </span>
+                                        <span class="status-icon"><i class="bi bi-gear"></i></span>
                                         Em separação
                                     </div>
-                                    
-                                    <!-- Em transporte -->
                                     <div class="status-item {% if pedido.status_entrega in 'enviado,entregue,retirado' %}active{% endif %}">
-                                        <span class="status-icon">
-                                            <i class="bi bi-truck"></i>
-                                        </span>
+                                        <span class="status-icon"><i class="bi bi-truck"></i></span>
                                         Em transporte
                                     </div>
-                                    
-                                    <!-- Pedido entregue -->
                                     <div class="status-item {% if pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}active{% endif %}">
-                                        <span class="status-icon">
-                                            <i class="bi bi-check-circle"></i>
-                                        </span>
+                                        <span class="status-icon"><i class="bi bi-check-circle"></i></span>
                                         Pedido entregue
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- ========================================================== -->
-                            <!-- COLUNA 3: RESUMO (Pedido, Data, Valor, Botões)            -->
+                            <!-- COLUNA 3: RESUMO (30%)                                   -->
                             <!-- ========================================================== -->
-                            <div class="col-md-4">
-                                <div class="bg-light p-3 rounded">
+                            <div class="col-3">
+                                <div class="bg-light p-3 rounded h-100 d-flex flex-column justify-content-center">
                                     <div class="d-flex justify-content-between mb-1">
                                         <span class="text-muted">Pedido:</span>
                                         <span class="fw-bold">#{{ pedido.id }}</span>
@@ -178,16 +159,16 @@
     .status-list {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 4px;
         padding: 5px 0;
     }
     .status-item {
         display: flex;
         align-items: center;
-        gap: 10px;
-        font-size: 0.9rem;
+        gap: 8px;
+        font-size: 0.8rem;
         color: #999;
-        padding: 3px 0;
+        padding: 2px 0;
         transition: all 0.3s ease;
     }
     .status-item.active {
@@ -199,15 +180,15 @@
         font-weight: 600;
     }
     .status-icon {
-        width: 24px;
-        height: 24px;
+        width: 22px;
+        height: 22px;
         border-radius: 50%;
         border: 2px solid #ddd;
         background: white;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        font-size: 11px;
         color: #999;
         flex-shrink: 0;
         transition: all 0.3s ease;
@@ -228,6 +209,21 @@
     }
     .bg-light {
         background-color: #f8f9fa !important;
+    }
+    
+    /* 🔥 GARANTE QUE AS COLUNAS FICAM LADO A LADO */
+    .col-4, .col-3 {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .col-4 {
+        flex: 0 0 40%;
+        max-width: 40%;
+    }
+    .col-3 {
+        flex: 0 0 30%;
+        max-width: 30%;
     }
 </style>
 
