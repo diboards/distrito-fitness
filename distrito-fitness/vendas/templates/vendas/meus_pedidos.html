@@ -2,222 +2,218 @@
 {% load static %}
 
 {% block content %}
-
 <div class="container my-5">
     <div class="row">
-        <!-- MENU -->
+        <!-- MENU LATERAL -->
         <div class="col-md-3">
-            <div class="list-group">
-                <a class="list-group-item list-group-item-action active">Pedidos</a>
-                <a class="list-group-item list-group-item-action">Trocas</a>
-                <a class="list-group-item list-group-item-action">Vales</a>
-                <a class="list-group-item list-group-item-action" href="{% url 'meus_enderecos' %}">Meus Endereços</a>
-                <a class="list-group-item list-group-item-action" href="{% url 'meu_perfil' %}">Meu Perfil</a>
-                <a class="list-group-item list-group-item-action">Cartões</a>
+            <div class="list-group mb-4">
+                <a class="list-group-item list-group-item-action active" href="{% url 'meus_pedidos' %}">
+                    <i class="bi bi-box"></i> Meus Pedidos
+                </a>
+                <a class="list-group-item list-group-item-action" href="{% url 'meu_perfil' %}">
+                    <i class="bi bi-person"></i> Meu Perfil
+                </a>
+                <a class="list-group-item list-group-item-action" href="#">
+                    <i class="bi bi-credit-card"></i> Cartões
+                </a>
+                <a class="list-group-item list-group-item-action" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right text-danger"></i> Sair
+                </a>
             </div>
-            
         </div>
 
         <!-- PEDIDOS -->
         <div class="col-md-9">
-            <h3 class="mb-4">Pedidos</h3>
+            <h3 class="mb-4"><i class="bi bi-box"></i> Meus Pedidos</h3>
 
             {% if pedidos %}
                 {% for pedido in pedidos %}
-                <div class="card mb-4" data-status="{{ pedido.status_entrega }}" data-id="{{ pedido.id }}">
-                    <div class="card-body row">
-
-                        <!-- ESQUERDA -->
-                        <div class="col-md-8 border-end">
-                            {% for item in pedido.itens_pedido.all %}
-                            <div class="d-flex mb-3">
-                                {% if item.produto.imagem %}
-                                    <img src="{{ item.produto.imagem.url }}" class="rounded me-3" style="width:100px;height:100px;object-fit:cover;">
-                                {% else %}
-                                    <img src="{% static 'vendas/images/default-product.png' %}" class="rounded me-3" style="width:100px;height:100px;">
-                                {% endif %}
-                                <div>
-                                    <h5>{{ item.produto.nome }}</h5>
-                                    <p>Cor: {{ item.cor_selecionada|default:item.produto.cor }}</p>
-                                    <p>Tamanho: {{ item.tamanho_selecionado|default:item.produto.tamanho }}</p>
-                                    <p>Quantidade: {{ item.quantidade }}</p>
-                                    <p class="fw-bold">R$ {{ item.subtotal }}</p>
+                <div class="card mb-4 shadow-sm" data-status="{{ pedido.status_entrega }}" data-id="{{ pedido.id }}">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <strong>Pedido #{{ pedido.id }}</strong>
+                            <span class="ms-2 text-muted small">
+                                {{ pedido.data_criacao|date:"d/m/Y H:i" }}
+                            </span>
+                        </div>
+                        <div class="mt-2 mt-md-0">
+                            <span class="badge 
+                                {% if pedido.status == 'entregue' %}bg-success
+                                {% elif pedido.status == 'cancelado' %}bg-danger
+                                {% elif pedido.status == 'processando' or pedido.status == 'enviado' %}bg-warning
+                                {% else %}bg-info{% endif %}">
+                                {{ pedido.get_status_display }}
+                            </span>
+                            <span class="badge bg-secondary ms-2">
+                                R$ {{ pedido.total|floatformat:2 }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- ITENS DO PEDIDO -->
+                            <div class="col-md-7">
+                                <h6 class="border-bottom pb-2">Itens do pedido:</h6>
+                                {% for item in pedido.itens_pedido.all %}
+                                <div class="d-flex align-items-center mb-3">
+                                    <!-- Imagem do produto (via variação) -->
+                                    {% if item.variacao and item.variacao.imagem %}
+                                        <img src="{{ item.variacao.imagem.url }}" 
+                                             alt="{{ item.variacao.produto.nome }}" 
+                                             class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                    {% else %}
+                                        <img src="{% static 'vendas/images/default-product.png' %}" 
+                                             alt="{{ item.variacao.produto.nome }}" 
+                                             class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                    {% endif %}
+                                    
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold">
+                                            {{ item.variacao.produto.nome }}
+                                        </div>
+                                        <div class="text-muted small">
+                                            Cor: {{ item.variacao.cor|default:"-" }} | 
+                                            Tamanho: {{ item.variacao.tamanho|default:"-" }}
+                                        </div>
+                                        <div class="small">
+                                            {{ item.quantidade }} x R$ {{ item.preco_unitario|floatformat:2 }}
+                                        </div>
+                                    </div>
+                                    <div class="fw-bold ms-3">
+                                        R$ {{ item.subtotal|floatformat:2 }}
+                                    </div>
                                 </div>
+                                {% endfor %}
                             </div>
-                            {% endfor %}
-
-                            <!-- Timeline baseada em status real -->
-                            <div class="status-timeline mb-3">
-                                <!-- Barra de progresso -->
-                                <div class="timeline-progress" style="width:
-                                    {% if pedido.status_entrega == 'aguardando' %}10%
-                                    {% elif pedido.status_entrega == 'preparando' %}40%
-                                    {% elif pedido.status_entrega == 'enviado' %}70%
-                                    {% elif pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}100%
-                                    {% else %}0%
-                                    {% endif %}">
-                                </div>
-
-                                <!-- Pedido realizado -->
-                                <div class="status-step">
-                                    <div class="status-icon active">
-                                        <i class="bi bi-cart"></i>
+                            
+                            <!-- RESUMO DO PEDIDO -->
+                            <div class="col-md-5">
+                                <div class="bg-light p-3 rounded">
+                                    <h6 class="border-bottom pb-2">Resumo</h6>
+                                    
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Subtotal:</span>
+                                        <span>R$ {{ pedido.total|floatformat:2 }}</span>
                                     </div>
-                                    <div class="status-text active">Pedido realizado</div>
-                                </div>
-
-                                <!-- Pagamento -->
-                                <div class="status-step">
-                                    <div class="status-icon
-                                        {% if pedido.status_pagamento == 'aprovado' %}bg-success
-                                        {% elif pedido.status_pagamento == 'pendente' %}bg-warning
-                                        {% else %}cancelado
-                                        {% endif %}">
-                                        <i class="bi bi-credit-card"></i>
+                                    
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Frete:</span>
+                                        <span>R$ {{ pedido.frete|floatformat:2 }}</span>
                                     </div>
-                                    <div class="status-text
-                                        {% if pedido.status_pagamento == 'aprovado' %}text-success
-                                        {% elif pedido.status_pagamento == 'pendente' %}text-warning
-                                        {% else %}cancelado
-                                        {% endif %}">
-                                        {{ pedido.get_status_pagamento_display }}
+                                    
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Pagamento:</span>
+                                        <span>{{ pedido.get_metodo_pagamento_display }}</span>
                                     </div>
-                                </div>
-
-                                <!-- Preparação -->
-                                <div class="status-step">
-                                    <div class="status-icon
-                                        {% if pedido.status_entrega in 'preparando,enviado,entregue,retirado' %}active{% endif %}">
-                                        <i class="bi bi-gear"></i>
+                                    
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Status:</span>
+                                        <span>{{ pedido.get_status_entrega_display }}</span>
                                     </div>
-                                    <div class="status-text
-                                        {% if pedido.status_entrega in 'preparando,enviado,entregue,retirado' %}active{% endif %}">
-                                        Preparando
+                                    
+                                    {% if pedido.endereco_entrega %}
+                                    <hr>
+                                    <div class="text-muted small">
+                                        <strong>Endereço de entrega:</strong><br>
+                                        {{ pedido.endereco_entrega.rua }}, {{ pedido.endereco_entrega.numero }}<br>
+                                        {% if pedido.endereco_entrega.complemento %}
+                                            {{ pedido.endereco_entrega.complemento }}<br>
+                                        {% endif %}
+                                        {{ pedido.endereco_entrega.bairro }}<br>
+                                        {{ pedido.endereco_entrega.cidade }}/{{ pedido.endereco_entrega.estado }}<br>
+                                        CEP: {{ pedido.endereco_entrega.cep }}
                                     </div>
-                                </div>
-
-                                <!-- Enviado -->
-                                <div class="status-step">
-                                    <div class="status-icon
-                                        {% if pedido.status_entrega in 'enviado,entregue,retirado' %}active{% endif %}">
-                                        <i class="bi bi-truck"></i>
-                                    </div>
-                                    <div class="status-text
-                                        {% if pedido.status_entrega in 'enviado,entregue,retirado' %}active{% endif %}">
-                                        Enviado
-                                    </div>
-                                </div>
-
-                                <!-- Final -->
-                                <div class="status-step">
-                                    <div class="status-icon
-                                        {% if pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}active{% endif %}">
-                                        <i class="bi bi-check-circle"></i>
-                                    </div>
-                                    <div class="status-text
-                                        {% if pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}active{% endif %}">
-                                        {{ pedido.get_status_entrega_display }}
+                                    {% endif %}
+                                    
+                                    <!-- BARRA DE PROGRESSO -->
+                                    <hr>
+                                    <div class="mt-2">
+                                        <div class="d-flex justify-content-between small">
+                                            <span>Pedido</span>
+                                            <span>Enviado</span>
+                                            <span>Entregue</span>
+                                        </div>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar 
+                                                {% if pedido.is_cancelado %}bg-danger
+                                                {% elif pedido.is_entregue %}bg-success
+                                                {% else %}bg-primary{% endif %}" 
+                                                role="progressbar" 
+                                                style="width: {{ pedido.progresso }}%;" 
+                                                aria-valuenow="{{ pedido.progresso }}" 
+                                                aria-valuemin="0" 
+                                                aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                        <div class="text-center small text-muted mt-1">
+                                            {% if pedido.is_cancelado %}
+                                                <span class="text-danger">Pedido cancelado</span>
+                                            {% elif pedido.is_entregue %}
+                                                <span class="text-success">Pedido entregue!</span>
+                                            {% else %}
+                                                {{ pedido.progresso }}% concluído
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- DIREITA -->
-                        <div class="col-md-4 text-center d-flex flex-column justify-content-center">
-                            <h6 class="mb-2">Resumo da compra</h6>
-                            <p><strong>#{{ pedido.id }}</strong></p>
-                            <p><strong>Data:</strong> {{ pedido.data_criacao|date:"d/m/Y" }}</p>
-                            <p class="fw-bold"><strong>Total:</strong> R$ {{ pedido.total }}</p>
-                            <a href="{% url 'detalhes_pedido' pedido.id %}" class="btn btn-primary">Ver detalhes</a>
-                        </div>
-
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <p>Você ainda não possui pedidos.</p>
+                <!-- NENHUM PEDIDO -->
+                <div class="alert alert-info text-center py-5">
+                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                    <h5>Você ainda não tem pedidos</h5>
+                    <p class="text-muted">Faça sua primeira compra na Distrito Fitness!</p>
+                    <a href="{% url 'pagina_inicial' %}" class="btn btn-primary">
+                        <i class="bi bi-shop"></i> Começar a comprar
+                    </a>
+                </div>
             {% endif %}
         </div>
-    </div> <!-- Fecha row -->
-</div> <!-- Fecha container -->
+    </div>
+</div>
 
 <style>
-.status-timeline {
-    display: flex;
-    justify-content: space-between;
-    position: relative;
-    padding: 10px 0;
-}
-.status-timeline::before {
-    content: '';
-    position: absolute;
-    top: 15px;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: #ddd;
-    z-index: 1;
-}
-.timeline-progress {
-    position: absolute;
-    top: 15px;
-    left: 0;
-    height: 3px;
-    background: #0d6efd;
-    z-index: 2;
-}
-.status-step {
-    text-align: center;
-    z-index: 3;
-    width: 20%;
-    background: transparent;
-}
-.status-icon {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: 2px solid #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-}
-.status-icon.active {
-    background: #0d6efd;
-    color: white;
-    border-color: #0d6efd;
-}
-.status-icon.bg-success { background: #198754; color: white; border-color: #198754; }
-.status-icon.bg-warning { background: #ffc107; border-color: #ffc107; }
-.status-text {
-    font-size: 12px;
-    margin-top: 8px;
-}
-.status-text.active {
-    font-weight: bold;
-    color: #0d6efd;
-}
-.status-text.text-success { color: #198754; }
-.status-text.text-warning { color: #ffc107; }
+    .list-group-item.active {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    .list-group-item-action:hover {
+        background-color: #f8f9fa;
+    }
+    .card {
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.2s ease;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+    }
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 1px solid #dee2e6;
+    }
+    .badge {
+        font-size: 0.8rem;
+        padding: 0.4em 0.8em;
+    }
+    .progress {
+        border-radius: 10px;
+        background-color: #e9ecef;
+    }
+    .progress-bar {
+        border-radius: 10px;
+        transition: width 0.6s ease;
+    }
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+    .shadow-sm {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
 </style>
-
-<script>
-function atualizarPedidos() {
-    fetch('/api/meus-pedidos/')
-        .then(res => res.json())
-        .then(data => {
-            data.forEach(pedido => {
-                const card = document.querySelector(`[data-id="${pedido.id}"]`);
-                if (!card) return;
-                // Atualiza status no HTML
-                const statusText = card.querySelector('.status-text:last-child');
-                if (statusText) statusText.innerText = pedido.status_entrega;
-            });
-        })
-        .catch(err => console.error(err));
-}
-// Atualiza a cada 20s
-setInterval(atualizarPedidos, 20000);
-</script>
-
 {% endblock %}
