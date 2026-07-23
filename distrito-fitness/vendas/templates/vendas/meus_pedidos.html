@@ -62,7 +62,7 @@
                             </div>
                             
                             <!-- ========================================================== -->
-                            <!-- COLUNA 2: STATUS (HORIZONTAL COM CORES PERSONALIZADAS)    -->
+                            <!-- COLUNA 2: STATUS (HORIZONTAL COM PISCADA NO ATUAL)        -->
                             <!-- ========================================================== -->
                             <div class="col-md-5">
                                 <div class="status-timeline-horizontal">
@@ -73,7 +73,7 @@
                                     
                                     <!-- Etapas -->
                                     <div class="status-steps">
-                                        <!-- 1. Pedido realizado (sempre azul quando o pedido existe) -->
+                                        <!-- 1. Pedido realizado -->
                                         <div class="status-step">
                                             <div class="step-icon {% if pedido.id %}completed{% endif %}">
                                                 🛒
@@ -103,30 +103,48 @@
                                         
                                         <!-- 3. Em separação -->
                                         <div class="status-step">
-                                            <div class="step-icon {% if pedido.status_entrega in 'preparando,enviado,entregue,retirado' %}completed{% endif %}">
+                                            <div class="step-icon 
+                                                {% if pedido.status_entrega in 'preparando,enviado,entregue,retirado' %}completed
+                                                {% elif pedido.status_entrega == 'preparando' %}pending
+                                                {% else %}inactive{% endif %}">
                                                 ⚙️
                                             </div>
-                                            <div class="step-label {% if pedido.status_entrega in 'preparando,enviado,entregue,retirado' %}completed{% endif %}">
+                                            <div class="step-label 
+                                                {% if pedido.status_entrega in 'preparando,enviado,entregue,retirado' %}completed
+                                                {% elif pedido.status_entrega == 'preparando' %}pending
+                                                {% else %}inactive{% endif %}">
                                                 Em<br>separação
                                             </div>
                                         </div>
                                         
                                         <!-- 4. Em transporte -->
                                         <div class="status-step">
-                                            <div class="step-icon {% if pedido.status_entrega in 'enviado,entregue,retirado' %}completed{% endif %}">
+                                            <div class="step-icon 
+                                                {% if pedido.status_entrega in 'enviado,entregue,retirado' %}completed
+                                                {% elif pedido.status_entrega == 'enviado' %}pending
+                                                {% else %}inactive{% endif %}">
                                                 🚚
                                             </div>
-                                            <div class="step-label {% if pedido.status_entrega in 'enviado,entregue,retirado' %}completed{% endif %}">
+                                            <div class="step-label 
+                                                {% if pedido.status_entrega in 'enviado,entregue,retirado' %}completed
+                                                {% elif pedido.status_entrega == 'enviado' %}pending
+                                                {% else %}inactive{% endif %}">
                                                 Em<br>transporte
                                             </div>
                                         </div>
                                         
                                         <!-- 5. Pedido entregue -->
                                         <div class="status-step">
-                                            <div class="step-icon {% if pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}completed{% endif %}">
+                                            <div class="step-icon 
+                                                {% if pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}completed
+                                                {% elif pedido.status_entrega == 'entregue' %}pending
+                                                {% else %}inactive{% endif %}">
                                                 ✅
                                             </div>
-                                            <div class="step-label {% if pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}completed{% endif %}">
+                                            <div class="step-label 
+                                                {% if pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}completed
+                                                {% elif pedido.status_entrega == 'entregue' %}pending
+                                                {% else %}inactive{% endif %}">
                                                 Pedido<br>entregue
                                             </div>
                                         </div>
@@ -195,7 +213,7 @@
     }
     
     /* ========================================================== */
-    /* STATUS HORIZONTAL COM ÍCONES PERSONALIZADOS                */
+    /* STATUS HORIZONTAL COM PISCADA NO STATUS ATUAL              */
     /* ========================================================== */
     .status-timeline-horizontal {
         position: relative;
@@ -251,13 +269,13 @@
         color: white;
         box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
     }
-    /* 🔥 Fundo AMARELO para status pendente */
+    /* 🔥 Fundo AMARELO + PISCADA para status atual (pendente) */
     .step-icon.pending {
         border-color: #ffc107;
         background: #ffc107;
         color: #000;
         box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
-        animation: pulse 1.5s infinite;
+        animation: pulse 1.5s ease-in-out infinite;
     }
     /* 🔥 Fundo CINZA para status inativo */
     .step-icon.inactive {
@@ -267,8 +285,14 @@
     }
     
     @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+        0%, 100% { 
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
+        }
+        50% { 
+            transform: scale(1.08);
+            box-shadow: 0 0 20px 8px rgba(255, 193, 7, 0.15);
+        }
     }
     
     .step-label {
@@ -278,18 +302,22 @@
         line-height: 1.2;
         font-weight: 500;
     }
-    /* 🔥 Texto AZUL para status concluído */
     .step-label.completed {
         color: #0d6efd;
         font-weight: 600;
     }
-    /* 🔥 Texto AMARELO para status pendente */
     .step-label.pending {
         color: #ffc107;
         font-weight: 600;
+        animation: pulse-text 1.5s ease-in-out infinite;
     }
     .step-label.inactive {
         color: #adb5bd;
+    }
+    
+    @keyframes pulse-text {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
     }
     
     .shadow-sm {
