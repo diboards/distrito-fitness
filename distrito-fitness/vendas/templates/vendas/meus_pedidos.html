@@ -31,7 +31,7 @@
                 <div class="card mb-4 shadow-sm" data-status="{{ pedido.status_entrega }}" data-id="{{ pedido.id }}">
                     <div class="card-body">
                         <div class="row">
-                            <!-- ITENS DO PEDIDO -->
+                            <!-- LADO ESQUERDO: ITENS DO PEDIDO -->
                             <div class="col-md-7">
                                 {% for item in pedido.itens_pedido.all %}
                                 <div class="d-flex align-items-start mb-3">
@@ -59,9 +59,11 @@
                                 {% endfor %}
                             </div>
                             
-                            <!-- STATUS E RESUMO -->
+                            <!-- LADO DIREITO: STATUS + RESUMO -->
                             <div class="col-md-5">
-                                <!-- Status Timeline -->
+                                <!-- ========================== -->
+                                <!-- STATUS TIMELINE (EM CIMA) -->
+                                <!-- ========================== -->
                                 <div class="status-timeline mb-3">
                                     <!-- Barra de progresso -->
                                     <div class="timeline-progress" style="width: {{ pedido.progresso }}%;"></div>
@@ -71,10 +73,12 @@
                                         <div class="status-icon {% if pedido.progresso >= 0 %}active{% endif %}">
                                             <i class="bi bi-cart"></i>
                                         </div>
-                                        <div class="status-text {% if pedido.progresso >= 0 %}active{% endif %}">Pedido<br>realizado</div>
+                                        <div class="status-text {% if pedido.progresso >= 0 %}active{% endif %}">
+                                            Pedido<br>realizado
+                                        </div>
                                     </div>
 
-                                    <!-- Pagamento confirmado -->
+                                    <!-- Pagamento -->
                                     <div class="status-step">
                                         <div class="status-icon 
                                             {% if pedido.status_pagamento == 'aprovado' %}active
@@ -123,7 +127,9 @@
                                     </div>
                                 </div>
 
-                                <!-- Resumo -->
+                                <!-- ========================== -->
+                                <!-- RESUMO (EMBAIXO)          -->
+                                <!-- ========================== -->
                                 <div class="bg-light p-3 rounded mt-2">
                                     <div class="d-flex justify-content-between mb-1">
                                         <span class="text-muted">Pedido:</span>
@@ -180,7 +186,9 @@
         transform: translateY(-2px);
     }
     
-    /* STATUS TIMELINE */
+    /* ========================== */
+    /* STATUS TIMELINE           */
+    /* ========================== */
     .status-timeline {
         display: flex;
         justify-content: space-between;
