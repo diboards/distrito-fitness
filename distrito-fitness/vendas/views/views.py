@@ -635,7 +635,8 @@ def finalizar_pedido(request):
 def meus_pedidos(request):
     pedidos = Pedido.objects.filter(usuario=request.user).prefetch_related(
         'itens_pedido', 
-        'itens_pedido__produto'
+        'itens_pedido__variacao',  # ← Busca a variação
+        'itens_pedido__variacao__produto'  # ← Busca o produto através da variação
     )
 
     for pedido in pedidos:
@@ -666,8 +667,8 @@ def meus_pedidos(request):
     return render(request, 'vendas/meus_pedidos.html', {
         'pedidos': pedidos
     })
-# Views Checkout 
 
+# Views Checkout 
 @login_required
 def checkout(request):
     itens_carrinho = CarrinhoItem.objects.filter(usuario=request.user)
