@@ -63,30 +63,49 @@
                             </div>
                             
                             <!-- ========================================================== -->
-                            <!-- COLUNA 2: STATUS (em coluna)                              -->
+                            <!-- COLUNA 2: STATUS (com ícones)                             -->
                             <!-- ========================================================== -->
                             <div class="col-md-4">
                                 <div class="status-list">
+                                    <!-- Pedido realizado -->
                                     <div class="status-item {% if pedido.progresso >= 0 %}active{% endif %}">
-                                        <span class="status-dot"></span>
+                                        <span class="status-icon">
+                                            <i class="bi bi-cart"></i>
+                                        </span>
                                         Pedido realizado
                                     </div>
+                                    
+                                    <!-- Pagamento -->
                                     <div class="status-item {% if pedido.status_pagamento == 'aprovado' %}active{% elif pedido.status_pagamento == 'pendente' %}pending{% endif %}">
-                                        <span class="status-dot"></span>
+                                        <span class="status-icon">
+                                            <i class="bi bi-credit-card"></i>
+                                        </span>
                                         {% if pedido.status_pagamento == 'aprovado' %}Pagamento confirmado
                                         {% elif pedido.status_pagamento == 'pendente' %}Aguardando pagamento
                                         {% else %}Pagamento recusado{% endif %}
                                     </div>
+                                    
+                                    <!-- Em separação -->
                                     <div class="status-item {% if pedido.status_entrega in 'preparando,enviado,entregue,retirado' %}active{% endif %}">
-                                        <span class="status-dot"></span>
+                                        <span class="status-icon">
+                                            <i class="bi bi-gear"></i>
+                                        </span>
                                         Em separação
                                     </div>
+                                    
+                                    <!-- Em transporte -->
                                     <div class="status-item {% if pedido.status_entrega in 'enviado,entregue,retirado' %}active{% endif %}">
-                                        <span class="status-dot"></span>
+                                        <span class="status-icon">
+                                            <i class="bi bi-truck"></i>
+                                        </span>
                                         Em transporte
                                     </div>
+                                    
+                                    <!-- Pedido entregue -->
                                     <div class="status-item {% if pedido.status_entrega == 'entregue' or pedido.status_entrega == 'retirado' %}active{% endif %}">
-                                        <span class="status-dot"></span>
+                                        <span class="status-icon">
+                                            <i class="bi bi-check-circle"></i>
+                                        </span>
                                         Pedido entregue
                                     </div>
                                 </div>
@@ -154,7 +173,7 @@
     }
     
     /* ========================== */
-    /* STATUS EM COLUNA          */
+    /* STATUS COM ÍCONES          */
     /* ========================== */
     .status-list {
         display: flex;
@@ -179,23 +198,29 @@
         color: #ffc107;
         font-weight: 600;
     }
-    .status-dot {
-        width: 12px;
-        height: 12px;
+    .status-icon {
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         border: 2px solid #ddd;
         background: white;
-        display: inline-block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #999;
         flex-shrink: 0;
         transition: all 0.3s ease;
     }
-    .status-item.active .status-dot {
+    .status-item.active .status-icon {
         border-color: #0d6efd;
         background: #0d6efd;
+        color: white;
     }
-    .status-item.pending .status-dot {
+    .status-item.pending .status-icon {
         border-color: #ffc107;
         background: #ffc107;
+        color: #000;
     }
     
     .shadow-sm {
