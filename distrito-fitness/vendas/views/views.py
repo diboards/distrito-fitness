@@ -679,7 +679,6 @@ def checkout(request):
     total = sum(item.subtotal for item in itens_carrinho)
     enderecos = EnderecoEntrega.objects.filter(usuario=request.user)
     
-    # Verificar se é uma requisição AJAX (apenas uma vez, fora do POST)
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
     if request.method == 'POST':
@@ -689,7 +688,6 @@ def checkout(request):
         print("tipo_entrega:", request.POST.get('tipo_entrega'))
         print("is_ajax:", is_ajax)
         
-        # VERIFICAR SE É UMA AÇÃO DE ADICIONAR ENDEREÇO
         if request.POST.get('action') == 'adicionar_endereco':
             return adicionar_endereco_checkout(request)
         
@@ -706,14 +704,12 @@ def checkout(request):
         try:
             endereco = get_object_or_404(EnderecoEntrega, id=endereco_id, usuario=request.user)
             
-            # Calcular frete
             from decimal import Decimal
             frete = Decimal('15.00') if tipo_entrega == 'entrega' else Decimal('0.00')
             total_com_frete = total + frete
             
-            # Aplicar desconto PIX
             if metodo_pagamento == 'pix':
-                total_com_frete = total_com_frete * Decimal('0.90')  # 10% de desconto
+                total_com_frete = total_com_frete * Decimal('0.90')
             
             # Criar pedido
             pedido = Pedido.objects.create(
@@ -728,22 +724,23 @@ def checkout(request):
             
             print(f"Pedido criado: #{pedido.id}")
             
-            # Criar itens do pedido
+            # 🔥 CRIAR ITENS DO PEDIDO USANDO VARIAÇÃO
             for item_carrinho in itens_carrinho:
+                if not item_carrinho.variacao:
+                    print(f"⚠️ Item sem variação: {item_carrinho.id}")
+                    continue
+                
                 ItemPedido.objects.create(
                     pedido=pedido,
-                    produto=item_carrinho.produto,
+                    variacao=item_carrinho.variacao,  # ← USA A VARIAÇÃO
                     quantidade=item_carrinho.quantidade,
-                    cor_selecionada=item_carrinho.cor_selecionada,
-                    tamanho_selecionado=item_carrinho.tamanho_selecionado,
-                    preco_unitario=item_carrinho.produto.preco
+                    preco_unitario=item_carrinho.variacao.preco  # ← PREÇO DA VARIAÇÃO
                 )
-                print(f"Item adicionado: {item_carrinho.produto.nome}")
+                print(f"Item adicionado: {item_carrinho.variacao.produto.nome} - {item_carrinho.variacao.cor}/{item_carrinho.variacao.tamanho}")
             
             # Limpar carrinho
             itens_carrinho.delete()
             
-            # Processar pagamento baseado no método escolhido
             if metodo_pagamento == 'pix':
                 if is_ajax:
                     return JsonResponse({
@@ -753,7 +750,6 @@ def checkout(request):
                         'redirect_url': reverse('processar_pagamento_pix', args=[pedido.id])
                     })
                 else:
-                    print(f"DEBUG: Redirecionando para PIX do pedido {pedido.id}")
                     return redirect('processar_pagamento_pix', pedido_id=pedido.id)
                     
             elif metodo_pagamento == 'cartao':
@@ -765,7 +761,6 @@ def checkout(request):
                         'total': float(pedido.total)
                     })
                 else:
-                    print(f"DEBUG: Redirecionando para página de pagamento com cartão do pedido {pedido.id}")
                     return redirect('processar_pagamento_cartao', pedido_id=pedido.id)
             
         except Exception as e:
@@ -778,12 +773,26 @@ def checkout(request):
             messages.error(request, f'Erro ao processar pedido: {str(e)}')
             return redirect('checkout')
     
-    # SE FOR GET (mostrar o formulário)
+    # 🔥 PREPARAR ITENS PARA O TEMPLATE (com cor/tamanho da variação)
+    itens_para_template = []
+    for item in itens_carrinho:
+        if item.variacao:
+            itens_para_template.append({
+                'id': item.id,
+                'produto': item.variacao.produto,  # ← Produto
+                'variacao': item.variacao,  # ← Variação
+                'quantidade': item.quantidade,
+                'cor_selecionada': item.variacao.cor,  # ← COR DA VARIAÇÃO
+                'tamanho_selecionado': item.variacao.tamanho,  # ← TAMANHO DA VARIAÇÃO
+                'subtotal': item.subtotal,
+                'imagem': item.variacao.imagem.url if item.variacao.imagem else None,
+            })
+    
     return render(request, 'vendas/checkout.html', {
-        'itens_carrinho': itens_carrinho,
+        'itens_carrinho': itens_para_template,  # ← DADOS CORRETOS
         'total': total,
         'enderecos': enderecos,
-         'MERCADOPAGO_PUBLIC_KEY': settings.MERCADOPAGO_PUBLIC_KEY,  # ADICIONE ESTA LINHA
+        'MERCADOPAGO_PUBLIC_KEY': settings.MERCADOPAGO_PUBLIC_KEY,
     })
 
 
