@@ -39,7 +39,7 @@ urlpatterns = [
     
     # Painel
     path('painel/pedidos/', views_principais.gerenciar_pedidos, name='gerenciar_pedidos'),
-    path('painel/pedido/<int:pedido_id>/status/', views_principais.atualizar_status_entrega, name='atualizar_status_entrega'),
+    #path('painel/pedido/<int:pedido_id>/status/', views_principais.atualizar_status_entrega, name='atualizar_status_entrega'),
     
     # Carrinho e produtos
     path('produto/<int:produto_id>/', views_principais.detalhes_produto, name='detalhes_produto'),
