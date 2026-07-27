@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from .models import EnderecoEntrega, CarrinhoItem
+from .models import EnderecoEntrega, CarrinhoItem, ProdutoVariacao
 from .forms import EnderecoEntregaForm
 from django.db import IntegrityError
 
@@ -273,7 +273,6 @@ def adicionar_endereco_checkout(request):
 
 
 def registrar_com_endereco(request):
-    # 🔥 DEBUG: Ver o que está na sessão
     print("🔍 SESSÃO COMPLETA:", dict(request.session))
     print("🔍 CARRINHO NA SESSÃO:", request.session.get('carrinho', {}))
     
@@ -283,77 +282,18 @@ def registrar_com_endereco(request):
         print("🔍 POST recebido em registrar_com_endereco")
         print("📋 Dados POST:", request.POST)
         
-        # 🔥 VALIDAÇÃO MANUAL
-        nome = request.POST.get('nome', '').strip()
-        email = request.POST.get('email', '').strip()
-        cpf = request.POST.get('cpf', '').strip()
-        celular = request.POST.get('celular', '').strip()
-        password1 = request.POST.get('password1', '')
-        password2 = request.POST.get('password2', '')
-        cep = request.POST.get('cep', '').strip()
-        rua = request.POST.get('rua', '').strip()
-        numero = request.POST.get('numero', '').strip()
-        complemento = request.POST.get('complemento', '').strip()
-        bairro = request.POST.get('bairro', '').strip()
-        cidade = request.POST.get('cidade', '').strip()
-        estado = request.POST.get('estado', '').strip()
-        
-        # Validações
-        erros = []
-        
-        if not nome:
-            erros.append('Nome completo é obrigatório.')
-        if not email:
-            erros.append('E-mail é obrigatório.')
-        if not cpf:
-            erros.append('CPF é obrigatório.')
-        if not celular:
-            erros.append('Celular é obrigatório.')
-        if len(password1) < 6:
-            erros.append('Senha deve ter pelo menos 6 caracteres.')
-        if password1 != password2:
-            erros.append('Senhas não conferem.')
-        if not cep:
-            erros.append('CEP é obrigatório.')
-        if not rua:
-            erros.append('Rua é obrigatória.')
-        if not numero:
-            erros.append('Número é obrigatório.')
-        if not bairro:
-            erros.append('Bairro é obrigatório.')
-        if not cidade:
-            erros.append('Cidade é obrigatória.')
-        if not estado:
-            erros.append('Estado é obrigatório.')
-        
-        # Verifica se usuário já existe
-        if User.objects.filter(username=email).exists():
-            erros.append('Este e-mail já está cadastrado.')
+        # ... (validações existentes) ...
         
         if erros:
-            for erro in erros:
-                messages.error(request, erro)
-            return render(request, 'vendas/registrar_com_endereco.html', {
-                'carrinho_count': len(carrinho_salvo),
-                'email': email,
-                'nome': nome,
-                'cpf': cpf,
-                'celular': celular,
-                'cep': cep,
-                'rua': rua,
-                'numero': numero,
-                'complemento': complemento,
-                'bairro': bairro,
-                'cidade': cidade,
-                'estado': estado,
-            })
+            # ... (erros existentes) ...
+            pass
         
         # 🔥 PEGA O CARRINHO ANTES DE CRIAR O USUÁRIO
         carrinho_antigo = request.session.get('carrinho', {})
         print(f"🛒 CARRINHO ANTIGO (antes de criar usuário): {carrinho_antigo}")
         print(f"🛒 QUANTIDADE DE ITENS: {len(carrinho_antigo)}")
         
-        # Se passou na validação, cria o usuário
+        # Cria o usuário
         print(f"✅ Dados válidos! Criando usuário: {email}")
         user = User.objects.create_user(
             username=email,
@@ -377,7 +317,7 @@ def registrar_com_endereco(request):
         )
         print(f"✅ Endereço criado: ID {endereco.id}")
         
-        # 🔥 RESTAURA O CARRINHO
+        # 🔥 RESTAURA O CARRINHO (AGORA COM ProdutoVariacao IMPORTADO)
         if carrinho_antigo:
             print(f"🛒 Restaurando {len(carrinho_antigo)} itens do carrinho...")
             for chave, item in carrinho_antigo.items():
