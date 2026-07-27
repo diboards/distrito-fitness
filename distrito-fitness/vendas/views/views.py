@@ -1541,23 +1541,20 @@ def estoque(request):
     categoria_filter = request.GET.get('categoria', '')
     estoque_baixo_filter = request.GET.get('estoque_baixo', '')
 
-    # Query base
+    # Query base com pré-carregamento das variações
     produtos = Produto.objects.prefetch_related('variacoes').all()
     
     # 🔥 APLICAR FILTROS
-    # 1. Filtro por Status
     if status_filter == 'ativo':
         produtos = produtos.filter(ativo=True)
     elif status_filter == 'inativo':
         produtos = produtos.filter(ativo=False)
     
-    # 2. Filtro por Categoria
     if categoria_filter:
         produtos = produtos.filter(categoria=categoria_filter)
     
-    # 3. Filtro por Estoque Baixo
+    # Filtro por Estoque Baixo (usando as variações)
     if estoque_baixo_filter == 'sim':
-        # Produtos com variações com estoque <= 5
         produtos_ids = []
         for p in produtos:
             if p.variacoes.filter(quantidade_estoque__lte=5).exists():
@@ -1570,40 +1567,48 @@ def estoque(request):
                 produtos_ids.append(p.id)
         produtos = produtos.filter(id__in=produtos_ids)
 
-    produtos_com_precos = []
+    # 🔥 CALCULAR TOTAIS
+    total_produtos = Produto.objects.count()
+    produtos_ativos = Produto.objects.filter(ativo=True).count()
+    produtos_inativos = Produto.objects.filter(ativo=False).count()
+    
     total_estoque_geral = 0
+    for p in produtos:
+        for variacao in p.variacoes.all():
+            total_estoque_geral += variacao.quantidade_estoque
 
+    # 🔥 PREPARAR OS PRODUTOS COM A PRIMEIRA VARIAÇÃO PARA EXIBIÇÃO NO CARD
+    produtos_com_precos = []
     for p in produtos:
         variacao = p.variacoes.first()
-
+        
         imagem_url = None
         preco = 0
         estoque = 0
         cor = 'N/A'
         tamanho = 'N/A'
-
+        
         if variacao:
             preco = variacao.preco
             estoque = variacao.quantidade_estoque
-            total_estoque_geral += estoque
             cor = variacao.cor
             tamanho = variacao.tamanho
-
+            
             try:
                 if variacao.imagem:
                     imagem_url = variacao.imagem.url.replace("http://", "https://")
-            except Exception as e:
-                print("ERRO IMAGEM:", e)
-
+            except:
+                pass
+        
         if not imagem_url and p.imagem:
             try:
                 imagem_url = p.imagem.url.replace("http://", "https://")
-            except Exception as e:
-                print("ERRO IMAGEM PRODUTO:", e)
-
+            except:
+                pass
+        
         if not imagem_url:
             imagem_url = "https://placehold.co/300x200?text=Sem+Imagem"
-
+        
         produtos_com_precos.append({
             'id': p.id,
             'nome': p.nome,
@@ -1614,14 +1619,16 @@ def estoque(request):
             'imagem': imagem_url,
             'categoria': p.get_categoria_display(),
             'ativo': p.ativo,
-            'data_cadastro': p.data_cadastro,
+            'data_cadastro': p.data_criacao if hasattr(p, 'data_criacao') else p.data_cadastro,
+            # 🔥 ADICIONA O OBJETO PRODUTO COMPLETO PARA O MODAL
+            'produto_obj': p,
         })
 
     context = {
         'produtos': produtos_com_precos,
-        'total_produtos': Produto.objects.count(),
-        'produtos_ativos': Produto.objects.filter(ativo=True).count(),
-        'produtos_inativos': Produto.objects.filter(ativo=False).count(),
+        'total_produtos': total_produtos,
+        'produtos_ativos': produtos_ativos,
+        'produtos_inativos': produtos_inativos,
         'total_estoque': total_estoque_geral,
     }
 
