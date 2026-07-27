@@ -1627,54 +1627,63 @@ def estoque(request):
 
     return render(request, 'vendas/estoque.html', context)
 
-@superuser_required
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def editar_produto(request, produto_id):
     produto = get_object_or_404(Produto, id=produto_id)
     
     if request.method == 'POST':
-        # Atualizar dados do produto base
+        # 🔥 ATUALIZA O PRODUTO
         produto.nome = request.POST.get('nome')
-        produto.descricao = request.POST.get('descricao')
+        produto.descricao = request.POST.get('descricao', '')
         produto.categoria = request.POST.get('categoria')
-        
-        # 🔥 CORRIGIR AQUI - Status
-        ativo = request.POST.get('ativo')
-        if ativo == '1' or ativo == 'on' or ativo == 'true':
-            produto.ativo = True
-        else:
-            produto.ativo = False
-        
-        # Atualizar imagem do produto se enviada
-        if request.FILES.get('imagem'):
-            produto.imagem = request.FILES['imagem']
-        
+        produto.ativo = request.POST.get('ativo') == '1'
         produto.save()
         
-        # Atualizar a primeira variação
-        variacao = produto.variacoes.first()
-        if variacao:
-            variacao.preco = request.POST.get('preco')
-            variacao.quantidade_estoque = request.POST.get('quantidade_estoque')
-            variacao.cor = request.POST.get('cor')
-            variacao.tamanho = request.POST.get('tamanho')
-            
-            if request.FILES.get('imagem_variacao'):
-                variacao.imagem = request.FILES['imagem_variacao']
-            
-            variacao.save()
+        # 🔥 EXCLUI VARIAÇÕES MARCADAS
+        excluir_ids = request.POST.getlist('excluir_variacao[]')
+        if excluir_ids:
+            produto.variacoes.filter(id__in=excluir_ids).delete()
         
-        messages.success(request, 'Produto atualizado com sucesso!')
+        # 🔥 ADICIONA/ATUALIZA VARIAÇÃO
+        cor = request.POST.get('cor', '').strip()
+        tamanho = request.POST.get('tamanho', '').strip()
+        preco = request.POST.get('preco', '').strip()
+        quantidade_estoque = request.POST.get('quantidade_estoque', '').strip()
+        
+        if cor and tamanho and preco and quantidade_estoque:
+            try:
+                # Verifica se já existe uma variação com esta combinação
+                variacao_existente = ProdutoVariacao.objects.filter(
+                    produto=produto,
+                    cor=cor,
+                    tamanho=tamanho
+                ).first()
+                
+                if variacao_existente:
+                    # Atualiza a variação existente
+                    variacao_existente.preco = Decimal(preco)
+                    variacao_existente.quantidade_estoque = int(quantidade_estoque)
+                    if request.FILES.get('imagem'):
+                        variacao_existente.imagem = request.FILES.get('imagem')
+                    variacao_existente.save()
+                else:
+                    # Cria uma nova variação
+                    ProdutoVariacao.objects.create(
+                        produto=produto,
+                        cor=cor,
+                        tamanho=tamanho,
+                        preco=Decimal(preco),
+                        quantidade_estoque=int(quantidade_estoque),
+                        imagem=request.FILES.get('imagem') if request.FILES.get('imagem') else None
+                    )
+            except (ValueError, TypeError, Decimal.InvalidOperation):
+                messages.error(request, 'Erro ao salvar variação. Verifique os valores.')
+        
+        messages.success(request, f'Produto "{produto.nome}" atualizado com sucesso!')
         return redirect('estoque')
     
-    variacao = produto.variacoes.first()
-    
-    context = {
-        'produto': produto,
-        'variacao': variacao,
-    }
-    return render(request, 'vendas/editar_produto.html', context)
+    return redirect('estoque')
     
 @superuser_required
 @login_required
