@@ -278,9 +278,14 @@ def registrar_com_endereco(request):
     carrinho_salvo = request.session.get('carrinho', {})
     
     if request.method == 'POST':
+        print("🔍 POST recebido em registrar_com_endereco")
+        print("📋 Dados POST:", request.POST)
+        
         form = UsuarioComEnderecoForm(request.POST)
         
         if form.is_valid():
+            print("✅ Formulário válido!")
+            
             # 🔥 SALVA O CARRINHO ANTES DE CRIAR O USUÁRIO
             carrinho_antigo = request.session.get('carrinho', {})
             
@@ -291,24 +296,15 @@ def registrar_com_endereco(request):
             celular = form.cleaned_data['celular']
             password = form.cleaned_data['password1']
             
+            print(f"📧 Criando usuário: {email}")
+            
             # 🔥 CRIA O USUÁRIO
             user = User.objects.create_user(
-                username=email,  # Usa o email como username
+                username=email,
                 email=email,
                 password=password,
                 first_name=nome
             )
-            
-            # 🔥 CRIA O PERFIL (se tiver o modelo Perfil)
-            try:
-                from .models import Perfil
-                Perfil.objects.create(
-                    usuario=user,
-                    telefone=celular,
-                    cpf=cpf
-                )
-            except:
-                pass  # Se não tiver o modelo Perfil, ignora
             
             # 🔥 CRIA O ENDEREÇO
             endereco = EnderecoEntrega.objects.create(
@@ -323,8 +319,11 @@ def registrar_com_endereco(request):
                 principal=True
             )
             
+            print(f"📍 Endereço criado: {endereco}")
+            
             # 🔥 RESTAURA O CARRINHO PARA O USUÁRIO LOGADO
             if carrinho_antigo:
+                print(f"🛒 Restaurando {len(carrinho_antigo)} itens do carrinho...")
                 for chave, item in carrinho_antigo.items():
                     try:
                         variacao_id = item.get('variacao_id')
@@ -335,10 +334,10 @@ def registrar_com_endereco(request):
                                 variacao=variacao,
                                 quantidade=item.get('quantidade', 1)
                             )
+                            print(f"✅ Item restaurado: {variacao.produto.nome}")
                     except Exception as e:
-                        print(f"Erro ao restaurar item: {e}")
+                        print(f"❌ Erro ao restaurar item: {e}")
                 
-                # 🔥 LIMPA O CARRINHO DA SESSÃO
                 if 'carrinho' in request.session:
                     del request.session['carrinho']
             
@@ -350,10 +349,12 @@ def registrar_com_endereco(request):
             login(request, user)
             
             messages.success(request, 'Cadastro realizado com sucesso!')
+            print("✅ Cadastro concluído! Redirecionando para o carrinho...")
             
-            # 🔥 REDIRECIONA PARA O CARRINHO
             return redirect('visualizar_carrinho')
         else:
+            print("❌ Formulário inválido!")
+            print("Erros:", form.errors)
             messages.error(request, 'Por favor, corrija os erros no formulário.')
     
     else:
@@ -362,6 +363,7 @@ def registrar_com_endereco(request):
         initial_data = {}
         if email_salvo:
             initial_data['email'] = email_salvo
+            print(f"📧 Email pré-preenchido: {email_salvo}")
         
         form = UsuarioComEnderecoForm(initial=initial_data)
     
