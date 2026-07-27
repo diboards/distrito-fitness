@@ -1841,19 +1841,9 @@ def registrar_usuario(request):
 
 
 def login_view(request):
-    # 🔥 SE O USUÁRIO JÁ ESTIVER LOGADO, REDIRECIONA
-    if request.user.is_authenticated:
-        return redirect('pagina_inicial')
-    
-    # 🔥 PEGA O CARRINHO DA SESSÃO
-    carrinho_salvo = request.session.get('carrinho', {})
-    
     if request.method == 'POST':
         form_type = request.POST.get('form_type')
         
-        # ==========================================================
-        # LOGIN
-        # ==========================================================
         if form_type == 'login':
             username = request.POST.get('username')
             password = request.POST.get('password')
@@ -1873,6 +1863,7 @@ def login_view(request):
                             variacao_id = item.get('variacao_id')
                             if variacao_id:
                                 variacao = ProdutoVariacao.objects.get(id=variacao_id)
+                                # Verifica se já existe no banco
                                 CarrinhoItem.objects.get_or_create(
                                     usuario=user,
                                     variacao=variacao,
@@ -1881,40 +1872,19 @@ def login_view(request):
                         except Exception as e:
                             print(f"Erro ao restaurar item: {e}")
                     
-                    if 'carrinho' in request.session:
-                        del request.session['carrinho']
+                    # 🔥 LIMPA O CARRINHO DA SESSÃO
+                    del request.session['carrinho']
                 
-                messages.success(request, f'Bem-vindo(a) {user.first_name or user.username}!')
-                
+                # Redireciona para o next ou carrinho
                 next_url = request.GET.get('next', 'pagina_inicial')
                 if 'carrinho' in next_url:
                     return redirect('visualizar_carrinho')
                 return redirect(next_url)
             else:
                 messages.error(request, 'Usuário ou senha inválidos.')
-        
-        # ==========================================================
-        # CADASTRO (CRIAR CONTA)
-        # ==========================================================
-        elif form_type == 'cadastro':
-            email = request.POST.get('email', '').strip()
-            
-            if not email:
-                messages.error(request, 'E-mail é obrigatório para cadastro.')
-                return render(request, 'vendas/login.html')
-            
-            # 🔥 SALVA O EMAIL NA SESSÃO
-            request.session['email_cadastro'] = email
-            
-            # 🔥 SALVA O CARRINHO NA SESSÃO
-            if carrinho_salvo:
-                request.session['carrinho'] = carrinho_salvo
-                request.session.modified = True
-            
-            messages.info(request, 'Preencha seus dados para finalizar o cadastro.')
-            return redirect('registrar_com_endereco')
     
     return render(request, 'vendas/login.html')
+
 
 # vendas/views/views.py
 
