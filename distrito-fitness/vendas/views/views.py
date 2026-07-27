@@ -353,13 +353,15 @@ def adicionar_carrinho(request, produto_id):
 
 def carrinho_count_api(request):
     try:
-        # usuário logado → usa banco
+        # 🔥 Usuário logado → usa banco
         if request.user.is_authenticated:
             count = CarrinhoItem.objects.filter(usuario=request.user).count()
             return JsonResponse({'count': count})
 
-        # usuário NÃO logado → usa sessão
-        carrinho = request.session.get('carrinho', {})
+        # 🔥 Usuário NÃO logado → usa sessão
+        carrinho = request.session.get('carrinho_persistente', {})
+        if not carrinho:
+            carrinho = request.session.get('carrinho', {})
 
         if not isinstance(carrinho, dict):
             return JsonResponse({'count': 0})
@@ -380,51 +382,80 @@ def carrinho_count_api(request):
 def visualizar_carrinho(request):
     """Exibe o carrinho (funciona para logados e anônimos)"""
     
-    # 🔥 TENTA BUSCAR O CARRINHO DE VÁRIOS LUGARES
-    carrinho = request.session.get('carrinho_persistente', {})
-    if not carrinho:
-        carrinho = request.session.get('carrinho', {})
-    
-    print(f"🛒 CARRINHO EM visualizar_carrinho: {carrinho}")
-    print(f"🛒 SESSÃO COMPLETA: {dict(request.session)}")
-    
     itens = []
     total = 0
     total_itens = 0
     
-    for chave, item in carrinho.items():
-        if not isinstance(item, dict):
-            continue
+    # 🔥 SE O USUÁRIO ESTÁ LOGADO, BUSCA DO BANCO
+    if request.user.is_authenticated:
+        print(f"👤 Usuário logado: {request.user.username}")
+        itens_db = CarrinhoItem.objects.filter(usuario=request.user).select_related('variacao__produto')
         
-        quantidade = item.get('quantidade', 1)
-        preco = item.get('preco', 0)
-        subtotal = quantidade * preco
-        total += subtotal
-        total_itens += quantidade
+        for item_db in itens_db:
+            if item_db.variacao:
+                subtotal = item_db.quantidade * item_db.variacao.preco
+                total += subtotal
+                total_itens += item_db.quantidade
+                
+                itens.append({
+                    'id': item_db.id,
+                    'chave': f"db_{item_db.id}",
+                    'variacao_id': item_db.variacao.id,
+                    'produto_id': item_db.variacao.produto.id,
+                    'nome': item_db.variacao.produto.nome,
+                    'quantidade': item_db.quantidade,
+                    'preco': float(item_db.variacao.preco),
+                    'cor': item_db.variacao.cor,
+                    'tamanho': item_db.variacao.tamanho,
+                    'imagem': item_db.variacao.imagem.url if item_db.variacao.imagem else None,
+                    'subtotal': subtotal,
+                    'estoque_disponivel': item_db.variacao.quantidade_estoque,
+                })
         
-        # Busca a variação para verificar estoque
-        try:
-            variacao = ProdutoVariacao.objects.get(id=item.get('variacao_id'))
-            estoque_disponivel = variacao.quantidade_estoque
-            nome = variacao.produto.nome
-        except ProdutoVariacao.DoesNotExist:
-            estoque_disponivel = 0
-            nome = item.get('produto_nome', 'Produto')
+        print(f"🛒 ITENS NO BANCO: {len(itens)}")
+    
+    # 🔥 SE O USUÁRIO NÃO ESTÁ LOGADO, BUSCA DA SESSÃO
+    else:
+        print("👤 Usuário anônimo")
+        carrinho = request.session.get('carrinho_persistente', {})
+        if not carrinho:
+            carrinho = request.session.get('carrinho', {})
         
-        itens.append({
-            'chave': chave,
-            'id': item.get('id'),
-            'variacao_id': item.get('variacao_id'),
-            'produto_id': item.get('produto_id'),
-            'nome': nome,
-            'quantidade': quantidade,
-            'preco': preco,
-            'cor': item.get('cor', 'Branco'),
-            'tamanho': item.get('tamanho', 'M'),
-            'imagem': item.get('imagem'),
-            'subtotal': subtotal,
-            'estoque_disponivel': estoque_disponivel,
-        })
+        print(f"🛒 CARRINHO NA SESSÃO: {carrinho}")
+        
+        for chave, item in carrinho.items():
+            if not isinstance(item, dict):
+                continue
+            
+            quantidade = item.get('quantidade', 1)
+            preco = item.get('preco', 0)
+            subtotal = quantidade * preco
+            total += subtotal
+            total_itens += quantidade
+            
+            # Busca a variação para verificar estoque
+            try:
+                variacao = ProdutoVariacao.objects.get(id=item.get('variacao_id'))
+                estoque_disponivel = variacao.quantidade_estoque
+                nome = variacao.produto.nome
+            except ProdutoVariacao.DoesNotExist:
+                estoque_disponivel = 0
+                nome = item.get('produto_nome', 'Produto')
+            
+            itens.append({
+                'chave': chave,
+                'id': None,
+                'variacao_id': item.get('variacao_id'),
+                'produto_id': item.get('produto_id'),
+                'nome': nome,
+                'quantidade': quantidade,
+                'preco': preco,
+                'cor': item.get('cor', 'Branco'),
+                'tamanho': item.get('tamanho', 'M'),
+                'imagem': item.get('imagem'),
+                'subtotal': subtotal,
+                'estoque_disponivel': estoque_disponivel,
+            })
     
     context = {
         'itens_carrinho': itens,
