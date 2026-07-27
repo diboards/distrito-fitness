@@ -11,7 +11,7 @@ from django.views.decorators.http import require_http_methods
 from .models import EnderecoEntrega, CarrinhoItem
 from .forms import EnderecoEntregaForm
 from django.db import IntegrityError
-from .forms import EnderecoForm, UserRegisterForm  # 🔥 ADICIONE ESTA LINHA
+from .forms import UsuarioComEnderecoForm  # 🔥 Use o formulário que você já tem
 
 
 @login_required
@@ -278,20 +278,50 @@ def registrar_com_endereco(request):
     carrinho_salvo = request.session.get('carrinho', {})
     
     if request.method == 'POST':
-        form = UserRegisterForm(request.POST)
-        endereco_form = EnderecoForm(request.POST)
+        form = UsuarioComEnderecoForm(request.POST)
         
-        if form.is_valid() and endereco_form.is_valid():
+        if form.is_valid():
             # 🔥 SALVA O CARRINHO ANTES DE CRIAR O USUÁRIO
             carrinho_antigo = request.session.get('carrinho', {})
             
-            # Cria o usuário
-            user = form.save()
+            # Dados do formulário
+            nome = form.cleaned_data['nome']
+            email = form.cleaned_data['email']
+            cpf = form.cleaned_data['cpf']
+            celular = form.cleaned_data['celular']
+            password = form.cleaned_data['password1']
             
-            # Cria o endereço
-            endereco = endereco_form.save(commit=False)
-            endereco.usuario = user
-            endereco.save()
+            # 🔥 CRIA O USUÁRIO
+            user = User.objects.create_user(
+                username=email,  # Usa o email como username
+                email=email,
+                password=password,
+                first_name=nome
+            )
+            
+            # 🔥 CRIA O PERFIL (se tiver o modelo Perfil)
+            try:
+                from .models import Perfil
+                Perfil.objects.create(
+                    usuario=user,
+                    telefone=celular,
+                    cpf=cpf
+                )
+            except:
+                pass  # Se não tiver o modelo Perfil, ignora
+            
+            # 🔥 CRIA O ENDEREÇO
+            endereco = EnderecoEntrega.objects.create(
+                usuario=user,
+                cep=form.cleaned_data['cep'],
+                rua=form.cleaned_data['rua'],
+                numero=form.cleaned_data['numero'],
+                complemento=form.cleaned_data.get('complemento', ''),
+                bairro=form.cleaned_data['bairro'],
+                cidade=form.cleaned_data['cidade'],
+                estado=form.cleaned_data['estado'],
+                principal=True
+            )
             
             # 🔥 RESTAURA O CARRINHO PARA O USUÁRIO LOGADO
             if carrinho_antigo:
@@ -316,7 +346,7 @@ def registrar_com_endereco(request):
             if 'email_cadastro' in request.session:
                 del request.session['email_cadastro']
             
-            # Faz login automático
+            # 🔥 FAZ LOGIN AUTOMÁTICO
             login(request, user)
             
             messages.success(request, 'Cadastro realizado com sucesso!')
@@ -327,17 +357,16 @@ def registrar_com_endereco(request):
             messages.error(request, 'Por favor, corrija os erros no formulário.')
     
     else:
-        form = UserRegisterForm()
-        endereco_form = EnderecoForm()
-        
         # 🔥 PRÉ-PREENCHER EMAIL DA SESSÃO (se existir)
         email_salvo = request.session.get('email_cadastro', '')
+        initial_data = {}
         if email_salvo:
-            form.fields['email'].initial = email_salvo
+            initial_data['email'] = email_salvo
+        
+        form = UsuarioComEnderecoForm(initial=initial_data)
     
     context = {
         'form': form,
-        'endereco_form': endereco_form,
         'carrinho_count': len(carrinho_salvo),
     }
     return render(request, 'vendas/registrar_com_endereco.html', context)
