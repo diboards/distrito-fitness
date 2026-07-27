@@ -1845,7 +1845,7 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('pagina_inicial')
     
-    # 🔥 PEGA O CARRINHO DA SESSÃO ANTES DE QUALQUER COISA
+    # 🔥 PEGA O CARRINHO DA SESSÃO
     carrinho_salvo = request.session.get('carrinho', {})
     
     if request.method == 'POST':
@@ -1873,7 +1873,6 @@ def login_view(request):
                             variacao_id = item.get('variacao_id')
                             if variacao_id:
                                 variacao = ProdutoVariacao.objects.get(id=variacao_id)
-                                # Verifica se já existe no banco
                                 CarrinhoItem.objects.get_or_create(
                                     usuario=user,
                                     variacao=variacao,
@@ -1882,13 +1881,11 @@ def login_view(request):
                         except Exception as e:
                             print(f"Erro ao restaurar item: {e}")
                     
-                    # 🔥 LIMPA O CARRINHO DA SESSÃO
                     if 'carrinho' in request.session:
                         del request.session['carrinho']
                 
-                messages.success(request, f'Bem-vindo(a) {user.username}!')
+                messages.success(request, f'Bem-vindo(a) {user.first_name or user.username}!')
                 
-                # Redireciona para o next ou carrinho
                 next_url = request.GET.get('next', 'pagina_inicial')
                 if 'carrinho' in next_url:
                     return redirect('visualizar_carrinho')
@@ -1906,21 +1903,17 @@ def login_view(request):
                 messages.error(request, 'E-mail é obrigatório para cadastro.')
                 return render(request, 'vendas/login.html')
             
-            # 🔥 SALVA O EMAIL NA SESSÃO PARA PRÉ-PREENCHER
+            # 🔥 SALVA O EMAIL NA SESSÃO
             request.session['email_cadastro'] = email
             
-            # 🔥 SALVA O CARRINHO NA SESSÃO (se existir)
+            # 🔥 SALVA O CARRINHO NA SESSÃO
             if carrinho_salvo:
                 request.session['carrinho'] = carrinho_salvo
                 request.session.modified = True
             
-            # 🔥 REDIRECIONA PARA A PÁGINA DE CADASTRO COM ENDEREÇO
             messages.info(request, 'Preencha seus dados para finalizar o cadastro.')
             return redirect('registrar_com_endereco')
     
-    # ==========================================================
-    # GET - MOSTRA A PÁGINA DE LOGIN
-    # ==========================================================
     return render(request, 'vendas/login.html')
 
 # vendas/views/views.py
