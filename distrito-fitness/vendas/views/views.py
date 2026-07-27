@@ -1862,12 +1862,9 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             
             if user is not None:
-                # 🔥 SALVA O CARRINHO DA SESSÃO ANTES DO LOGIN
                 carrinho_antigo = request.session.get('carrinho', {})
-                
                 login(request, user)
                 
-                # 🔥 RESTAURA O CARRINHO PARA O USUÁRIO LOGADO
                 if carrinho_antigo:
                     for chave, item in carrinho_antigo.items():
                         try:
@@ -1907,10 +1904,14 @@ def login_view(request):
             # 🔥 SALVA O EMAIL NA SESSÃO
             request.session['email_cadastro'] = email
             
-            # 🔥 SALVA O CARRINHO NA SESSÃO
+            # 🔥 SALVA O CARRINHO EM UMA CHAVE PERSISTENTE
             if carrinho_salvo:
-                request.session['carrinho'] = carrinho_salvo
+                request.session['carrinho_persistente'] = carrinho_salvo
                 request.session.modified = True
+                request.session.save()
+                print(f"💾 CARRINHO SALVO EM 'carrinho_persistente': {carrinho_salvo}")
+            else:
+                print("⚠️ Nenhum carrinho para salvar")
             
             messages.info(request, 'Preencha seus dados para finalizar o cadastro.')
             return redirect('registrar_com_endereco')
