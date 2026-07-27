@@ -273,7 +273,7 @@ def adicionar_endereco_checkout(request):
 
 
 def registrar_com_endereco(request):
-    # 🔥 PEGA O CARRINHO DA SESSÃO ANTES DE QUALQUER COISA
+    # 🔥 PEGA O CARRINHO DA SESSÃO
     carrinho_salvo = request.session.get('carrinho', {})
     
     if request.method == 'POST':
@@ -281,7 +281,7 @@ def registrar_com_endereco(request):
         endereco_form = EnderecoForm(request.POST)
         
         if form.is_valid() and endereco_form.is_valid():
-            # 🔥 SALVA O CARRINHO EM UMA VARIÁVEL ANTES DE CRIAR O USUÁRIO
+            # 🔥 SALVA O CARRINHO ANTES DE CRIAR O USUÁRIO
             carrinho_antigo = request.session.get('carrinho', {})
             
             # Cria o usuário
@@ -294,7 +294,6 @@ def registrar_com_endereco(request):
             
             # 🔥 RESTAURA O CARRINHO PARA O USUÁRIO LOGADO
             if carrinho_antigo:
-                # Converte itens da sessão para itens do banco
                 for chave, item in carrinho_antigo.items():
                     try:
                         variacao_id = item.get('variacao_id')
@@ -308,16 +307,23 @@ def registrar_com_endereco(request):
                     except Exception as e:
                         print(f"Erro ao restaurar item: {e}")
                 
-                # 🔥 LIMPA O CARRINHO DA SESSÃO (já foi transferido)
-                del request.session['carrinho']
+                # 🔥 LIMPA O CARRINHO DA SESSÃO
+                if 'carrinho' in request.session:
+                    del request.session['carrinho']
+            
+            # 🔥 LIMPA O EMAIL DA SESSÃO
+            if 'email_cadastro' in request.session:
+                del request.session['email_cadastro']
             
             # Faz login automático
             login(request, user)
             
             messages.success(request, 'Cadastro realizado com sucesso!')
             
-            # 🔥 REDIRECIONA PARA O CARRINHO (em vez do index)
+            # 🔥 REDIRECIONA PARA O CARRINHO
             return redirect('visualizar_carrinho')
+        else:
+            messages.error(request, 'Por favor, corrija os erros no formulário.')
     
     else:
         form = UserRegisterForm()
@@ -327,9 +333,6 @@ def registrar_com_endereco(request):
         email_salvo = request.session.get('email_cadastro', '')
         if email_salvo:
             form.fields['email'].initial = email_salvo
-            # Limpa após usar
-            if 'email_cadastro' in request.session:
-                del request.session['email_cadastro']
     
     context = {
         'form': form,
