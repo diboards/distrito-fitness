@@ -273,10 +273,15 @@ def adicionar_endereco_checkout(request):
 
 
 def registrar_com_endereco(request):
+    # 🔥 DEBUG: Ver o que está na sessão
+    print("🔍 SESSÃO COMPLETA:", dict(request.session))
+    print("🔍 CARRINHO NA SESSÃO:", request.session.get('carrinho', {}))
+    
     carrinho_salvo = request.session.get('carrinho', {})
     
     if request.method == 'POST':
         print("🔍 POST recebido em registrar_com_endereco")
+        print("📋 Dados POST:", request.POST)
         
         # 🔥 VALIDAÇÃO MANUAL
         nome = request.POST.get('nome', '').strip()
@@ -288,6 +293,7 @@ def registrar_com_endereco(request):
         cep = request.POST.get('cep', '').strip()
         rua = request.POST.get('rua', '').strip()
         numero = request.POST.get('numero', '').strip()
+        complemento = request.POST.get('complemento', '').strip()
         bairro = request.POST.get('bairro', '').strip()
         cidade = request.POST.get('cidade', '').strip()
         estado = request.POST.get('estado', '').strip()
@@ -328,7 +334,6 @@ def registrar_com_endereco(request):
             for erro in erros:
                 messages.error(request, erro)
             return render(request, 'vendas/registrar_com_endereco.html', {
-                'form': None,
                 'carrinho_count': len(carrinho_salvo),
                 'email': email,
                 'nome': nome,
@@ -337,10 +342,16 @@ def registrar_com_endereco(request):
                 'cep': cep,
                 'rua': rua,
                 'numero': numero,
+                'complemento': complemento,
                 'bairro': bairro,
                 'cidade': cidade,
                 'estado': estado,
             })
+        
+        # 🔥 PEGA O CARRINHO ANTES DE CRIAR O USUÁRIO
+        carrinho_antigo = request.session.get('carrinho', {})
+        print(f"🛒 CARRINHO ANTIGO (antes de criar usuário): {carrinho_antigo}")
+        print(f"🛒 QUANTIDADE DE ITENS: {len(carrinho_antigo)}")
         
         # Se passou na validação, cria o usuário
         print(f"✅ Dados válidos! Criando usuário: {email}")
@@ -350,26 +361,29 @@ def registrar_com_endereco(request):
             password=password1,
             first_name=nome
         )
+        print(f"✅ Usuário criado: ID {user.id}")
         
         # Cria endereço
-        EnderecoEntrega.objects.create(
+        endereco = EnderecoEntrega.objects.create(
             usuario=user,
             cep=cep,
             rua=rua,
             numero=numero,
-            complemento=request.POST.get('complemento', ''),
+            complemento=complemento,
             bairro=bairro,
             cidade=cidade,
             estado=estado,
             principal=True
         )
+        print(f"✅ Endereço criado: ID {endereco.id}")
         
-        # Restaura carrinho
-        carrinho_antigo = request.session.get('carrinho', {})
+        # 🔥 RESTAURA O CARRINHO
         if carrinho_antigo:
+            print(f"🛒 Restaurando {len(carrinho_antigo)} itens do carrinho...")
             for chave, item in carrinho_antigo.items():
                 try:
                     variacao_id = item.get('variacao_id')
+                    print(f"  - Item: {chave}, variacao_id: {variacao_id}")
                     if variacao_id:
                         variacao = ProdutoVariacao.objects.get(id=variacao_id)
                         CarrinhoItem.objects.create(
@@ -377,21 +391,48 @@ def registrar_com_endereco(request):
                             variacao=variacao,
                             quantidade=item.get('quantidade', 1)
                         )
+                        print(f"  ✅ Item restaurado: {variacao.produto.nome}")
+                    else:
+                        # 🔥 TENTA RECUPERAR POR PRODUTO_ID
+                        produto_id = item.get('produto_id')
+                        if produto_id:
+                            print(f"  🔍 Tentando recuperar por produto_id: {produto_id}")
+                            variacao = ProdutoVariacao.objects.filter(produto_id=produto_id).first()
+                            if variacao:
+                                CarrinhoItem.objects.create(
+                                    usuario=user,
+                                    variacao=variacao,
+                                    quantidade=item.get('quantidade', 1)
+                                )
+                                print(f"  ✅ Item restaurado por produto: {variacao.produto.nome}")
                 except Exception as e:
-                    print(f"Erro ao restaurar item: {e}")
-            del request.session['carrinho']
+                    print(f"  ❌ Erro ao restaurar item: {e}")
+            
+            # 🔥 LIMPA O CARRINHO DA SESSÃO
+            if 'carrinho' in request.session:
+                del request.session['carrinho']
+                print("✅ Carrinho removido da sessão")
+        else:
+            print("⚠️ Nenhum carrinho para restaurar")
+        
+        # 🔥 VERIFICA SE O CARRINHO FOI RESTAURADO
+        itens_apos = CarrinhoItem.objects.filter(usuario=user)
+        print(f"🛒 ITENS NO CARRINHO APÓS RESTAURAÇÃO: {itens_apos.count()}")
+        for item in itens_apos:
+            print(f"  - {item.variacao.produto.nome} x {item.quantidade}")
         
         if 'email_cadastro' in request.session:
             del request.session['email_cadastro']
         
         login(request, user)
         messages.success(request, 'Cadastro realizado com sucesso!')
+        print("✅ Redirecionando para o carrinho...")
         return redirect('visualizar_carrinho')
     
     # GET - Mostra o formulário
     email_salvo = request.session.get('email_cadastro', '')
+    print(f"📧 GET - Email salvo na sessão: {email_salvo}")
     return render(request, 'vendas/registrar_com_endereco.html', {
-        'form': None,
         'carrinho_count': len(carrinho_salvo),
         'email': email_salvo,
     })
