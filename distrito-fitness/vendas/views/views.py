@@ -435,7 +435,6 @@ def visualizar_carrinho(request):
     return render(request, 'vendas/carrinho.html', context)
 
 
-
 @login_required
 def remover_carrinho(request, item_id):
     item = get_object_or_404(CarrinhoItem, id=item_id, usuario=request.user)
