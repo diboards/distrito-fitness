@@ -272,110 +272,126 @@ def adicionar_endereco_checkout(request):
     return JsonResponse({'success': False, 'error': 'Método não permitido'})
 
 
-from django.shortcuts import render, redirect
-from django.contrib.auth import login
-from django.contrib import messages
-from django.contrib.auth.models import User
-from .models import EnderecoEntrega, CarrinhoItem, ProdutoVariacao
-from .forms import UsuarioComEnderecoForm
-
 def registrar_com_endereco(request):
-    # 🔥 PEGA O CARRINHO DA SESSÃO
     carrinho_salvo = request.session.get('carrinho', {})
     
     if request.method == 'POST':
         print("🔍 POST recebido em registrar_com_endereco")
-        print("📋 Dados POST:", request.POST)
         
-        form = UsuarioComEnderecoForm(request.POST)
+        # 🔥 VALIDAÇÃO MANUAL
+        nome = request.POST.get('nome', '').strip()
+        email = request.POST.get('email', '').strip()
+        cpf = request.POST.get('cpf', '').strip()
+        celular = request.POST.get('celular', '').strip()
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        cep = request.POST.get('cep', '').strip()
+        rua = request.POST.get('rua', '').strip()
+        numero = request.POST.get('numero', '').strip()
+        bairro = request.POST.get('bairro', '').strip()
+        cidade = request.POST.get('cidade', '').strip()
+        estado = request.POST.get('estado', '').strip()
         
-        if form.is_valid():
-            print("✅ Formulário válido!")
-            
-            # 🔥 SALVA O CARRINHO ANTES DE CRIAR O USUÁRIO
-            carrinho_antigo = request.session.get('carrinho', {})
-            
-            # Dados do formulário
-            nome = form.cleaned_data['nome']
-            email = form.cleaned_data['email']
-            cpf = form.cleaned_data['cpf']
-            celular = form.cleaned_data['celular']
-            password = form.cleaned_data['password1']
-            
-            print(f"📧 Criando usuário: {email}")
-            
-            # 🔥 CRIA O USUÁRIO
-            user = User.objects.create_user(
-                username=email,
-                email=email,
-                password=password,
-                first_name=nome
-            )
-            
-            # 🔥 CRIA O ENDEREÇO
-            endereco = EnderecoEntrega.objects.create(
-                usuario=user,
-                cep=form.cleaned_data['cep'],
-                rua=form.cleaned_data['rua'],
-                numero=form.cleaned_data['numero'],
-                complemento=form.cleaned_data.get('complemento', ''),
-                bairro=form.cleaned_data['bairro'],
-                cidade=form.cleaned_data['cidade'],
-                estado=form.cleaned_data['estado'],
-                principal=True
-            )
-            
-            print(f"📍 Endereço criado: {endereco}")
-            
-            # 🔥 RESTAURA O CARRINHO PARA O USUÁRIO LOGADO
-            if carrinho_antigo:
-                print(f"🛒 Restaurando {len(carrinho_antigo)} itens do carrinho...")
-                for chave, item in carrinho_antigo.items():
-                    try:
-                        variacao_id = item.get('variacao_id')
-                        if variacao_id:
-                            variacao = ProdutoVariacao.objects.get(id=variacao_id)
-                            CarrinhoItem.objects.create(
-                                usuario=user,
-                                variacao=variacao,
-                                quantidade=item.get('quantidade', 1)
-                            )
-                            print(f"✅ Item restaurado: {variacao.produto.nome}")
-                    except Exception as e:
-                        print(f"❌ Erro ao restaurar item: {e}")
-                
-                if 'carrinho' in request.session:
-                    del request.session['carrinho']
-            
-            # 🔥 LIMPA O EMAIL DA SESSÃO
-            if 'email_cadastro' in request.session:
-                del request.session['email_cadastro']
-            
-            # 🔥 FAZ LOGIN AUTOMÁTICO
-            login(request, user)
-            
-            messages.success(request, 'Cadastro realizado com sucesso!')
-            print("✅ Cadastro concluído! Redirecionando para o carrinho...")
-            
-            return redirect('visualizar_carrinho')
-        else:
-            print("❌ Formulário inválido!")
-            print("Erros:", form.errors)
-            messages.error(request, 'Por favor, corrija os erros no formulário.')
+        # Validações
+        erros = []
+        
+        if not nome:
+            erros.append('Nome completo é obrigatório.')
+        if not email:
+            erros.append('E-mail é obrigatório.')
+        if not cpf:
+            erros.append('CPF é obrigatório.')
+        if not celular:
+            erros.append('Celular é obrigatório.')
+        if len(password1) < 6:
+            erros.append('Senha deve ter pelo menos 6 caracteres.')
+        if password1 != password2:
+            erros.append('Senhas não conferem.')
+        if not cep:
+            erros.append('CEP é obrigatório.')
+        if not rua:
+            erros.append('Rua é obrigatória.')
+        if not numero:
+            erros.append('Número é obrigatório.')
+        if not bairro:
+            erros.append('Bairro é obrigatório.')
+        if not cidade:
+            erros.append('Cidade é obrigatória.')
+        if not estado:
+            erros.append('Estado é obrigatório.')
+        
+        # Verifica se usuário já existe
+        if User.objects.filter(username=email).exists():
+            erros.append('Este e-mail já está cadastrado.')
+        
+        if erros:
+            for erro in erros:
+                messages.error(request, erro)
+            return render(request, 'vendas/registrar_com_endereco.html', {
+                'form': None,
+                'carrinho_count': len(carrinho_salvo),
+                'email': email,
+                'nome': nome,
+                'cpf': cpf,
+                'celular': celular,
+                'cep': cep,
+                'rua': rua,
+                'numero': numero,
+                'bairro': bairro,
+                'cidade': cidade,
+                'estado': estado,
+            })
+        
+        # Se passou na validação, cria o usuário
+        print(f"✅ Dados válidos! Criando usuário: {email}")
+        user = User.objects.create_user(
+            username=email,
+            email=email,
+            password=password1,
+            first_name=nome
+        )
+        
+        # Cria endereço
+        EnderecoEntrega.objects.create(
+            usuario=user,
+            cep=cep,
+            rua=rua,
+            numero=numero,
+            complemento=request.POST.get('complemento', ''),
+            bairro=bairro,
+            cidade=cidade,
+            estado=estado,
+            principal=True
+        )
+        
+        # Restaura carrinho
+        carrinho_antigo = request.session.get('carrinho', {})
+        if carrinho_antigo:
+            for chave, item in carrinho_antigo.items():
+                try:
+                    variacao_id = item.get('variacao_id')
+                    if variacao_id:
+                        variacao = ProdutoVariacao.objects.get(id=variacao_id)
+                        CarrinhoItem.objects.create(
+                            usuario=user,
+                            variacao=variacao,
+                            quantidade=item.get('quantidade', 1)
+                        )
+                except Exception as e:
+                    print(f"Erro ao restaurar item: {e}")
+            del request.session['carrinho']
+        
+        if 'email_cadastro' in request.session:
+            del request.session['email_cadastro']
+        
+        login(request, user)
+        messages.success(request, 'Cadastro realizado com sucesso!')
+        return redirect('visualizar_carrinho')
     
-    else:
-        # 🔥 PRÉ-PREENCHER EMAIL DA SESSÃO (se existir)
-        email_salvo = request.session.get('email_cadastro', '')
-        initial_data = {}
-        if email_salvo:
-            initial_data['email'] = email_salvo
-            print(f"📧 Email pré-preenchido: {email_salvo}")
-        
-        form = UsuarioComEnderecoForm(initial=initial_data)
-    
-    context = {
-        'form': form,
+    # GET - Mostra o formulário
+    email_salvo = request.session.get('email_cadastro', '')
+    return render(request, 'vendas/registrar_com_endereco.html', {
+        'form': None,
         'carrinho_count': len(carrinho_salvo),
-    }
-    return render(request, 'vendas/registrar_com_endereco.html', context)
-
+        'email': email_salvo,
+    })
