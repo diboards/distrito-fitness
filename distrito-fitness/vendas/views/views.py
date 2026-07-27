@@ -591,7 +591,7 @@ def comprar_agora_anonimo(request, produto_id):
         messages.error(request, 'Variação do produto não encontrada.')
         return redirect('detalhes_produto', produto_id=produto_id)
     
-    # 🔥 CRIA O CARRINHO NA SESSÃO
+    # 🔥 CRIA O CARRINHO NA SESSÃO COM TODOS OS CAMPOS
     carrinho = {}
     chave = f"variacao_{variacao.id}"
     
@@ -610,7 +610,11 @@ def comprar_agora_anonimo(request, produto_id):
     request.session.modified = True
     request.session.save()
     
-    print(f"DEBUG - Carrinho salvo na sessão (anonimo): {carrinho}")
+    messages.info(request, 'Produto adicionado ao carrinho! Faça login para finalizar.')
+    
+    # 🔥 SALVA O EMAIL PARA PRÉ-PREENCHER NO CADASTRO
+    if request.GET.get('email'):
+        request.session['email_cadastro'] = request.GET.get('email')
     
     # Redireciona para o login com next apontando para o carrinho
     return redirect(f'{settings.LOGIN_URL}?next=/carrinho/')
