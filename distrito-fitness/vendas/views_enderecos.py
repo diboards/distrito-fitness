@@ -11,6 +11,7 @@ from django.views.decorators.http import require_http_methods
 from .models import EnderecoEntrega, CarrinhoItem
 from .forms import EnderecoEntregaForm
 from django.db import IntegrityError
+from .forms import EnderecoForm, UserRegisterForm  # 🔥 ADICIONE ESTA LINHA
 
 
 @login_required
