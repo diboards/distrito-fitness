@@ -1838,33 +1838,46 @@ def registrar_usuario(request):
 
 def login_view(request):
     if request.method == 'POST':
-        print("DEBUG - POST data:", request.POST)  # Para ver o que está chegando
+        form_type = request.POST.get('form_type')
         
-        # Verifica se é login normal
-        if 'username' in request.POST:
+        if form_type == 'login':
             username = request.POST.get('username')
             password = request.POST.get('password')
-            user = authenticate(username=username, password=password)
+            
+            user = authenticate(request, username=username, password=password)
             
             if user is not None:
-                login(request, user)
-                return redirect('index')
-            else:
-                messages.error(request, 'E-mail ou senha inválidos')
+                # 🔥 SALVA O CARRINHO DA SESSÃO ANTES DO LOGIN
+                carrinho_antigo = request.session.get('carrinho', {})
                 
-        # Verifica se é para criar conta
-        elif 'email' in request.POST:
-            email = request.POST.get('email')
-            print("DEBUG - Email recebido:", email)  # Debug
-            
-            if email:
-                # SALVA na session CORRETAMENTE
-                request.session['email_cadastro'] = email
-                request.session.modified = True  # Força a salvar a session
-                print("DEBUG - Email salvo na session:", request.session.get('email_cadastro'))
-                return redirect('registrar_com_endereco')
+                login(request, user)
+                
+                # 🔥 RESTAURA O CARRINHO PARA O USUÁRIO LOGADO
+                if carrinho_antigo:
+                    for chave, item in carrinho_antigo.items():
+                        try:
+                            variacao_id = item.get('variacao_id')
+                            if variacao_id:
+                                variacao = ProdutoVariacao.objects.get(id=variacao_id)
+                                # Verifica se já existe no banco
+                                CarrinhoItem.objects.get_or_create(
+                                    usuario=user,
+                                    variacao=variacao,
+                                    defaults={'quantidade': item.get('quantidade', 1)}
+                                )
+                        except Exception as e:
+                            print(f"Erro ao restaurar item: {e}")
+                    
+                    # 🔥 LIMPA O CARRINHO DA SESSÃO
+                    del request.session['carrinho']
+                
+                # Redireciona para o next ou carrinho
+                next_url = request.GET.get('next', 'pagina_inicial')
+                if 'carrinho' in next_url:
+                    return redirect('visualizar_carrinho')
+                return redirect(next_url)
             else:
-                messages.error(request, 'Por favor, informe um e-mail válido')
+                messages.error(request, 'Usuário ou senha inválidos.')
     
     return render(request, 'vendas/login.html')
 
