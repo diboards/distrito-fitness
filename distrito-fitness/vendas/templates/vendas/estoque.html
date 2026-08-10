@@ -1,6 +1,6 @@
 {% extends 'vendas/base.html' %}
 {% load static %}
-
+{% load variacao_filters %}  <!-- 🔥LINHA De filtro cores -->
 {% block content %}
 <div class="container mt-4">
     {% if user.is_authenticated and user.is_superuser %}
@@ -164,63 +164,63 @@
                                 </div>
 
                                 <!-- ========================================================== -->
-                                <!-- GRADE DE VARIAÇÕES                                        -->
-                                <!-- ========================================================== -->
-                                <h6 class="border-bottom pb-2 mt-3">
-                                    <i class="bi bi-grid"></i> Gerenciar Variações
-                                    <span class="badge bg-secondary ms-2">{{ produto.produto_obj.variacoes.count }}</span>
-                                </h6>
+<!-- GRADE DE VARIAÇÕES - VERSÃO SIMPLIFICADA                    -->
+<!-- ========================================================== -->
+<h6 class="border-bottom pb-2 mt-3">
+    <i class="bi bi-grid"></i> Gerenciar Variações
+    <span class="badge bg-secondary ms-2">{{ produto.produto_obj.variacoes.count }}</span>
+</h6>
 
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-sm text-center" id="tabela-variacoes-{{ produto.id }}">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th style="min-width: 80px;">Cor \ Tamanho</th>
-                                                {% for tamanho in tamanhos_disponiveis %}
-                                                <th>{{ tamanho }}</th>
-                                                {% endfor %}
-                                                <th>Ações</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for cor in cores_disponiveis %}
-                                            <tr>
-                                                <td>
-                                                    <strong>{{ cor }}</strong>
-                                                    <input type="hidden" name="cor_nome[]" value="{{ cor }}">
-                                                </td>
-                                                {% for tamanho in tamanhos_disponiveis %}
-                                                <td style="padding: 2px;">
-                                                    {% with variacao=produto.produto_obj.variacoes.all|get_variacao:cor|get_tamanho:tamanho %}
-                                                    <input type="hidden" name="variacao_id_{{ cor }}_{{ tamanho }}" value="{{ variacao.id|default:'' }}">
-                                                    <input type="number" 
-                                                           name="estoque_{{ cor }}_{{ tamanho }}" 
-                                                           value="{{ variacao.quantidade_estoque|default:0 }}" 
-                                                           min="0" 
-                                                           class="form-control form-control-sm text-center" 
-                                                           style="width: 50px; display: inline-block;">
-                                                    <input type="number" 
-                                                           name="preco_{{ cor }}_{{ tamanho }}" 
-                                                           value="{{ variacao.preco|default:0 }}" 
-                                                           step="0.01" 
-                                                           min="0" 
-                                                           class="form-control form-control-sm text-center mt-1" 
-                                                           style="width: 70px; display: inline-block;" 
-                                                           placeholder="Preço">
-                                                    {% endwith %}
-                                                </td>
-                                                {% endfor %}
-                                                <td>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                            onclick="removerCor({{ produto.id }}, '{{ cor }}', this)">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
+<div class="table-responsive">
+    <table class="table table-bordered table-sm text-center" id="tabela-variacoes-{{ produto.id }}">
+        <thead class="table-light">
+            <tr>
+                <th style="min-width: 80px;">Cor \ Tamanho</th>
+                {% for tamanho in tamanhos_disponiveis %}
+                <th>{{ tamanho }}</th>
+                {% endfor %}
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cor in cores_disponiveis %}
+            <tr>
+                <td>
+                    <strong>{{ cor }}</strong>
+                    <input type="hidden" name="cor_nome[]" value="{{ cor }}">
+                </td>
+                {% for tamanho in tamanhos_disponiveis %}
+                <td style="padding: 2px;">
+                    {% with variacao=produto.produto_obj.variacoes.all|get_variacao:cor|get_tamanho:tamanho %}
+                    <input type="hidden" name="variacao_id_{{ cor }}_{{ tamanho }}" value="{{ variacao.id|default:'' }}">
+                    <input type="number" 
+                           name="estoque_{{ cor }}_{{ tamanho }}" 
+                           value="{{ variacao.quantidade_estoque|default:0 }}" 
+                           min="0" 
+                           class="form-control form-control-sm text-center" 
+                           style="width: 50px; display: inline-block;">
+                    <input type="number" 
+                           name="preco_{{ cor }}_{{ tamanho }}" 
+                           value="{{ variacao.preco|default:0 }}" 
+                           step="0.01" 
+                           min="0" 
+                           class="form-control form-control-sm text-center mt-1" 
+                           style="width: 70px; display: inline-block;" 
+                           placeholder="Preço">
+                    {% endwith %}
+                </td>
+                {% endfor %}
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                            onclick="removerCor({{ produto.id }}, '{{ cor }}', this)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
                                 <!-- BOTÕES PARA ADICIONAR CORES E TAMANHOS -->
                                 <div class="row g-2 mt-2">
