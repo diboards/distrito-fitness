@@ -164,7 +164,7 @@
                                 </div>
 
                                 <!-- ========================================================== -->
-<!-- GRADE DE VARIAÇÕES - VERSÃO SIMPLIFICADA                    -->
+<!-- GRADE DE VARIAÇÕES - VERSÃO MANUAL (SEM FILTROS)           -->
 <!-- ========================================================== -->
 <h6 class="border-bottom pb-2 mt-3">
     <i class="bi bi-grid"></i> Gerenciar Variações
@@ -172,47 +172,63 @@
 </h6>
 
 <div class="table-responsive">
-    <table class="table table-bordered table-sm text-center" id="tabela-variacoes-{{ produto.id }}">
+    <table class="table table-bordered table-sm text-center">
         <thead class="table-light">
             <tr>
-                <th style="min-width: 80px;">Cor \ Tamanho</th>
-                {% for tamanho in tamanhos_disponiveis %}
-                <th>{{ tamanho }}</th>
-                {% endfor %}
-                <th>Ações</th>
+                <th>Cor</th>
+                <th>Tamanho</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Imagem</th>
+                <th>Ação</th>
             </tr>
         </thead>
         <tbody>
-            {% for cor in cores_disponiveis %}
+            {% for variacao in produto.produto_obj.variacoes.all %}
             <tr>
                 <td>
-                    <strong>{{ cor }}</strong>
-                    <input type="hidden" name="cor_nome[]" value="{{ cor }}">
+                    <input type="hidden" name="variacao_id[]" value="{{ variacao.id }}">
+                    <select class="form-select form-select-sm" name="cor[]" required>
+                        <option value="Vermelho" {% if variacao.cor == 'Vermelho' %}selected{% endif %}>Vermelho</option>
+                        <option value="Azul" {% if variacao.cor == 'Azul' %}selected{% endif %}>Azul</option>
+                        <option value="Preto" {% if variacao.cor == 'Preto' %}selected{% endif %}>Preto</option>
+                        <option value="Branco" {% if variacao.cor == 'Branco' %}selected{% endif %}>Branco</option>
+                        <option value="Cinza" {% if variacao.cor == 'Cinza' %}selected{% endif %}>Cinza</option>
+                        <option value="Rosa" {% if variacao.cor == 'Rosa' %}selected{% endif %}>Rosa</option>
+                        <option value="Verde" {% if variacao.cor == 'Verde' %}selected{% endif %}>Verde</option>
+                        <option value="Amarelo" {% if variacao.cor == 'Amarelo' %}selected{% endif %}>Amarelo</option>
+                        <option value="Laranja" {% if variacao.cor == 'Laranja' %}selected{% endif %}>Laranja</option>
+                        <option value="Roxo" {% if variacao.cor == 'Roxo' %}selected{% endif %}>Roxo</option>
+                        <option value="Marrom" {% if variacao.cor == 'Marrom' %}selected{% endif %}>Marrom</option>
+                    </select>
                 </td>
-                {% for tamanho in tamanhos_disponiveis %}
-                <td style="padding: 2px;">
-                    {% with variacao=produto.produto_obj.variacoes.all|get_variacao:cor|get_tamanho:tamanho %}
-                    <input type="hidden" name="variacao_id_{{ cor }}_{{ tamanho }}" value="{{ variacao.id|default:'' }}">
-                    <input type="number" 
-                           name="estoque_{{ cor }}_{{ tamanho }}" 
-                           value="{{ variacao.quantidade_estoque|default:0 }}" 
-                           min="0" 
-                           class="form-control form-control-sm text-center" 
-                           style="width: 50px; display: inline-block;">
-                    <input type="number" 
-                           name="preco_{{ cor }}_{{ tamanho }}" 
-                           value="{{ variacao.preco|default:0 }}" 
-                           step="0.01" 
-                           min="0" 
-                           class="form-control form-control-sm text-center mt-1" 
-                           style="width: 70px; display: inline-block;" 
-                           placeholder="Preço">
-                    {% endwith %}
+                <td>
+                    <select class="form-select form-select-sm" name="tamanho[]" required>
+                        <option value="PP" {% if variacao.tamanho == 'PP' %}selected{% endif %}>PP</option>
+                        <option value="P" {% if variacao.tamanho == 'P' %}selected{% endif %}>P</option>
+                        <option value="M" {% if variacao.tamanho == 'M' %}selected{% endif %}>M</option>
+                        <option value="G" {% if variacao.tamanho == 'G' %}selected{% endif %}>G</option>
+                        <option value="GG" {% if variacao.tamanho == 'GG' %}selected{% endif %}>GG</option>
+                        <option value="U" {% if variacao.tamanho == 'U' %}selected{% endif %}>Único</option>
+                    </select>
                 </td>
-                {% endfor %}
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="preco[]" 
+                           value="{{ variacao.preco }}" step="0.01" min="0.01" required>
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="quantidade_estoque[]" 
+                           value="{{ variacao.quantidade_estoque }}" min="0" required>
+                </td>
+                <td>
+                    <input type="file" class="form-control form-control-sm" name="imagem_variacao[]" accept="image/*">
+                    {% if variacao.imagem %}
+                    <img src="{{ variacao.imagem.url }}" style="max-height: 30px; margin-top: 4px;">
+                    {% endif %}
+                </td>
                 <td>
                     <button type="button" class="btn btn-sm btn-outline-danger" 
-                            onclick="removerCor({{ produto.id }}, '{{ cor }}', this)">
+                            onclick="this.closest('tr').remove()">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>
@@ -221,6 +237,11 @@
         </tbody>
     </table>
 </div>
+
+<!-- BOTÃO PARA ADICIONAR NOVA VARIAÇÃO -->
+<button type="button" class="btn btn-outline-success btn-sm mt-2" onclick="adicionarLinhaVariacao(this)">
+    <i class="bi bi-plus-circle"></i> Adicionar Variação
+</button>
 
                                 <!-- BOTÕES PARA ADICIONAR CORES E TAMANHOS -->
                                 <div class="row g-2 mt-2">
@@ -573,5 +594,52 @@ function preencherGrade(produtoId) {
         input.value = 0;
     });
 }
+function adicionarLinhaVariacao(button) {
+    const tabela = button.closest('.modal-body').querySelector('table tbody');
+    const novaLinha = document.createElement('tr');
+    novaLinha.innerHTML = `
+        <td>
+            <input type="hidden" name="variacao_id[]" value="">
+            <select class="form-select form-select-sm" name="cor[]" required>
+                <option value="Vermelho">Vermelho</option>
+                <option value="Azul">Azul</option>
+                <option value="Preto">Preto</option>
+                <option value="Branco">Branco</option>
+                <option value="Cinza">Cinza</option>
+                <option value="Rosa">Rosa</option>
+                <option value="Verde">Verde</option>
+                <option value="Amarelo">Amarelo</option>
+                <option value="Laranja">Laranja</option>
+                <option value="Roxo">Roxo</option>
+                <option value="Marrom">Marrom</option>
+            </select>
+        </td>
+        <td>
+            <select class="form-select form-select-sm" name="tamanho[]" required>
+                <option value="PP">PP</option>
+                <option value="P">P</option>
+                <option value="M">M</option>
+                <option value="G">G</option>
+                <option value="GG">GG</option>
+                <option value="U">Único</option>
+            </select>
+        </td>
+        <td>
+            <input type="number" class="form-control form-control-sm" name="preco[]" step="0.01" min="0.01" placeholder="0.00" required>
+        </td>
+        <td>
+            <input type="number" class="form-control form-control-sm" name="quantidade_estoque[]" min="0" value="0" required>
+        </td>
+        <td>
+            <input type="file" class="form-control form-control-sm" name="imagem_variacao[]" accept="image/*">
+        </td>
+        <td>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    `;
+    tabela.appendChild(novaLinha);
+}    
 </script>
 {% endblock %}
