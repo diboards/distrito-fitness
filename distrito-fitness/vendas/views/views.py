@@ -1579,6 +1579,21 @@ def estoque(request):
 
     # 🔥 PREPARAR OS PRODUTOS COM A PRIMEIRA VARIAÇÃO PARA EXIBIÇÃO NO CARD
     produtos_com_precos = []
+    
+    # 🔥 COLETAR CORES E TAMANHOS ÚNICOS PARA O MODAL
+    cores_disponiveis = []
+    tamanhos_disponiveis = []
+    ordem_tamanhos = {'PP': 0, 'P': 1, 'M': 2, 'G': 3, 'GG': 4, 'U': 5}
+    
+    for p in produtos:
+        for variacao in p.variacoes.all():
+            if variacao.cor not in cores_disponiveis:
+                cores_disponiveis.append(variacao.cor)
+            if variacao.tamanho not in tamanhos_disponiveis:
+                tamanhos_disponiveis.append(variacao.tamanho)
+    
+    tamanhos_disponiveis.sort(key=lambda x: ordem_tamanhos.get(x, 99))
+    
     for p in produtos:
         variacao = p.variacoes.first()
         
@@ -1620,7 +1635,6 @@ def estoque(request):
             'categoria': p.get_categoria_display(),
             'ativo': p.ativo,
             'data_cadastro': p.data_criacao if hasattr(p, 'data_criacao') else p.data_cadastro,
-            # 🔥 ADICIONA O OBJETO PRODUTO COMPLETO PARA O MODAL
             'produto_obj': p,
         })
 
@@ -1630,6 +1644,8 @@ def estoque(request):
         'produtos_ativos': produtos_ativos,
         'produtos_inativos': produtos_inativos,
         'total_estoque': total_estoque_geral,
+        'cores_disponiveis': cores_disponiveis,
+        'tamanhos_disponiveis': tamanhos_disponiveis,
     }
 
     return render(request, 'vendas/estoque.html', context)
@@ -1652,40 +1668,65 @@ def editar_produto(request, produto_id):
         if excluir_ids:
             produto.variacoes.filter(id__in=excluir_ids).delete()
         
-        # 🔥 ADICIONA/ATUALIZA VARIAÇÃO
-        cor = request.POST.get('cor', '').strip()
-        tamanho = request.POST.get('tamanho', '').strip()
-        preco = request.POST.get('preco', '').strip()
-        quantidade_estoque = request.POST.get('quantidade_estoque', '').strip()
+        # 🔥 ATUALIZA/CRIA MÚLTIPLAS VARIAÇÕES
+        variacao_ids = request.POST.getlist('variacao_id[]')
+        cores = request.POST.getlist('cor[]')
+        tamanhos = request.POST.getlist('tamanho[]')
+        precos = request.POST.getlist('preco[]')
+        estoques = request.POST.getlist('quantidade_estoque[]')
+        imagens = request.FILES.getlist('imagem_variacao[]')
         
-        if cor and tamanho and preco and quantidade_estoque:
+        manter_ids = []
+        
+        for i in range(len(cores)):
             try:
-                # Verifica se já existe uma variação com esta combinação
-                variacao_existente = ProdutoVariacao.objects.filter(
-                    produto=produto,
-                    cor=cor,
-                    tamanho=tamanho
-                ).first()
+                cor = cores[i] if i < len(cores) else ''
+                tamanho = tamanhos[i] if i < len(tamanhos) else ''
                 
-                if variacao_existente:
-                    # Atualiza a variação existente
-                    variacao_existente.preco = Decimal(preco)
-                    variacao_existente.quantidade_estoque = int(quantidade_estoque)
-                    if request.FILES.get('imagem'):
-                        variacao_existente.imagem = request.FILES.get('imagem')
-                    variacao_existente.save()
+                # 🔥 CONVERTE PREÇO (SUBSTITUI VÍRGULA POR PONTO)
+                preco_str = precos[i] if i < len(precos) else '0'
+                preco_str = preco_str.replace(',', '.')
+                preco = Decimal(preco_str) if preco_str else Decimal('0.00')
+                
+                estoque = int(estoques[i]) if i < len(estoques) and estoques[i] else 0
+                
+                if not cor or not tamanho or preco <= 0:
+                    continue
+                
+                variacao_id = variacao_ids[i] if i < len(variacao_ids) and variacao_ids[i] else None
+                
+                if variacao_id and variacao_id != '':
+                    # 🔥 ATUALIZA VARIAÇÃO EXISTENTE
+                    try:
+                        variacao = ProdutoVariacao.objects.get(id=variacao_id, produto=produto)
+                        variacao.cor = cor
+                        variacao.tamanho = tamanho
+                        variacao.preco = preco
+                        variacao.quantidade_estoque = estoque
+                        if i < len(imagens) and imagens[i]:
+                            variacao.imagem = imagens[i]
+                        variacao.save()
+                        manter_ids.append(variacao.id)
+                    except ProdutoVariacao.DoesNotExist:
+                        pass
                 else:
-                    # Cria uma nova variação
-                    ProdutoVariacao.objects.create(
+                    # 🔥 CRIA NOVA VARIAÇÃO
+                    nova_variacao = ProdutoVariacao.objects.create(
                         produto=produto,
                         cor=cor,
                         tamanho=tamanho,
-                        preco=Decimal(preco),
-                        quantidade_estoque=int(quantidade_estoque),
-                        imagem=request.FILES.get('imagem') if request.FILES.get('imagem') else None
+                        preco=preco,
+                        quantidade_estoque=estoque,
+                        imagem=imagens[i] if i < len(imagens) and imagens[i] else None
                     )
-            except (ValueError, TypeError, Decimal.InvalidOperation):
-                messages.error(request, 'Erro ao salvar variação. Verifique os valores.')
+                    manter_ids.append(nova_variacao.id)
+            except Exception as e:
+                print(f"Erro ao processar variação {i}: {e}")
+                continue
+        
+        # 🔥 REMOVE VARIAÇÕES QUE NÃO ESTÃO NA LISTA DE MANTIDAS
+        if manter_ids:
+            produto.variacoes.exclude(id__in=manter_ids).delete()
         
         messages.success(request, f'Produto "{produto.nome}" atualizado com sucesso!')
         return redirect('estoque')
