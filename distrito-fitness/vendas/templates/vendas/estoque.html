@@ -85,13 +85,16 @@
                     <!-- Botões de ação -->
                     <div class="card-footer">
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-warning btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#editarModal{{ produto.id }}">
+                            <!-- MODAL DE EDIÇÃO -->
+                            <button type="button" class="btn btn-warning btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#editarModal{{ produto.produto_obj.id }}">
                                 <i class="bi bi-pencil"></i> Editar
                             </button>
-                            <button type="button" class="btn btn-info btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#detalhesModal{{ produto.id }}">
+                            
+                            <!-- MODAL DE DETALHES -->
+                            <button type="button" class="btn btn-info btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#detalhesModal{{ produto.produto_obj.id }}">
                                 <i class="bi bi-eye"></i> Detalhes
                             </button>
-                            <form method="POST" action="{% url 'deletar_produto' produit.id %}" onsubmit="return confirm('Tem certeza que deseja excluir este produto?');">
+                            <form method="POST" action="{% url 'deletar_produto' produto.produto_obj.id %}" onsubmit="return confirm('Tem certeza que deseja excluir este produto?');">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-danger btn-sm">
                                     <i class="bi bi-trash"></i> Excluir
