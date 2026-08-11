@@ -164,7 +164,7 @@
                                 </div>
 
 <!-- ========================================================== -->
-<!-- GERENCIAR VARIAÇÕES - AGRUPADO POR COR                      -->
+<!-- GERENCIAR VARIAÇÕES - GRADE DINÂMICA                        -->
 <!-- ========================================================== -->
 <h6 class="border-bottom pb-2 mt-3">
     <i class="bi bi-grid"></i> Gerenciar Variações
@@ -175,78 +175,45 @@
     <table class="table table-bordered table-sm text-center" id="tabela-variacoes-{{ produto.id }}">
         <thead class="table-light">
             <tr>
-                <th style="min-width: 100px;">Cor</th>
-                <th>Tamanhos</th>
-                <th>Preço</th>
-                <th>Estoque</th>
-                <th>Imagem</th>
-                <th>Ação</th>
+                <th style="min-width: 80px;">Cor \ Tamanho</th>
+                {% for tamanho in tamanhos_disponiveis %}
+                <th>{{ tamanho }}</th>
+                {% endfor %}
+                <th>Ações</th>
             </tr>
         </thead>
         <tbody>
-            {% regroup produto.produto_obj.variacoes.all by cor as variacoes_por_cor %}
-            {% for grupo in variacoes_por_cor %}
-            <tr data-cor="{{ grupo.grouper }}">
+            {% for cor in cores_disponiveis %}
+            <tr data-cor="{{ cor }}">
                 <td>
-                    <input type="hidden" name="cor_nome[]" value="{{ grupo.grouper }}">
-                    <strong>{{ grupo.grouper }}</strong>
+                    <strong>{{ cor }}</strong>
+                    <input type="hidden" name="cor_nome[]" value="{{ cor }}">
                 </td>
-                <td>
-                    <!-- Tamanhos da cor -->
-                    <div class="d-flex flex-wrap gap-1 justify-content-center">
-                        {% for variacao in grupo.list %}
-                        <span class="badge bg-secondary tamanho-badge" 
-                              data-variacao-id="{{ variacao.id }}"
-                              data-cor="{{ grupo.grouper }}"
-                              data-tamanho="{{ variacao.tamanho }}"
-                              data-preco="{{ variacao.preco }}"
-                              data-estoque="{{ variacao.quantidade_estoque }}"
-                              onclick="selecionarTamanho(this)">
-                            {{ variacao.tamanho }}
-                        </span>
-                        {% endfor %}
-                        <!-- Botão para adicionar novo tamanho -->
-                        <button type="button" class="btn btn-sm btn-outline-primary" 
-                                onclick="adicionarTamanhoCor(this, '{{ grupo.grouper }}')">
-                            <i class="bi bi-plus"></i>
-                        </button>
-                    </div>
-                </td>
-                <td>
-                    <input type="number" class="form-control form-control-sm preco-input" 
-                           name="preco_{{ grupo.grouper }}" 
-                           value="{{ grupo.list.0.preco|default:0 }}" 
-                           step="0.01" min="0" placeholder="Preço">
-                </td>
-                <td>
-                    <input type="number" class="form-control form-control-sm estoque-input" 
-                           name="estoque_{{ grupo.grouper }}" 
-                           value="{{ grupo.list.0.quantidade_estoque|default:0 }}" 
-                           min="0" placeholder="Estoque">
-                </td>
-                <td>
-                    <input type="file" class="form-control form-control-sm" 
-                           name="imagem_cor_{{ grupo.grouper }}" accept="image/*">
-                    {% with primeira=grupo.list|first %}
-                    {% if primeira.imagem %}
-                    <img src="{{ primeira.imagem.url }}" style="max-height: 30px; margin-top: 4px;">
-                    {% endif %}
+                {% for tamanho in tamanhos_disponiveis %}
+                <td style="padding: 2px;">
+                    {% with variacao=produto.produto_obj.variacoes.all|get_variacao:cor|get_tamanho:tamanho %}
+                    <input type="number" 
+                           name="estoque_{{ cor }}_{{ tamanho }}" 
+                           value="{{ variacao.quantidade_estoque|default:0 }}" 
+                           min="0" 
+                           class="form-control form-control-sm text-center" 
+                           style="width: 50px; display: inline-block;">
+                    <input type="number" 
+                           name="preco_{{ cor }}_{{ tamanho }}" 
+                           value="{{ variacao.preco|default:0 }}" 
+                           step="0.01" 
+                           min="0" 
+                           class="form-control form-control-sm text-center mt-1" 
+                           style="width: 70px; display: inline-block;" 
+                           placeholder="Preço">
                     {% endwith %}
                 </td>
+                {% endfor %}
                 <td>
                     <button type="button" class="btn btn-sm btn-outline-danger" 
-                            onclick="removerCor({{ produto.id }}, '{{ grupo.grouper }}', this)">
+                            onclick="removerCor({{ produto.id }}, '{{ cor }}', this)">
                         <i class="bi bi-trash"></i>
                     </button>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6">
-                    <div class="alert alert-warning mb-0">
-                        <i class="bi bi-exclamation-triangle"></i> 
-                        Nenhuma variação cadastrada. Adicione uma cor abaixo.
-                    </div>
                 </td>
             </tr>
             {% endfor %}
@@ -254,17 +221,7 @@
     </table>
 </div>
 
-<!-- 🔥 BOTÃO PARA ADICIONAR NOVA VARIAÇÃO -->
-<button type="button" class="btn btn-outline-success btn-sm mt-2" onclick="adicionarLinhaVariacao(this)">
-    <i class="bi bi-plus-circle"></i> Adicionar Variação
-</button>
-
-<!-- 🔥 BOTÃO PARA PREENCHER GRADE (AGORA FUNCIONAL) -->
-<button type="button" class="btn btn-outline-secondary btn-sm mt-2 ms-2" onclick="preencherValores({{ produto.id }})">
-    <i class="bi bi-magic"></i> Preencher Grade
-</button>
-
-                                <!-- 🔥 ADICIONAR NOVA COR -->
+<!-- BOTÕES PARA ADICIONAR -->
 <div class="row g-2 mt-2">
     <div class="col-md-4">
         <div class="input-group input-group-sm">
@@ -283,49 +240,32 @@
                 <option value="Roxo">Roxo</option>
                 <option value="Marrom">Marrom</option>
             </select>
-            <button class="btn btn-outline-success" type="button" onclick="adicionarCorGrade({{ produto.id }})">
+            <button class="btn btn-outline-success" type="button" onclick="adicionarCor({{ produto.id }})">
                 <i class="bi bi-plus"></i>
             </button>
         </div>
     </div>
-</div>
-
-<!-- 🔥 MODAL PARA ADICIONAR TAMANHO A UMA COR -->
-<div class="modal fade" id="modalTamanho{{ produto.id }}" tabindex="-1">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h6 class="modal-title">Adicionar Tamanho</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="cor-selecionada-tamanho">
-                <div class="mb-3">
-                    <label class="form-label">Tamanho</label>
-                    <select class="form-select" id="novo-tamanho-select">
-                        <option value="">Selecione</option>
-                        <option value="PP">PP</option>
-                        <option value="P">P</option>
-                        <option value="M">M</option>
-                        <option value="G">G</option>
-                        <option value="GG">GG</option>
-                        <option value="U">Único</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Preço</label>
-                    <input type="number" class="form-control" id="novo-preco" step="0.01" min="0" placeholder="0.00">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Estoque</label>
-                    <input type="number" class="form-control" id="novo-estoque" min="0" value="0">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="salvarNovoTamanho({{ produto.id }})">Adicionar</button>
-            </div>
+    <div class="col-md-4">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text">Adicionar Tamanho</span>
+            <select class="form-select" id="novo-tamanho-select-{{ produto.id }}">
+                <option value="">Selecione</option>
+                <option value="PP">PP</option>
+                <option value="P">P</option>
+                <option value="M">M</option>
+                <option value="G">G</option>
+                <option value="GG">GG</option>
+                <option value="U">Único</option>
+            </select>
+            <button class="btn btn-outline-success" type="button" onclick="adicionarTamanho({{ produto.id }})">
+                <i class="bi bi-plus"></i>
+            </button>
         </div>
+    </div>
+    <div class="col-md-4">
+        <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="preencherGrade({{ produto.id }})">
+            <i class="bi bi-magic"></i> Preencher Grade
+        </button>
     </div>
 </div>
 
