@@ -163,16 +163,16 @@
                                     </div>
                                 </div>
 
-                                <!-- ========================================================== -->
-<!-- GRADE DE VARIAÇÕES - VERSÃO MANUAL (SEM FILTROS)           -->
+<!-- ========================================================== -->
+<!-- GERENCIAR VARIAÇÕES - VERSÃO LISTA                         -->
 <!-- ========================================================== -->
 <h6 class="border-bottom pb-2 mt-3">
-    <i class="bi bi-grid"></i> Gerenciar Variações
+    <i class="bi bi-list-ul"></i> Gerenciar Variações
     <span class="badge bg-secondary ms-2">{{ produto.produto_obj.variacoes.count }}</span>
 </h6>
 
 <div class="table-responsive">
-    <table class="table table-bordered table-sm text-center">
+    <table class="table table-bordered table-sm text-center" id="tabela-variacoes-{{ produto.id }}">
         <thead class="table-light">
             <tr>
                 <th>Cor</th>
@@ -228,7 +228,7 @@
                 </td>
                 <td>
                     <button type="button" class="btn btn-sm btn-outline-danger" 
-                            onclick="this.closest('tr').remove()">
+                            onclick="removerVariacaoModal({{ variacao.id }}, this)">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>
@@ -238,9 +238,14 @@
     </table>
 </div>
 
-<!-- BOTÃO PARA ADICIONAR NOVA VARIAÇÃO -->
+<!-- 🔥 BOTÃO PARA ADICIONAR NOVA VARIAÇÃO -->
 <button type="button" class="btn btn-outline-success btn-sm mt-2" onclick="adicionarLinhaVariacao(this)">
     <i class="bi bi-plus-circle"></i> Adicionar Variação
+</button>
+
+<!-- 🔥 BOTÃO PARA PREENCHER GRADE (AGORA FUNCIONAL) -->
+<button type="button" class="btn btn-outline-secondary btn-sm mt-2 ms-2" onclick="preencherValores({{ produto.id }})">
+    <i class="bi bi-magic"></i> Preencher Grade
 </button>
 
                                 <!-- BOTÕES PARA ADICIONAR CORES E TAMANHOS -->
@@ -565,37 +570,13 @@ function adicionarTamanho(produtoId) {
     select.value = '';
 }
 
-// 🔥 REMOVER COR
-function removerCor(produtoId, cor, button) {
-    if (confirm(`Remover a cor "${cor}" e todas suas variações?`)) {
-        const linha = button.closest('tr');
-        linha.remove();
-        
-        // Remove a imagem da cor
-        const imagensContainer = document.getElementById(`imagens-por-cor-${produtoId}`);
-        const cards = imagensContainer.querySelectorAll('.col-md-3');
-        cards.forEach(card => {
-            if (card.textContent.includes(cor)) {
-                card.remove();
-            }
-        });
-    }
-}
-
-// 🔥 PREENCHER GRADE COM VALORES PADRÃO
-function preencherGrade(produtoId) {
-    const tabela = document.getElementById(`tabela-variacoes-${produtoId}`);
-    const inputs = tabela.querySelectorAll('input[type="number"][name^="estoque_"]');
-    inputs.forEach(input => {
-        input.value = 0;
-    });
-    const precoInputs = tabela.querySelectorAll('input[type="number"][name^="preco_"]');
-    precoInputs.forEach(input => {
-        input.value = 0;
-    });
-}
+// ==========================================
+// ADICIONAR LINHA DE VARIAÇÃO
+// ==========================================
 function adicionarLinhaVariacao(button) {
-    const tabela = button.closest('.modal-body').querySelector('table tbody');
+    const modal = button.closest('.modal-body');
+    const tabela = modal.querySelector('table tbody');
+    
     const novaLinha = document.createElement('tr');
     novaLinha.innerHTML = `
         <td>
@@ -640,6 +621,84 @@ function adicionarLinhaVariacao(button) {
         </td>
     `;
     tabela.appendChild(novaLinha);
+    
+    // Atualiza o contador
+    const badge = document.querySelector('.badge.bg-secondary.ms-2');
+    if (badge) {
+        badge.textContent = parseInt(badge.textContent) + 1;
+    }
 }    
+// ==========================================
+// REMOVER VARIAÇÃO EXISTENTE
+// ==========================================
+function removerVariacaoModal(variacaoId, button) {
+    if (confirm('Tem certeza que deseja remover esta variação?')) {
+        const tr = button.closest('tr');
+        const form = tr.closest('form');
+        
+        // Adiciona campo hidden para marcar exclusão
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'excluir_variacao[]';
+        input.value = variacaoId;
+        form.appendChild(input);
+        
+        tr.remove();
+        
+        // Atualiza o contador
+        const badge = document.querySelector('.badge.bg-secondary.ms-2');
+        if (badge) {
+            badge.textContent = parseInt(badge.textContent) - 1;
+        }
+    }
+}
+// 🔥 REMOVER COR
+function removerCor(produtoId, cor, button) {
+    if (confirm(`Remover a cor "${cor}" e todas suas variações?`)) {
+        const linha = button.closest('tr');
+        linha.remove();
+        
+        // Remove a imagem da cor
+        const imagensContainer = document.getElementById(`imagens-por-cor-${produtoId}`);
+        const cards = imagensContainer.querySelectorAll('.col-md-3');
+        cards.forEach(card => {
+            if (card.textContent.includes(cor)) {
+                card.remove();
+            }
+        });
+    }
+}
+
+// 🔥 PREENCHER GRADE COM VALORES PADRÃO
+function preencherValores(produtoId) {
+    const tabela = document.getElementById(`tabela-variacoes-${produtoId}`);
+    if (!tabela) return;
+    
+    const linhas = tabela.querySelectorAll('tbody tr');
+    if (linhas.length === 0) {
+        alert('Nenhuma variação para preencher!');
+        return;
+    }
+    
+    // Pede o valor para preencher
+    const valorPreco = prompt('Digite o preço padrão para todas as variações (ex: 49.90):', '0.00');
+    if (valorPreco === null) return;
+    const precoPadrao = parseFloat(valorPreco) || 0;
+    
+    const valorEstoque = prompt('Digite o estoque padrão para todas as variações:', '10');
+    if (valorEstoque === null) return;
+    const estoquePadrao = parseInt(valorEstoque) || 0;
+    
+    linhas.forEach(linha => {
+        const precoInput = linha.querySelector('input[name="preco[]"]');
+        const estoqueInput = linha.querySelector('input[name="quantidade_estoque[]"]');
+        
+        if (precoInput) precoInput.value = precoPadrao;
+        if (estoqueInput) estoqueInput.value = estoquePadrao;
+    });
+    
+    alert(`✅ Grade preenchida com Preço: R$ ${precoPadrao.toFixed(2)} e Estoque: ${estoquePadrao}`);
+}
+
 </script>
 {% endblock %}
