@@ -85,12 +85,9 @@
                     <!-- Botões de ação -->
                     <div class="card-footer">
                         <div class="d-flex gap-2">
-                            <!-- MODAL DE EDIÇÃO -->
                             <button type="button" class="btn btn-warning btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#editarModal{{ produto.produto_obj.id }}">
                                 <i class="bi bi-pencil"></i> Editar
                             </button>
-                            
-                            <!-- MODAL DE DETALHES -->
                             <button type="button" class="btn btn-info btn-sm flex-fill" data-bs-toggle="modal" data-bs-target="#detalhesModal{{ produto.produto_obj.id }}">
                                 <i class="bi bi-eye"></i> Detalhes
                             </button>
@@ -116,16 +113,16 @@
             <!-- ========================================================== -->
             <!-- 🔥 MODAL DE EDIÇÃO COM GRADE DE VARIAÇÕES                   -->
             <!-- ========================================================== -->
-            <div class="modal fade" id="editarModal{{ produit.id }}" tabindex="-1" aria-labelledby="editarModalLabel{{ produit.id }}" aria-hidden="true">
+            <div class="modal fade" id="editarModal{{ produto.produto_obj.id }}" tabindex="-1" aria-labelledby="editarModalLabel{{ produto.produto_obj.id }}" aria-hidden="true">
                 <div class="modal-dialog modal-xl">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="editarModalLabel{{ produit.id }}">
-                                <i class="bi bi-pencil"></i> Editar Produto: {{ produit.nome }}
+                            <h5 class="modal-title" id="editarModalLabel{{ produto.produto_obj.id }}">
+                                <i class="bi bi-pencil"></i> Editar Produto: {{ produto.nome }}
                             </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form method="POST" action="{% url 'editar_produto' produit.id %}" enctype="multipart/form-data">
+                        <form method="POST" action="{% url 'editar_produto' produto.produto_obj.id %}" enctype="multipart/form-data">
                             {% csrf_token %}
                             <div class="modal-body">
                                 <!-- INFORMAÇÕES BÁSICAS -->
@@ -134,17 +131,17 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label">Nome do Produto *</label>
-                                            <input type="text" class="form-control" name="nome" value="{{ produit.nome }}" required>
+                                            <input type="text" class="form-control" name="nome" value="{{ produto.nome }}" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label">Categoria *</label>
                                             <select class="form-select" name="categoria" required>
-                                                <option value="lancamentos" {% if produit.categoria == 'Lançamentos' %}selected{% endif %}>Lançamentos</option>
-                                                <option value="promocoes" {% if produit.categoria == 'Promoções' %}selected{% endif %}>Promoções</option>
-                                                <option value="conjuntos" {% if produit.categoria == 'Conjuntos' %}selected{% endif %}>Conjuntos</option>
-                                                <option value="outros" {% if produit.categoria == 'Outros' %}selected{% endif %}>Outros</option>
+                                                <option value="lancamentos" {% if produto.categoria == 'Lançamentos' %}selected{% endif %}>Lançamentos</option>
+                                                <option value="promocoes" {% if produto.categoria == 'Promoções' %}selected{% endif %}>Promoções</option>
+                                                <option value="conjuntos" {% if produto.categoria == 'Conjuntos' %}selected{% endif %}>Conjuntos</option>
+                                                <option value="outros" {% if produto.categoria == 'Outros' %}selected{% endif %}>Outros</option>
                                             </select>
                                         </div>
                                     </div>
@@ -152,7 +149,7 @@
                                 
                                 <div class="mb-3">
                                     <label class="form-label">Descrição</label>
-                                    <textarea class="form-control" name="descricao" rows="2">{{ produit.descricao }}</textarea>
+                                    <textarea class="form-control" name="descricao" rows="2">{{ produto.descricao }}</textarea>
                                 </div>
                                 
                                 <div class="row">
@@ -160,8 +157,8 @@
                                         <div class="mb-3">
                                             <label class="form-label">Status</label>
                                             <select class="form-select" name="ativo">
-                                                <option value="1" {% if produit.ativo %}selected{% endif %}>Ativo</option>
-                                                <option value="0" {% if not produit.ativo %}selected{% endif %}>Inativo</option>
+                                                <option value="1" {% if produto.ativo %}selected{% endif %}>Ativo</option>
+                                                <option value="0" {% if not produto.ativo %}selected{% endif %}>Inativo</option>
                                             </select>
                                         </div>
                                     </div>
@@ -172,11 +169,11 @@
                                 <!-- ========================================================== -->
                                 <h6 class="border-bottom pb-2 mt-3">
                                     <i class="bi bi-grid"></i> Gerenciar Variações
-                                    <span class="badge bg-secondary ms-2">{{ produit.produit_obj.variacoes.count }}</span>
+                                    <span class="badge bg-secondary ms-2">{{ produto.produto_obj.variacoes.count }}</span>
                                 </h6>
 
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-sm text-center" id="tabela-variacoes-{{ produit.id }}">
+                                    <table class="table table-bordered table-sm text-center" id="tabela-variacoes-{{ produto.produto_obj.id }}">
                                         <thead class="table-light">
                                             <tr>
                                                 <th style="min-width: 80px;">Cor \ Tamanho</th>
@@ -215,7 +212,7 @@
                                                 {% endfor %}
                                                 <td>
                                                     <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                            onclick="removerCor({{ produto.id }}, '{{ cor }}', this)">
+                                                            onclick="removerCor({{ produto.produto_obj.id }}, '{{ cor }}', this)">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </td>
@@ -239,7 +236,7 @@
                                     <div class="col-md-4">
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text">Adicionar Cor</span>
-                                            <select class="form-select" id="nova-cor-select-{{ produto.id }}">
+                                            <select class="form-select" id="nova-cor-select-{{ produto.produto_obj.id }}">
                                                 <option value="">Selecione</option>
                                                 <option value="Vermelho">Vermelho</option>
                                                 <option value="Azul">Azul</option>
@@ -253,7 +250,7 @@
                                                 <option value="Roxo">Roxo</option>
                                                 <option value="Marrom">Marrom</option>
                                             </select>
-                                            <button class="btn btn-outline-success" type="button" onclick="adicionarCor({{ produto.id }})">
+                                            <button class="btn btn-outline-success" type="button" onclick="adicionarCor({{ produto.produto_obj.id }})">
                                                 <i class="bi bi-plus"></i>
                                             </button>
                                         </div>
@@ -261,7 +258,7 @@
                                     <div class="col-md-4">
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text">Adicionar Tamanho</span>
-                                            <select class="form-select" id="novo-tamanho-select-{{ produto.id }}">
+                                            <select class="form-select" id="novo-tamanho-select-{{ produto.produto_obj.id }}">
                                                 <option value="">Selecione</option>
                                                 <option value="PP">PP</option>
                                                 <option value="P">P</option>
@@ -270,13 +267,13 @@
                                                 <option value="GG">GG</option>
                                                 <option value="U">Único</option>
                                             </select>
-                                            <button class="btn btn-outline-success" type="button" onclick="adicionarTamanho({{ produto.id }})">
+                                            <button class="btn btn-outline-success" type="button" onclick="adicionarTamanho({{ produto.produto_obj.id }})">
                                                 <i class="bi bi-plus"></i>
                                             </button>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="preencherGrade({{ produto.id }})">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="preencherGrade({{ produto.produto_obj.id }})">
                                             <i class="bi bi-magic"></i> Preencher Grade
                                         </button>
                                     </div>
@@ -295,11 +292,11 @@
             </div>
 
             <!-- MODAL DE DETALHES -->
-            <div class="modal fade" id="detalhesModal{{ produit.id }}" tabindex="-1" aria-labelledby="detalhesModalLabel{{ produit.id }}" aria-hidden="true">
+            <div class="modal fade" id="detalhesModal{{ produto.produto_obj.id }}" tabindex="-1" aria-labelledby="detalhesModalLabel{{ produto.produto_obj.id }}" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="detalhesModalLabel{{ produit.id }}">
+                            <h5 class="modal-title" id="detalhesModalLabel{{ produto.produto_obj.id }}">
                                 <i class="bi bi-info-circle"></i> Detalhes do Produto
                             </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -307,27 +304,27 @@
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <img src="{{ produit.imagem }}" class="img-fluid rounded" alt="{{ produit.nome }}"
+                                    <img src="{{ produto.imagem }}" class="img-fluid rounded" alt="{{ produto.nome }}"
                                          onerror="this.src='https://placehold.co/300x200?text=Sem+Imagem'">
                                 </div>
                                 <div class="col-md-6">
-                                    <h4>{{ produit.nome }}</h4>
-                                    <p><strong>Descrição:</strong> {{ produit.descricao|default:"Nenhuma descrição" }}</p>
-                                    <p><strong>Preço:</strong> R$ {{ produit.preco|floatformat:2 }}</p>
-                                    <p><strong>Estoque:</strong> {{ produit.quantidade_estoque }} unidades</p>
-                                    <p><strong>Cor:</strong> {{ produit.cor }}</p>
-                                    <p><strong>Tamanho:</strong> {{ produit.tamanho }}</p>
-                                    <p><strong>Categoria:</strong> {{ produit.categoria }}</p>
+                                    <h4>{{ produto.nome }}</h4>
+                                    <p><strong>Descrição:</strong> {{ produto.descricao|default:"Nenhuma descrição" }}</p>
+                                    <p><strong>Preço:</strong> R$ {{ produto.preco|floatformat:2 }}</p>
+                                    <p><strong>Estoque:</strong> {{ produto.quantidade_estoque }} unidades</p>
+                                    <p><strong>Cor:</strong> {{ produto.cor }}</p>
+                                    <p><strong>Tamanho:</strong> {{ produto.tamanho }}</p>
+                                    <p><strong>Categoria:</strong> {{ produto.categoria }}</p>
                                     <p><strong>Status:</strong> 
-                                        <span class="badge {% if produit.ativo %}bg-success{% else %}bg-danger{% endif %}">
-                                            {% if produit.ativo %}Ativo{% else %}Inativo{% endif %}
+                                        <span class="badge {% if produto.ativo %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if produto.ativo %}Ativo{% else %}Inativo{% endif %}
                                         </span>
                                     </p>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editarModal{{ produit.id }}">
+                            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editarModal{{ produto.produto_obj.id }}">
                                 <i class="bi bi-pencil"></i> Editar
                             </button>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
