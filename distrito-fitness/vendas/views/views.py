@@ -1663,66 +1663,77 @@ def editar_produto(request, produto_id):
         produto.ativo = request.POST.get('ativo') == '1'
         produto.save()
         
-        # 🔥 EXCLUI VARIAÇÕES MARCADAS
-        excluir_ids = request.POST.getlist('excluir_variacao[]')
-        if excluir_ids:
-            produto.variacoes.filter(id__in=excluir_ids).delete()
+        # 🔥 EXCLUI CORES MARCADAS
+        excluir_cores = request.POST.getlist('excluir_cor[]')
+        if excluir_cores:
+            produto.variacoes.filter(cor__in=excluir_cores).delete()
         
-        # 🔥 ATUALIZA/CRIA MÚLTIPLAS VARIAÇÕES
-        variacao_ids = request.POST.getlist('variacao_id[]')
-        cores = request.POST.getlist('cor[]')
-        tamanhos = request.POST.getlist('tamanho[]')
-        precos = request.POST.getlist('preco[]')
-        estoques = request.POST.getlist('quantidade_estoque[]')
-        imagens = request.FILES.getlist('imagem_variacao[]')
+        # 🔥 PROCESSA A GRADE DE VARIAÇÕES
+        # Pega todos os nomes de campos que começam com 'estoque_' ou 'preco_'
+        dados = {}
+        for key, value in request.POST.items():
+            if key.startswith('estoque_') or key.startswith('preco_'):
+                dados[key] = value
+        
+        # Pega as cores e tamanhos do cabeçalho
+        cores = request.POST.getlist('cor_nome[]')
+        tamanhos = []
+        
+        # Extrai tamanhos dos campos (ex: estoque_Verde_M -> tamanho = M)
+        for key in dados.keys():
+            if key.startswith('estoque_'):
+                partes = key.split('_')
+                if len(partes) >= 3:
+                    cor = partes[1]
+                    tamanho = partes[2]
+                    if cor in cores and tamanho not in tamanhos:
+                        tamanhos.append(tamanho)
+        
+        # Ordena tamanhos
+        ordem_tamanhos = {'PP': 0, 'P': 1, 'M': 2, 'G': 3, 'GG': 4, 'U': 5}
+        tamanhos.sort(key=lambda x: ordem_tamanhos.get(x, 99))
         
         manter_ids = []
         
-        for i in range(len(cores)):
-            try:
-                cor = cores[i] if i < len(cores) else ''
-                tamanho = tamanhos[i] if i < len(tamanhos) else ''
+        for cor in cores:
+            for tamanho in tamanhos:
+                estoque_key = f"estoque_{cor}_{tamanho}"
+                preco_key = f"preco_{cor}_{tamanho}"
                 
-                # 🔥 CONVERTE PREÇO (SUBSTITUI VÍRGULA POR PONTO)
-                preco_str = precos[i] if i < len(precos) else '0'
-                preco_str = preco_str.replace(',', '.')
-                preco = Decimal(preco_str) if preco_str else Decimal('0.00')
+                estoque = int(dados.get(estoque_key, 0))
+                preco_str = dados.get(preco_key, '0').replace(',', '.')
                 
-                estoque = int(estoques[i]) if i < len(estoques) and estoques[i] else 0
+                try:
+                    preco = Decimal(preco_str)
+                except:
+                    preco = Decimal('0.00')
                 
-                if not cor or not tamanho or preco <= 0:
-                    continue
+                if preco <= 0 and estoque == 0:
+                    continue  # Pula combinações vazias
                 
-                variacao_id = variacao_ids[i] if i < len(variacao_ids) and variacao_ids[i] else None
+                # Verifica se já existe
+                variacao = ProdutoVariacao.objects.filter(
+                    produto=produto,
+                    cor=cor,
+                    tamanho=tamanho
+                ).first()
                 
-                if variacao_id and variacao_id != '':
-                    # 🔥 ATUALIZA VARIAÇÃO EXISTENTE
-                    try:
-                        variacao = ProdutoVariacao.objects.get(id=variacao_id, produto=produto)
-                        variacao.cor = cor
-                        variacao.tamanho = tamanho
-                        variacao.preco = preco
-                        variacao.quantidade_estoque = estoque
-                        if i < len(imagens) and imagens[i]:
-                            variacao.imagem = imagens[i]
-                        variacao.save()
-                        manter_ids.append(variacao.id)
-                    except ProdutoVariacao.DoesNotExist:
-                        pass
+                if variacao:
+                    # Atualiza existente
+                    variacao.preco = preco
+                    variacao.quantidade_estoque = estoque
+                    variacao.save()
+                    manter_ids.append(variacao.id)
                 else:
-                    # 🔥 CRIA NOVA VARIAÇÃO
-                    nova_variacao = ProdutoVariacao.objects.create(
+                    # Cria nova
+                    nova = ProdutoVariacao.objects.create(
                         produto=produto,
                         cor=cor,
                         tamanho=tamanho,
                         preco=preco,
-                        quantidade_estoque=estoque,
-                        imagem=imagens[i] if i < len(imagens) and imagens[i] else None
+                        quantidade_estoque=estoque
                     )
-                    manter_ids.append(nova_variacao.id)
-            except Exception as e:
-                print(f"Erro ao processar variação {i}: {e}")
-                continue
+                    manter_ids.append(nova.id)
         
         # 🔥 REMOVE VARIAÇÕES QUE NÃO ESTÃO NA LISTA DE MANTIDAS
         if manter_ids:
