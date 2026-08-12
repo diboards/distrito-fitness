@@ -211,10 +211,9 @@
                                                 </td>
                                                 <td>
                                                     
+                                                    
                                                     <input type="number" class="form-control form-control-sm" name="preco[]" 
-                                                           value="{% if variacao.preco %}{{ variacao.preco }}{% else %}0.00{% endif %}" 
-                                                           step="0.01" min="0.01" required>
-                                                
+                                                           value="{{ variacao.preco|stringformat:'f' }}" step="0.01" min="0.01" required>
                                                 </td>
                                                 <td>
                                                     <input type="number" class="form-control form-control-sm" name="quantidade_estoque[]" 
