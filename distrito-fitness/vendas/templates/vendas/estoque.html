@@ -111,10 +111,10 @@
             </div>
 
             <!-- ========================================================== -->
-            <!-- MODAL DE EDIÇÃO - LÓGICA ORIGINAL                           -->
+            <!-- MODAL DE EDIÇÃO - LISTA DE VARIAÇÕES                        -->
             <!-- ========================================================== -->
             <div class="modal fade" id="editarModal{{ produto.produto_obj.id }}" tabindex="-1" aria-labelledby="editarModalLabel{{ produto.produto_obj.id }}" aria-hidden="true">
-                <div class="modal-dialog modal-lg">
+                <div class="modal-dialog modal-xl">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="editarModalLabel{{ produto.produto_obj.id }}">
@@ -165,10 +165,10 @@
                                 </div>
 
                                 <!-- ========================================================== -->
-                                <!-- VARIAÇÕES - AGRUPADAS POR COR (LÓGICA ORIGINAL)            -->
+                                <!-- LISTA DE VARIAÇÕES (CADA UMA EM UMA LINHA)                  -->
                                 <!-- ========================================================== -->
                                 <h6 class="border-bottom pb-2 mt-3">
-                                    <i class="bi bi-grid"></i> Variações
+                                    <i class="bi bi-list-ul"></i> Variações
                                     <span class="badge bg-secondary ms-2">{{ produto.produto_obj.variacoes.count }}</span>
                                 </h6>
 
@@ -177,60 +177,61 @@
                                         <thead class="table-light">
                                             <tr>
                                                 <th style="min-width: 100px;">Cor</th>
-                                                <th>Tamanhos</th>
-                                                <th>Preço</th>
-                                                <th>Estoque</th>
-                                                <th>Imagem</th>
-                                                <th>Ação</th>
+                                                <th style="min-width: 80px;">Tamanho</th>
+                                                <th style="min-width: 100px;">Preço</th>
+                                                <th style="min-width: 80px;">Estoque</th>
+                                                <th style="min-width: 150px;">Imagem</th>
+                                                <th style="min-width: 80px;">Ação</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {% regroup produto.produto_obj.variacoes.all by cor as variacoes_por_cor %}
-                                            {% for grupo in variacoes_por_cor %}
-                                            <tr data-cor="{{ grupo.grouper }}">
+                                            {% for variacao in produto.produto_obj.variacoes.all %}
+                                            <tr data-variacao-id="{{ variacao.id }}">
                                                 <td>
-                                                    <input type="hidden" name="cor_nome[]" value="{{ grupo.grouper }}">
-                                                    <strong>{{ grupo.grouper }}</strong>
+                                                    <input type="hidden" name="variacao_id[]" value="{{ variacao.id }}">
+                                                    <select class="form-select form-select-sm" name="cor[]" required>
+                                                        <option value="Vermelho" {% if variacao.cor == 'Vermelho' %}selected{% endif %}>Vermelho</option>
+                                                        <option value="Azul" {% if variacao.cor == 'Azul' %}selected{% endif %}>Azul</option>
+                                                        <option value="Verde" {% if variacao.cor == 'Verde' %}selected{% endif %}>Verde</option>
+                                                        <option value="Amarelo" {% if variacao.cor == 'Amarelo' %}selected{% endif %}>Amarelo</option>
+                                                        <option value="Preto" {% if variacao.cor == 'Preto' %}selected{% endif %}>Preto</option>
+                                                        <option value="Branco" {% if variacao.cor == 'Branco' %}selected{% endif %}>Branco</option>
+                                                        <option value="Rosa" {% if variacao.cor == 'Rosa' %}selected{% endif %}>Rosa</option>
+                                                        <option value="Roxo" {% if variacao.cor == 'Roxo' %}selected{% endif %}>Roxo</option>
+                                                        <option value="Laranja" {% if variacao.cor == 'Laranja' %}selected{% endif %}>Laranja</option>
+                                                        <option value="Cinza" {% if variacao.cor == 'Cinza' %}selected{% endif %}>Cinza</option>
+                                                        <option value="Marrom" {% if variacao.cor == 'Marrom' %}selected{% endif %}>Marrom</option>
+                                                    </select>
                                                 </td>
                                                 <td>
-                                                    <div class="d-flex flex-wrap gap-1 justify-content-center">
-                                                        {% for variacao in grupo.list %}
-                                                        <span class="badge bg-secondary tamanho-badge" 
-                                                              data-variacao-id="{{ variacao.id }}"
-                                                              data-cor="{{ grupo.grouper }}"
-                                                              data-tamanho="{{ variacao.tamanho }}"
-                                                              data-preco="{{ variacao.preco }}"
-                                                              data-estoque="{{ variacao.quantidade_estoque }}"
-                                                              onclick="selecionarTamanho(this)">
-                                                            {{ variacao.tamanho }}
-                                                        </span>
-                                                        {% endfor %}
+                                                    <select class="form-select form-select-sm" name="tamanho[]" required>
+                                                        <option value="PP" {% if variacao.tamanho == 'PP' %}selected{% endif %}>PP</option>
+                                                        <option value="P" {% if variacao.tamanho == 'P' %}selected{% endif %}>P</option>
+                                                        <option value="M" {% if variacao.tamanho == 'M' %}selected{% endif %}>M</option>
+                                                        <option value="G" {% if variacao.tamanho == 'G' %}selected{% endif %}>G</option>
+                                                        <option value="GG" {% if variacao.tamanho == 'GG' %}selected{% endif %}>GG</option>
+                                                        <option value="U" {% if variacao.tamanho == 'U' %}selected{% endif %}>Único</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control form-control-sm" name="preco[]" 
+                                                           value="{{ variacao.preco }}" step="0.01" min="0.01" required>
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control form-control-sm" name="quantidade_estoque[]" 
+                                                           value="{{ variacao.quantidade_estoque }}" min="0" required>
+                                                </td>
+                                                <td>
+                                                    <input type="file" class="form-control form-control-sm" name="imagem_variacao[]" accept="image/*">
+                                                    {% if variacao.imagem %}
+                                                    <div class="mt-1">
+                                                        <img src="{{ variacao.imagem.url }}" style="max-height: 40px; border-radius: 4px;">
                                                     </div>
-                                                </td>
-                                                <td>
-                                                    <input type="number" class="form-control form-control-sm preco-input" 
-                                                           name="preco_{{ grupo.grouper }}" 
-                                                           value="{{ grupo.list.0.preco|default:0 }}" 
-                                                           step="0.01" min="0" placeholder="Preço">
-                                                </td>
-                                                <td>
-                                                    <input type="number" class="form-control form-control-sm estoque-input" 
-                                                           name="estoque_{{ grupo.grouper }}" 
-                                                           value="{{ grupo.list.0.quantidade_estoque|default:0 }}" 
-                                                           min="0" placeholder="Estoque">
-                                                </td>
-                                                <td>
-                                                    <input type="file" class="form-control form-control-sm" 
-                                                           name="imagem_cor_{{ grupo.grouper }}" accept="image/*">
-                                                    {% with primeira=grupo.list|first %}
-                                                    {% if primeira.imagem %}
-                                                    <img src="{{ primeira.imagem.url }}" style="max-height: 30px; margin-top: 4px;">
                                                     {% endif %}
-                                                    {% endwith %}
                                                 </td>
                                                 <td>
                                                     <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                            onclick="removerCor({{ produto.produto_obj.id }}, '{{ grupo.grouper }}', this)">
+                                                            onclick="removerVariacao({{ variacao.id }}, this)">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </td>
@@ -249,35 +250,16 @@
                                     </table>
                                 </div>
 
-                                <!-- ADICIONAR NOVA COR -->
-                                <div class="row g-2 mt-2">
-                                    <div class="col-md-4">
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">Adicionar Cor</span>
-                                            <select class="form-select" id="nova-cor-select-{{ produto.produto_obj.id }}">
-                                                <option value="">Selecione</option>
-                                                <option value="Vermelho">Vermelho</option>
-                                                <option value="Azul">Azul</option>
-                                                <option value="Preto">Preto</option>
-                                                <option value="Branco">Branco</option>
-                                                <option value="Cinza">Cinza</option>
-                                                <option value="Rosa">Rosa</option>
-                                                <option value="Verde">Verde</option>
-                                                <option value="Amarelo">Amarelo</option>
-                                                <option value="Laranja">Laranja</option>
-                                                <option value="Roxo">Roxo</option>
-                                                <option value="Marrom">Marrom</option>
-                                            </select>
-                                            <button class="btn btn-outline-success" type="button" onclick="adicionarCorGrade({{ produto.produto_obj.id }})">
-                                                <i class="bi bi-plus"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="preencherGrade({{ produto.produto_obj.id }})">
-                                            <i class="bi bi-magic"></i> Preencher Grade
-                                        </button>
-                                    </div>
+                                <!-- ========================================================== -->
+                                <!-- ADICIONAR NOVA VARIAÇÃO                                    -->
+                                <!-- ========================================================== -->
+                                <div class="mt-3">
+                                    <button type="button" class="btn btn-outline-success btn-sm" onclick="adicionarLinhaVariacao({{ produto.produto_obj.id }})">
+                                        <i class="bi bi-plus-circle"></i> Adicionar Variação
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm ms-2" onclick="preencherGrade({{ produto.produto_obj.id }})">
+                                        <i class="bi bi-magic"></i> Preencher Grade
+                                    </button>
                                 </div>
                             </div>
 
@@ -415,96 +397,84 @@
 
 <script>
 // ==========================================
-// SELECIONAR TAMANHO (destacar)
+// ADICIONAR LINHA DE VARIAÇÃO
 // ==========================================
-function selecionarTamanho(element) {
-    const container = element.parentElement;
-    const badges = container.querySelectorAll('.tamanho-badge');
-    badges.forEach(b => b.classList.remove('bg-primary', 'text-white'));
-    element.classList.add('bg-primary', 'text-white');
-}
-
-// ==========================================
-// ADICIONAR NOVA COR
-// ==========================================
-function adicionarCorGrade(produtoId) {
-    const select = document.getElementById(`nova-cor-select-${produtoId}`);
-    const cor = select.value;
-    if (!cor) {
-        alert('Selecione uma cor!');
-        return;
-    }
-    
+function adicionarLinhaVariacao(produtoId) {
     const tabela = document.getElementById(`tabela-variacoes-${produtoId}`);
-    const coresExistentes = tabela.querySelectorAll('tbody tr td:first-child strong');
-    for (let td of coresExistentes) {
-        if (td.textContent === cor) {
-            alert('Esta cor já existe!');
-            return;
-        }
-    }
-    
     const tbody = tabela.querySelector('tbody');
+    
     const novaLinha = document.createElement('tr');
-    novaLinha.dataset.cor = cor;
     novaLinha.innerHTML = `
         <td>
-            <input type="hidden" name="cor_nome[]" value="${cor}">
-            <strong>${cor}</strong>
+            <input type="hidden" name="variacao_id[]" value="">
+            <select class="form-select form-select-sm" name="cor[]" required>
+                <option value="Vermelho">Vermelho</option>
+                <option value="Azul">Azul</option>
+                <option value="Verde">Verde</option>
+                <option value="Amarelo">Amarelo</option>
+                <option value="Preto" selected>Preto</option>
+                <option value="Branco">Branco</option>
+                <option value="Rosa">Rosa</option>
+                <option value="Roxo">Roxo</option>
+                <option value="Laranja">Laranja</option>
+                <option value="Cinza">Cinza</option>
+                <option value="Marrom">Marrom</option>
+            </select>
         </td>
         <td>
-            <div class="d-flex flex-wrap gap-1 justify-content-center">
-                <span class="badge bg-secondary">Sem tamanhos</span>
-            </div>
+            <select class="form-select form-select-sm" name="tamanho[]" required>
+                <option value="PP">PP</option>
+                <option value="P">P</option>
+                <option value="M" selected>M</option>
+                <option value="G">G</option>
+                <option value="GG">GG</option>
+                <option value="U">Único</option>
+            </select>
         </td>
         <td>
-            <input type="number" class="form-control form-control-sm preco-input" 
-                   name="preco_${cor}" value="0" step="0.01" min="0" placeholder="Preço">
+            <input type="number" class="form-control form-control-sm" name="preco[]" step="0.01" min="0.01" placeholder="0.00" required>
         </td>
         <td>
-            <input type="number" class="form-control form-control-sm estoque-input" 
-                   name="estoque_${cor}" value="0" min="0" placeholder="Estoque">
+            <input type="number" class="form-control form-control-sm" name="quantidade_estoque[]" min="0" value="0" required>
         </td>
         <td>
-            <input type="file" class="form-control form-control-sm" 
-                   name="imagem_cor_${cor}" accept="image/*">
+            <input type="file" class="form-control form-control-sm" name="imagem_variacao[]" accept="image/*">
         </td>
         <td>
-            <button type="button" class="btn btn-sm btn-outline-danger" 
-                    onclick="removerCor(${produtoId}, '${cor}', this)">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()">
                 <i class="bi bi-trash"></i>
             </button>
         </td>
     `;
     tbody.appendChild(novaLinha);
     
-    const badgeContador = document.querySelector(`#editarModal${produtoId} .badge.bg-secondary.ms-2`);
-    if (badgeContador) {
-        badgeContador.textContent = parseInt(badgeContador.textContent) + 1;
+    // Atualiza o contador
+    const badge = document.querySelector(`#editarModal${produtoId} .badge.bg-secondary.ms-2`);
+    if (badge) {
+        badge.textContent = parseInt(badge.textContent) + 1;
     }
-    
-    select.value = '';
 }
 
 // ==========================================
-// REMOVER COR
+// REMOVER VARIAÇÃO
 // ==========================================
-function removerCor(produtoId, cor, button) {
-    if (confirm(`Remover a cor "${cor}" e todas suas variações?`)) {
-        const linha = button.closest('tr');
-        const form = linha.closest('form');
+function removerVariacao(variacaoId, button) {
+    if (confirm('Tem certeza que deseja remover esta variação?')) {
+        const tr = button.closest('tr');
+        const form = tr.closest('form');
         
         const input = document.createElement('input');
         input.type = 'hidden';
-        input.name = 'excluir_cor[]';
-        input.value = cor;
+        input.name = 'excluir_variacao[]';
+        input.value = variacaoId;
         form.appendChild(input);
         
-        linha.remove();
+        tr.remove();
         
-        const badgeContador = document.querySelector(`#editarModal${produtoId} .badge.bg-secondary.ms-2`);
-        if (badgeContador) {
-            badgeContador.textContent = parseInt(badgeContador.textContent) - 1;
+        // Atualiza o contador
+        const badge = document.querySelector('.badge.bg-secondary.ms-2');
+        if (badge) {
+            badge.textContent = parseInt(badge.textContent) - 1;
         }
     }
 }
@@ -531,8 +501,9 @@ function preencherGrade(produtoId) {
     const estoquePadrao = parseInt(valorEstoque) || 0;
     
     linhas.forEach(linha => {
-        const precoInput = linha.querySelector('.preco-input');
-        const estoqueInput = linha.querySelector('.estoque-input');
+        const precoInput = linha.querySelector('input[name="preco[]"]');
+        const estoqueInput = linha.querySelector('input[name="quantidade_estoque[]"]');
+        
         if (precoInput) precoInput.value = precoPadrao;
         if (estoqueInput) estoqueInput.value = estoquePadrao;
     });
