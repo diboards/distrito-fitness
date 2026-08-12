@@ -170,7 +170,7 @@
                                 </h6>
 
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-sm text-center" id="tabela-variacoes-{{ produto.id }}">
+                                    <table class="table table-bordered table-sm text-center" id="tabela-variacoes-{{ produto.produto_obj.id }}">
                                         <thead class="table-light">
                                             <tr>
                                                 <th style="min-width: 100px;">Cor</th>
@@ -205,7 +205,7 @@
                                                         {% endfor %}
                                                         <!-- Botão para adicionar novo tamanho -->
                                                         <button type="button" class="btn btn-sm btn-outline-primary" 
-                                                                onclick="adicionarTamanhoCor(this, '{{ grupo.grouper }}')">
+                                                                onclick="abrirModalTamanho('{{ grupo.grouper }}', {{ produto.produto_obj.id }})">
                                                             <i class="bi bi-plus"></i>
                                                         </button>
                                                     </div>
@@ -252,12 +252,12 @@
                                     </table>
                                 </div>
 
-                                <!-- 🔥 ADICIONAR NOVA COR -->
+                                <!-- 🔥 BOTÕES PARA ADICIONAR -->
                                 <div class="row g-2 mt-2">
                                     <div class="col-md-4">
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text">Adicionar Cor</span>
-                                            <select class="form-select" id="nova-cor-select-{{ produto.id }}">
+                                            <select class="form-select" id="nova-cor-select-{{ produto.produto_obj.id }}">
                                                 <option value="">Selecione</option>
                                                 <option value="Vermelho">Vermelho</option>
                                                 <option value="Azul">Azul</option>
@@ -271,15 +271,20 @@
                                                 <option value="Roxo">Roxo</option>
                                                 <option value="Marrom">Marrom</option>
                                             </select>
-                                            <button class="btn btn-outline-success" type="button" onclick="adicionarCorGrade({{ produto.id }})">
+                                            <button class="btn btn-outline-success" type="button" onclick="adicionarCorGrade({{ produto.produto_obj.id }})">
                                                 <i class="bi bi-plus"></i>
                                             </button>
                                         </div>
                                     </div>
+                                    <div class="col-md-4">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="preencherGrade({{ produto.produto_obj.id }})">
+                                            <i class="bi bi-magic"></i> Preencher Grade
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- 🔥 MODAL PARA ADICIONAR TAMANHO A UMA COR -->
-                                <div class="modal fade" id="modalTamanho{{ produto.id }}" tabindex="-1">
+                                <div class="modal fade" id="modalTamanho{{ produto.produto_obj.id }}" tabindex="-1">
                                     <div class="modal-dialog modal-sm">
                                         <div class="modal-content">
                                             <div class="modal-header">
@@ -287,10 +292,10 @@
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <input type="hidden" id="cor-selecionada-tamanho">
+                                                <input type="hidden" id="cor-selecionada-tamanho-{{ produto.produto_obj.id }}">
                                                 <div class="mb-3">
                                                     <label class="form-label">Tamanho</label>
-                                                    <select class="form-select" id="novo-tamanho-select">
+                                                    <select class="form-select" id="novo-tamanho-select-{{ produto.produto_obj.id }}">
                                                         <option value="">Selecione</option>
                                                         <option value="PP">PP</option>
                                                         <option value="P">P</option>
@@ -302,16 +307,16 @@
                                                 </div>
                                                 <div class="mb-3">
                                                     <label class="form-label">Preço</label>
-                                                    <input type="number" class="form-control" id="novo-preco" step="0.01" min="0" placeholder="0.00">
+                                                    <input type="number" class="form-control" id="novo-preco-{{ produto.produto_obj.id }}" step="0.01" min="0" placeholder="0.00">
                                                 </div>
                                                 <div class="mb-3">
                                                     <label class="form-label">Estoque</label>
-                                                    <input type="number" class="form-control" id="novo-estoque" min="0" value="0">
+                                                    <input type="number" class="form-control" id="novo-estoque-{{ produto.produto_obj.id }}" min="0" value="0">
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                <button type="button" class="btn btn-primary" onclick="salvarNovoTamanho({{ produto.id }})">Adicionar</button>
+                                                <button type="button" class="btn btn-primary" onclick="salvarNovoTamanho({{ produto.produto_obj.id }})">Adicionar</button>
                                             </div>
                                         </div>
                                     </div>
@@ -465,15 +470,15 @@ function selecionarTamanho(element) {
 }
 
 // ==========================================
-// ADICIONAR TAMANHO A UMA COR (via modal)
+// ABRIR MODAL PARA ADICIONAR TAMANHO
 // ==========================================
-function adicionarTamanhoCor(button, cor) {
-    document.getElementById('cor-selecionada-tamanho').value = cor;
-    document.getElementById('novo-tamanho-select').value = '';
-    document.getElementById('novo-preco').value = '';
-    document.getElementById('novo-estoque').value = '0';
+function abrirModalTamanho(cor, produtoId) {
+    document.getElementById(`cor-selecionada-tamanho-${produtoId}`).value = cor;
+    document.getElementById(`novo-tamanho-select-${produtoId}`).value = '';
+    document.getElementById(`novo-preco-${produtoId}`).value = '';
+    document.getElementById(`novo-estoque-${produtoId}`).value = '0';
     
-    const modal = new bootstrap.Modal(document.getElementById('modalTamanho'));
+    const modal = new bootstrap.Modal(document.getElementById(`modalTamanho${produtoId}`));
     modal.show();
 }
 
@@ -481,10 +486,10 @@ function adicionarTamanhoCor(button, cor) {
 // SALVAR NOVO TAMANHO
 // ==========================================
 function salvarNovoTamanho(produtoId) {
-    const cor = document.getElementById('cor-selecionada-tamanho').value;
-    const tamanho = document.getElementById('novo-tamanho-select').value;
-    const preco = document.getElementById('novo-preco').value;
-    const estoque = document.getElementById('novo-estoque').value;
+    const cor = document.getElementById(`cor-selecionada-tamanho-${produtoId}`).value;
+    const tamanho = document.getElementById(`novo-tamanho-select-${produtoId}`).value;
+    const preco = document.getElementById(`novo-preco-${produtoId}`).value;
+    const estoque = document.getElementById(`novo-estoque-${produtoId}`).value;
     
     if (!tamanho) {
         alert('Selecione um tamanho!');
@@ -530,13 +535,13 @@ function salvarNovoTamanho(produtoId) {
     if (estoqueInput) estoqueInput.value = estoque;
     
     // Atualiza o contador
-    const badgeContador = document.querySelector('.badge.bg-secondary.ms-2');
+    const badgeContador = document.querySelector(`#editarModal${produtoId} .badge.bg-secondary.ms-2`);
     if (badgeContador) {
         badgeContador.textContent = parseInt(badgeContador.textContent) + 1;
     }
     
     // Fecha o modal
-    bootstrap.Modal.getInstance(document.getElementById('modalTamanho')).hide();
+    bootstrap.Modal.getInstance(document.getElementById(`modalTamanho${produtoId}`)).hide();
 }
 
 // ==========================================
@@ -570,7 +575,7 @@ function adicionarCorGrade(produtoId) {
         <td>
             <div class="d-flex flex-wrap gap-1 justify-content-center">
                 <button type="button" class="btn btn-sm btn-outline-primary" 
-                        onclick="adicionarTamanhoCor(this, '${cor}')">
+                        onclick="abrirModalTamanho('${cor}', ${produtoId})">
                     <i class="bi bi-plus"></i> Adicionar
                 </button>
             </div>
@@ -597,7 +602,7 @@ function adicionarCorGrade(produtoId) {
     tbody.appendChild(novaLinha);
     
     // Atualiza o contador
-    const badgeContador = document.querySelector('.badge.bg-secondary.ms-2');
+    const badgeContador = document.querySelector(`#editarModal${produtoId} .badge.bg-secondary.ms-2`);
     if (badgeContador) {
         badgeContador.textContent = parseInt(badgeContador.textContent) + 1;
     }
@@ -622,7 +627,7 @@ function removerCor(produtoId, cor, button) {
         linha.remove();
         
         // Atualiza o contador
-        const badgeContador = document.querySelector('.badge.bg-secondary.ms-2');
+        const badgeContador = document.querySelector(`#editarModal${produtoId} .badge.bg-secondary.ms-2`);
         if (badgeContador) {
             badgeContador.textContent = parseInt(badgeContador.textContent) - 1;
         }
