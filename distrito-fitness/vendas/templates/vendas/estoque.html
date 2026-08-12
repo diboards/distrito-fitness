@@ -212,7 +212,7 @@
                                                 <td>
                                                     
                                                     <input type="number" class="form-control form-control-sm" name="preco[]" 
-                                                           value="{% if variacao.preco %}{{ variacao.preco|floatformat:2 }}{% else %}0.00{% endif %}" 
+                                                           value="{% if variacao.preco is not None %}{{ variacao.preco|floatformat:2 }}{% else %}0.00{% endif %}" 
                                                            step="0.01" min="0.01" required>
                                                     
                                                 </td>
