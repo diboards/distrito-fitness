@@ -1577,22 +1577,8 @@ def estoque(request):
         for variacao in p.variacoes.all():
             total_estoque_geral += variacao.quantidade_estoque
 
-    # 🔥 PREPARAR OS PRODUTOS COM A PRIMEIRA VARIAÇÃO PARA EXIBIÇÃO NO CARD
+    # 🔥 PREPARAR OS PRODUTOS
     produtos_com_precos = []
-    
-    # 🔥 COLETAR CORES E TAMANHOS ÚNICOS PARA O MODAL
-    cores_disponiveis = []
-    tamanhos_disponiveis = []
-    ordem_tamanhos = {'PP': 0, 'P': 1, 'M': 2, 'G': 3, 'GG': 4, 'U': 5}
-    
-    for p in produtos:
-        for variacao in p.variacoes.all():
-            if variacao.cor not in cores_disponiveis:
-                cores_disponiveis.append(variacao.cor)
-            if variacao.tamanho not in tamanhos_disponiveis:
-                tamanhos_disponiveis.append(variacao.tamanho)
-    
-    tamanhos_disponiveis.sort(key=lambda x: ordem_tamanhos.get(x, 99))
     
     for p in produtos:
         variacao = p.variacoes.first()
@@ -1624,18 +1610,19 @@ def estoque(request):
         if not imagem_url:
             imagem_url = "https://placehold.co/300x200?text=Sem+Imagem"
         
+        # 🔥 PASSANDO O OBJETO PRODUTO COMPLETO E AS VARIAÇÕES
         produtos_com_precos.append({
             'id': p.id,
             'nome': p.nome,
-            'preco': float(preco),
-            'quantidade_estoque': estoque,
+            'preco': float(preco) if preco else 0.0,
+            'quantidade_estoque': estoque if estoque else 0,
             'cor': cor,
             'tamanho': tamanho,
             'imagem': imagem_url,
             'categoria': p.get_categoria_display(),
             'ativo': p.ativo,
             'data_cadastro': p.data_criacao if hasattr(p, 'data_criacao') else p.data_cadastro,
-            'produto_obj': p,
+            'produto_obj': p,  # 🔥 OBJETO PRODUTO COMPLETO COM AS VARIAÇÕES
         })
 
     context = {
@@ -1644,8 +1631,6 @@ def estoque(request):
         'produtos_ativos': produtos_ativos,
         'produtos_inativos': produtos_inativos,
         'total_estoque': total_estoque_geral,
-        'cores_disponiveis': cores_disponiveis,
-        'tamanhos_disponiveis': tamanhos_disponiveis,
     }
 
     return render(request, 'vendas/estoque.html', context)
