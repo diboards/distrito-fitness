@@ -210,9 +210,10 @@
                                                     </select>
                                                 </td>
                                                 <td>
-                                                    <input type="number" class="form-control form-control-sm" name="preco[]" 
-                                                           value="{{ variacao.preco }}" step="0.01" min="0.01" required>
                                                     
+                                                    <input type="number" class="form-control form-control-sm" name="preco[]" 
+                                                           value="{% if variacao.preco %}{{ variacao.preco }}{% else %}0.00{% endif %}" 
+                                                           step="0.01" min="0.01" required>
                                                 
                                                 </td>
                                                 <td>
