@@ -8,28 +8,11 @@
 
 <div class="container-projetos">
 
-    <!-- MENU - CORRIGIDO PARA ROLAGEM HORIZONTAL -->
-<div class="hero-header">
-    <div class="menu-container">
-        <div class="menu-scroll-wrapper">
-            <a class="menu-item {% if not categoria_selecionada %}active{% endif %}" href="{% url 'pagina_inicial' %}">Todos</a>
-            <a class="menu-item {% if categoria_selecionada == 'lancamentos' %}active{% endif %}" href="?categoria=lancamentos">Lançamentos</a>
-            <a class="menu-item {% if categoria_selecionada == 'promocoes' %}active{% endif %}" href="?categoria=promocoes">Promoções</a>
-            <a class="menu-item {% if categoria_selecionada == 'conjuntos' %}active{% endif %}" href="?categoria=conjuntos">Conjuntos</a>
-            <a class="menu-item" href="{% url 'orcamento' %}"><i class="bi bi-card-list"></i> Orçamento</a>
-            <a class="menu-item {% if categoria_selecionada == 'outros' %}active{% endif %}" href="?categoria=outros">Outros</a>
-            <a class="menu-instagram" href="https://instagram.com/boutiquemirna7" target="_blank">
-                <i class="bi bi-instagram"></i> Distrito Fitness
-            </a>
-        </div>
-    </div>
-</div>
-
     <!-- LOGO/BANNER -->
     <section class="hero-banner" style="background: url('{% static 'img/logo.jpg' %}') no-repeat center center; background-size: cover;">
         <div class="hero-content">
             <h1>Distrito Fitness</h1>
-            <a href="#" class="btn-hero">Ver produtos</a>
+            <a href="#produtos" class="btn-hero">Ver produtos</a>
         </div>
     </section>
 
@@ -70,7 +53,7 @@
 
     <!-- SEÇÃO: LANÇAMENTOS -->
     {% if not categoria_selecionada or categoria_selecionada == 'lancamentos' %}
-    <section class="categoria-section">
+    <section class="categoria-section" id="produtos">
         <div class="section-header">
             <h2 class="section-title">
                 <i class="bi bi-stars"></i> Lançamentos
@@ -251,110 +234,6 @@
 .hero-overlay {
     position: relative;
     z-index: 2;
-}
-/* ========================================================== */
-/* CORREÇÃO DO MENU DE CATEGORIAS PARA CELULAR               */
-/* ========================================================== */
-
-.menu-container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 15px;
-}
-
-.menu-scroll-wrapper {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: 8px;
-    padding: 10px 0;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
-}
-
-.menu-scroll-wrapper::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Edge */
-}
-
-.menu-item {
-    flex: 0 0 auto;
-    white-space: nowrap;
-    padding: 8px 16px;
-    border-radius: 25px;
-    text-decoration: none;
-    color: #333;
-    font-weight: 500;
-    font-size: 0.85rem;
-    transition: all 0.3s ease;
-    background: #f1f5f9;
-    border: 1px solid #e9ecef;
-}
-
-.menu-item:hover {
-    background: #e2e8f0;
-}
-
-.menu-item.active {
-    background: linear-gradient(135deg, #28bcc4, #0f7378);
-    color: #fff;
-    border-color: #0f7378;
-}
-
-.menu-instagram {
-    flex: 0 0 auto;
-    white-space: nowrap;
-    padding: 8px 16px;
-    border-radius: 25px;
-    background: linear-gradient(135deg, #facc15, #f59e0b);
-    color: #000;
-    font-weight: bold;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: 0.3s;
-    border: 1px solid #f59e0b;
-}
-
-.menu-instagram:hover {
-    transform: scale(1.05);
-}
-
-/* 🔥 Ajustes para telas pequenas */
-@media (max-width: 768px) {
-    .menu-scroll-wrapper {
-        gap: 6px;
-        padding: 8px 0;
-    }
-    .menu-item {
-        font-size: 0.75rem;
-        padding: 6px 12px;
-    }
-    .menu-instagram {
-        font-size: 0.75rem;
-        padding: 6px 12px;
-    }
-}
-
-@media (max-width: 480px) {
-    .menu-scroll-wrapper {
-        gap: 4px;
-        padding: 6px 0;
-    }
-    .menu-item {
-        font-size: 0.65rem;
-        padding: 4px 10px;
-        border-radius: 20px;
-    }
-    .menu-instagram {
-        font-size: 0.65rem;
-        padding: 4px 10px;
-        border-radius: 20px;
-    }
-    .menu-item i {
-        font-size: 0.7rem;
-    }
 }
     
 /* Seções de categoria */
