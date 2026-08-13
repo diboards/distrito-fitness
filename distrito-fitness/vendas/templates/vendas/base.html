@@ -27,16 +27,22 @@
         }
         
         main {
-            margin-top: 130px !important;
+            margin-top: 110px !important;
             padding: 0 10px;
         }
         
         /* ========================================== */
-        /* NAVBAR PRINCIPAL                           */
+        /* NAVBAR PRINCIPAL - COM TRANSPARÊNCIA       */
         /* ========================================== */
         .navbar {
             padding: 8px 0 !important;
+            background: transparent !important;
+            transition: all 0.4s ease;
+            box-shadow: none;
+        }
+        .navbar.navbar-scrolled {
             background: #1a1a2e !important;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
         }
         .navbar .container {
             padding: 0 15px !important;
@@ -68,8 +74,8 @@
         
         /* Campo de busca na navbar */
         .navbar .form-control {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
             color: white;
             font-size: 0.85rem;
             border-radius: 20px;
@@ -80,7 +86,7 @@
             color: rgba(255,255,255,0.5);
         }
         .navbar .form-control:focus {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.2);
             border-color: rgba(255,255,255,0.3);
             box-shadow: none;
             color: white;
@@ -106,16 +112,14 @@
         }
         
         /* ========================================== */
-        /* MENU DE CATEGORIAS (EMBAIXO)               */
+        /* MENU DE CATEGORIAS (NORMAL - ROLA COM A PÁGINA) */
         /* ========================================== */
         .categorias-bar {
             background: #16213e;
             border-top: 1px solid rgba(255,255,255,0.05);
             padding: 6px 0;
-            position: fixed;
-            top: 56px;
             width: 100%;
-            z-index: 1029;
+            position: relative;
         }
         .categorias-wrapper {
             display: flex;
@@ -164,7 +168,7 @@
         /* ========================================== */
         @media (max-width: 768px) {
             main {
-                margin-top: 110px !important;
+                margin-top: 100px !important;
                 padding: 0 8px;
             }
             
@@ -180,10 +184,6 @@
                 padding: 6px 10px !important;
             }
             
-            .categorias-bar {
-                top: 50px;
-                padding: 4px 0;
-            }
             .categorias-wrapper .cat-link {
                 font-size: 0.7rem;
                 padding: 4px 12px;
@@ -192,7 +192,7 @@
         
         @media (max-width: 480px) {
             main {
-                margin-top: 95px !important;
+                margin-top: 85px !important;
                 padding: 0 5px;
             }
             
@@ -209,9 +209,6 @@
                 padding: 4px 8px !important;
             }
             
-            .categorias-bar {
-                top: 46px;
-            }
             .categorias-wrapper .cat-link {
                 font-size: 0.6rem;
                 padding: 3px 10px;
@@ -243,9 +240,9 @@
 
 <body class="d-flex flex-column min-vh-100">
    <!-- ========================================================== -->
-   <!-- NAVBAR PRINCIPAL                                           -->
+   <!-- NAVBAR PRINCIPAL - COM TRANSPARÊNCIA                       -->
    <!-- ========================================================== -->
-   <nav id="navbar" class="navbar navbar-expand-lg navbar-dark position-fixed w-100 top-0" style="z-index: 1030;">
+   <nav id="navbar" class="navbar navbar-expand-lg navbar-dark navbar-transparent position-fixed w-100 top-0" style="z-index: 1030;">
      <div class="container">
        
        <!-- Logo -->
@@ -272,6 +269,7 @@
 
          <!-- ========================================================== -->
          <!-- LADO DIREITO: BUSCA | INSTAGRAM | CARRINHO | LOGIN        -->
+         <!-- (FIXOS NA NAVBAR)                                         -->
          <!-- ========================================================== -->
          <ul class="navbar-nav ms-auto align-items-center">
            
@@ -336,9 +334,9 @@
    </nav>
 
    <!-- ========================================================== -->
-   <!-- MENU DE CATEGORIAS (EMBAIXO DA NAVBAR)                     -->
+   <!-- MENU DE CATEGORIAS (ROLA COM A PÁGINA)                     -->
    <!-- ========================================================== -->
-   <div class="categorias-bar position-fixed w-100" style="top: 56px; z-index: 1029;">
+   <div class="categorias-bar" style="margin-top: 56px;">
      <div class="container">
        <div class="categorias-wrapper">
          <a class="cat-link {% if not categoria_selecionada %}active{% endif %}" href="{% url 'pagina_inicial' %}">Todos</a>
