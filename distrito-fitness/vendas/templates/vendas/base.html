@@ -18,123 +18,68 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     
     <style>
-        /* ========================================================== */
-        /* CORREÇÕES PARA DISPOSITIVOS MÓVEIS                         */
-        /* ========================================================== */
-        
-        /* 🔥 Header - Ajustes gerais */
-        .navbar {
-            padding: 8px 12px !important;
-        }
-        .navbar-brand {
-            font-size: 1.1rem !important;
-            white-space: nowrap;
-        }
-        .navbar-brand img {
-            max-height: 35px !important;
-            width: auto !important;
-        }
-        
-        /* 🔥 Menu de navegação em cards */
-        .nav-cards {
-            display: flex;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            gap: 6px;
-            padding: 8px 0;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-        .nav-cards::-webkit-scrollbar {
-            display: none;
-        }
-        .nav-cards .nav-link {
-            white-space: nowrap;
-            padding: 6px 14px;
-            font-size: 0.8rem;
-            border-radius: 20px;
-            background: #f0f0f0;
-            color: #333;
-            flex-shrink: 0;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            border: 1px solid #e0e0e0;
-        }
-        .nav-cards .nav-link:hover {
-            background: #0d6efd;
-            color: white;
-        }
-        .nav-cards .nav-link.active {
-            background: #0d6efd;
-            color: white;
-            border-color: #0d6efd;
-        }
-        
-        /* 🔥 Ajustes para o botão de menu (hambúrguer) */
-        .navbar-toggler {
-            border: none !important;
-            padding: 4px 8px !important;
-            font-size: 1.2rem !important;
-        }
-        .navbar-toggler:focus {
-            box-shadow: none !important;
-        }
-        
-        /* 🔥 Ajustes para o carrinho no celular */
-        .carrinho-icon {
-            position: relative;
-            font-size: 1.3rem;
-        }
-        .carrinho-badge {
-            position: absolute;
-            top: -6px;
-            right: -8px;
-            font-size: 0.6rem;
-            padding: 2px 6px;
-            border-radius: 50%;
-            background: #dc3545;
-            color: white;
-        }
-        
-        /* 🔥 Ajustes para o container em telas pequenas */
-        @media (max-width: 768px) {
-            .container {
-                padding-left: 10px !important;
-                padding-right: 10px !important;
-            }
-            .navbar-brand {
-                font-size: 0.95rem !important;
-            }
-            .navbar-brand img {
-                max-height: 30px !important;
-            }
-            .nav-cards .nav-link {
-                font-size: 0.7rem !important;
-                padding: 4px 10px !important;
-            }
-            .carrinho-icon {
-                font-size: 1.1rem !important;
-            }
-            .carrinho-badge {
-                font-size: 0.5rem !important;
-                padding: 1px 5px !important;
-                top: -4px !important;
-                right: -6px !important;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .navbar-brand {
-                font-size: 0.85rem !important;
-            }
-            .navbar-brand img {
-                max-height: 25px !important;
-            }
-            .nav-cards .nav-link {
-                font-size: 0.6rem !important;
-                padding: 3px 8px !important;
-            }
-        }
+/* ========================================================== */
+/* CORREÇÕES PARA CATEGORIAS EM DISPOSITIVOS MÓVEIS           */
+/* ========================================================== */
+
+/* 🔥 Container das categorias em cards horizontais */
+.categoria-cards {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 10px 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+}
+.categoria-cards::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+}
+
+.categoria-cards .categoria-item {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 6px 16px;
+    font-size: 0.85rem;
+    border-radius: 20px;
+    background: #f0f0f0;
+    color: #333;
+    text-decoration: none;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+}
+.categoria-cards .categoria-item:hover {
+    background: #0d6efd;
+    color: white;
+}
+.categoria-cards .categoria-item.active {
+    background: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+/* 🔥 Ajustes para telas pequenas */
+@media (max-width: 768px) {
+    .categoria-cards {
+        gap: 6px;
+        padding: 8px 0;
+    }
+    .categoria-cards .categoria-item {
+        font-size: 0.75rem;
+        padding: 4px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .categoria-cards {
+        gap: 4px;
+        padding: 6px 0;
+    }
+    .categoria-cards .categoria-item {
+        font-size: 0.65rem;
+        padding: 3px 10px;
+    }
+}
     </style>
 </head>
 <body>
@@ -232,25 +177,26 @@
     <!-- CATEGORIAS (CARDS HORIZONTAIS)                             -->
     <!-- ========================================================== -->
     {% if not hide_categories %}
-    <div class="container-fluid bg-light py-2 border-bottom">
-        <div class="nav-cards">
-            <a href="{% url 'pagina_inicial' %}" class="nav-link {% if not categoria_selecionada %}active{% endif %}">
-                Todos
-            </a>
-            <a href="?categoria=lancamentos" class="nav-link {% if categoria_selecionada == 'lancamentos' %}active{% endif %}">
-                Lançamentos
-            </a>
-            <a href="?categoria=promocoes" class="nav-link {% if categoria_selecionada == 'promocoes' %}active{% endif %}">
-                Promoções
-            </a>
-            <a href="?categoria=conjuntos" class="nav-link {% if categoria_selecionada == 'conjuntos' %}active{% endif %}">
-                Conjuntos
-            </a>
-            <a href="?categoria=outros" class="nav-link {% if categoria_selecionada == 'outros' %}active{% endif %}">
-                Outros
-            </a>
-        </div>
+    
+<div class="container-fluid bg-light py-2 border-bottom">
+    <div class="categoria-cards">
+        <a href="{% url 'pagina_inicial' %}" class="categoria-item {% if not categoria_selecionada %}active{% endif %}">
+            Todos
+        </a>
+        <a href="?categoria=lancamentos" class="categoria-item {% if categoria_selecionada == 'lancamentos' %}active{% endif %}">
+            Lançamentos
+        </a>
+        <a href="?categoria=promocoes" class="categoria-item {% if categoria_selecionada == 'promocoes' %}active{% endif %}">
+            Promoções
+        </a>
+        <a href="?categoria=conjuntos" class="categoria-item {% if categoria_selecionada == 'conjuntos' %}active{% endif %}">
+            Conjuntos
+        </a>
+        <a href="?categoria=outros" class="categoria-item {% if categoria_selecionada == 'outros' %}active{% endif %}">
+            Outros
+        </a>
     </div>
+</div>
     {% endif %}
 
     <!-- ========================================================== -->
