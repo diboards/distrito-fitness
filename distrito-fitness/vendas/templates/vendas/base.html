@@ -72,34 +72,46 @@
             color: #f59e0b !important;
         }
         
-        /* Campo de busca na navbar */
+        /* 🔥 CAMPO DE BUSCA - CORRIGIDO */
         .navbar .form-control {
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
+            background: rgba(255, 255, 255, 0.12) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
             font-size: 0.85rem;
             border-radius: 20px;
             min-width: 160px;
             padding: 6px 14px;
+            transition: all 0.3s ease;
         }
         .navbar .form-control::placeholder {
-            color: rgba(255,255,255,0.5);
+            color: rgba(255, 255, 255, 0.5) !important;
         }
         .navbar .form-control:focus {
-            background: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.3);
-            box-shadow: none;
-            color: white;
+            background: rgba(255, 255, 255, 0.2) !important;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05) !important;
+            color: white !important;
         }
+        .navbar .form-control:focus::placeholder {
+            color: rgba(255, 255, 255, 0.3) !important;
+        }
+        /* Corrige o fundo branco do autocomplete */
+        .navbar .form-control:-webkit-autofill {
+            background: rgba(255, 255, 255, 0.15) !important;
+            -webkit-box-shadow: 0 0 0 30px rgba(26, 26, 46, 0.9) inset !important;
+            -webkit-text-fill-color: white !important;
+        }
+        
         .navbar .btn-outline-light {
             border-radius: 20px;
-            border-color: rgba(255,255,255,0.15);
-            color: rgba(255,255,255,0.7);
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            color: rgba(255, 255, 255, 0.7) !important;
             padding: 6px 12px;
+            transition: all 0.3s ease;
         }
         .navbar .btn-outline-light:hover {
-            background: rgba(255,255,255,0.15);
-            color: white;
+            background: rgba(255, 255, 255, 0.15) !important;
+            color: white !important;
         }
         
         /* Carrinho badge */
@@ -112,7 +124,7 @@
         }
         
         /* ========================================== */
-        /* MENU DE CATEGORIAS (NORMAL - ROLA COM A PÁGINA) */
+        /* MENU DE CATEGORIAS (ROLA COM A PÁGINA)    */
         /* ========================================== */
         .categorias-bar {
             background: #16213e;
@@ -177,7 +189,8 @@
             }
             .navbar .form-control {
                 min-width: 100px !important;
-                font-size: 0.75rem;
+                font-size: 0.75rem !important;
+                padding: 5px 12px !important;
             }
             .navbar-nav .nav-link {
                 font-size: 0.75rem !important;
@@ -201,8 +214,8 @@
             }
             .navbar .form-control {
                 min-width: 70px !important;
-                font-size: 0.7rem;
-                padding: 4px 10px;
+                font-size: 0.7rem !important;
+                padding: 4px 10px !important;
             }
             .navbar-nav .nav-link {
                 font-size: 0.7rem !important;
@@ -234,6 +247,24 @@
         .dropdown-header {
             font-size: 0.85rem;
             color: #6c757d;
+        }
+        
+        /* 🔥 CORREÇÃO PARA O CAMPO DE BUSCA NO MODO SCROLLED */
+        .navbar.navbar-scrolled .form-control {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+        }
+        .navbar.navbar-scrolled .form-control:focus {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+        .navbar.navbar-scrolled .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+        .navbar.navbar-scrolled .btn-outline-light:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
         }
     </style>
 </head>
