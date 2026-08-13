@@ -26,190 +26,245 @@
             font-size: 16px;
         }
         
+        /* Ajuste do main para não ter margem fixa grande */
         main {
-            margin-top: 110px !important;
+            margin-top: 80px !important;
             padding: 0 10px;
         }
         
-        /* ========================================== */
-        /* NAVBAR - TRANSPARENTE                      */
-        /* ========================================== */
+        /* Navbar responsiva */
         .navbar {
             padding: 10px 0 !important;
-            background: transparent !important;
-            transition: all 0.4s ease;
-            box-shadow: none;
-        }
-        .navbar.navbar-scrolled {
-            background: rgba(26, 26, 46, 0.92) !important;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
         }
         .navbar .container {
-            padding: 0 15px !important;
+            padding: 0 10px !important;
         }
         .navbar-brand {
             font-size: 1.1rem !important;
-            color: white !important;
-            font-weight: bold;
         }
-        .navbar-brand i {
-            color: #f59e0b;
-        }
-        
         .navbar-nav .nav-link {
-            color: rgba(255,255,255,0.85) !important;
+            font-size: 0.9rem !important;
+            padding: 8px 10px !important;
+        }
+        
+        /* Ajuste do container */
+        .container {
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+        
+        /* Cards responsivos */
+        .card {
+            border-radius: 10px;
+        }
+        .card-body {
+            padding: 12px !important;
+        }
+        .card-title {
+            font-size: 1rem !important;
+        }
+        .card-text {
             font-size: 0.85rem !important;
-            padding: 8px 14px !important;
-            transition: all 0.3s ease;
-            border-radius: 20px;
-        }
-        .navbar-nav .nav-link:hover {
-            color: white !important;
-            background: rgba(255,255,255,0.1);
-        }
-        .navbar-nav .nav-link.active {
-            color: #f59e0b !important;
         }
         
-        /* Campo de busca */
-        .navbar .form-control {
-            background: rgba(255, 255, 255, 0.12) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            color: white !important;
+        /* Botões responsivos */
+        .btn {
+            font-size: 0.8rem !important;
+            padding: 6px 12px !important;
+        }
+        .btn-sm {
+            font-size: 0.7rem !important;
+            padding: 4px 8px !important;
+        }
+        
+        /* Estatísticas */
+        .card.text-center h3 {
+            font-size: 1.5rem !important;
+        }
+        .card.text-center p {
+            font-size: 0.7rem !important;
+        }
+        
+        /* Tabelas responsivas */
+        .table-responsive {
+            font-size: 0.75rem !important;
+        }
+        .table-responsive .form-control-sm,
+        .table-responsive .form-select-sm {
+            font-size: 0.65rem !important;
+            padding: 2px 4px !important;
+        }
+        .table-responsive .btn-sm {
+            font-size: 0.6rem !important;
+            padding: 2px 6px !important;
+        }
+        
+        /* Footer responsivo */
+        footer {
             font-size: 0.85rem;
-            border-radius: 20px;
-            min-width: 160px;
-            padding: 6px 14px;
         }
-        .navbar .form-control::placeholder {
-            color: rgba(255, 255, 255, 0.5) !important;
-        }
-        .navbar .form-control:focus {
-            background: rgba(255, 255, 255, 0.2) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05) !important;
-            color: white !important;
-        }
-        
-        .navbar .btn-outline-light {
-            border-radius: 20px;
-            border-color: rgba(255, 255, 255, 0.15) !important;
-            color: rgba(255, 255, 255, 0.7) !important;
-            padding: 6px 12px;
-        }
-        .navbar .btn-outline-light:hover {
-            background: rgba(255, 255, 255, 0.15) !important;
-            color: white !important;
-        }
-        
-        .carrinho-badge {
-            background: #f59e0b;
-            color: #1a1a2e;
-            font-size: 0.6rem;
-            padding: 2px 6px;
-            border-radius: 50%;
+        footer h5 {
+            font-size: 1rem !important;
         }
         
         /* ========================================== */
-        /* MENU DE CATEGORIAS                         */
-        /* ========================================== */
-        .categorias-bar {
-            background: #16213e;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            padding: 6px 0;
-            width: 100%;
-            position: relative;
-            margin-top: 56px;
-        }
-        .categorias-wrapper {
-            display: flex;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            gap: 4px;
-            padding: 4px 15px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-        .categorias-wrapper::-webkit-scrollbar {
-            display: none;
-        }
-        .categorias-wrapper .cat-link {
-            flex: 0 0 auto;
-            white-space: nowrap;
-            padding: 6px 16px;
-            font-size: 0.8rem;
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-            border: 1px solid transparent;
-        }
-        .categorias-wrapper .cat-link:hover {
-            color: white;
-            background: rgba(255,255,255,0.08);
-        }
-        .categorias-wrapper .cat-link.active {
-            color: #f59e0b;
-            border-color: #f59e0b;
-            background: rgba(245, 158, 11, 0.1);
-        }
-        .categorias-wrapper .cat-link i {
-            margin-right: 4px;
-        }
-        
-        /* ========================================== */
-        /* RESPONSIVO                                */
+        /* RESPONSIVO PARA CELULAR (max-width: 768px) */
         /* ========================================== */
         @media (max-width: 768px) {
+            /* Main com margem menor */
             main {
-                margin-top: 100px !important;
+                margin-top: 70px !important;
                 padding: 0 8px;
             }
             
+            /* Navbar */
             .navbar-brand {
-                font-size: 0.9rem !important;
-            }
-            .navbar .form-control {
-                min-width: 100px !important;
-                font-size: 0.75rem !important;
-                padding: 5px 12px !important;
+                font-size: 0.95rem !important;
             }
             .navbar-nav .nav-link {
-                font-size: 0.75rem !important;
-                padding: 6px 10px !important;
+                font-size: 0.8rem !important;
+                padding: 6px 8px !important;
+            }
+            .navbar .container {
+                padding: 0 8px !important;
             }
             
-            .categorias-wrapper .cat-link {
+            /* Container */
+            .container {
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
+            
+            /* Cards de estatísticas */
+            .card.text-center h3 {
+                font-size: 1.2rem !important;
+            }
+            .card.text-center p {
+                font-size: 0.6rem !important;
+            }
+            
+            /* Botões */
+            .btn {
+                font-size: 0.7rem !important;
+                padding: 4px 8px !important;
+            }
+            .btn-sm {
+                font-size: 0.6rem !important;
+                padding: 3px 6px !important;
+            }
+            
+            /* Cards de produtos */
+            .card-title {
+                font-size: 0.85rem !important;
+            }
+            .card-text {
+                font-size: 0.75rem !important;
+            }
+            
+            /* Tabelas */
+            .table-responsive {
+                font-size: 0.65rem !important;
+            }
+            .table-responsive .form-control-sm,
+            .table-responsive .form-select-sm {
+                font-size: 0.55rem !important;
+                padding: 1px 3px !important;
+            }
+            .table-responsive .btn-sm {
+                font-size: 0.5rem !important;
+                padding: 1px 4px !important;
+            }
+            
+            /* Footer */
+            footer {
+                font-size: 0.75rem;
+            }
+            footer h5 {
+                font-size: 0.85rem !important;
+            }
+            footer .list-unstyled li {
                 font-size: 0.7rem;
-                padding: 4px 12px;
+            }
+            
+            /* Modais */
+            .modal-dialog {
+                margin: 5px !important;
+            }
+            .modal-content {
+                border-radius: 8px !important;
+            }
+            .modal-header h5 {
+                font-size: 0.9rem !important;
+            }
+            .modal-body {
+                padding: 8px !important;
+            }
+            .modal-footer {
+                padding: 8px !important;
+            }
+            .modal-footer .btn {
+                font-size: 0.7rem !important;
+                padding: 4px 10px !important;
             }
         }
         
+        /* Para telas muito pequenas (max-width: 480px) */
         @media (max-width: 480px) {
             main {
-                margin-top: 85px !important;
+                margin-top: 60px !important;
                 padding: 0 5px;
             }
             
             .navbar-brand {
                 font-size: 0.8rem !important;
             }
-            .navbar .form-control {
-                min-width: 70px !important;
-                font-size: 0.7rem !important;
-                padding: 4px 10px !important;
-            }
             .navbar-nav .nav-link {
                 font-size: 0.7rem !important;
-                padding: 4px 8px !important;
+                padding: 4px 6px !important;
             }
             
-            .categorias-wrapper .cat-link {
-                font-size: 0.6rem;
-                padding: 3px 10px;
+            .container {
+                padding-left: 5px !important;
+                padding-right: 5px !important;
+            }
+            
+            .card-body {
+                padding: 8px !important;
+            }
+            .card-title {
+                font-size: 0.75rem !important;
+            }
+            .card-text {
+                font-size: 0.65rem !important;
+            }
+            
+            .table-responsive {
+                font-size: 0.55rem !important;
+            }
+            .table-responsive .form-control-sm,
+            .table-responsive .form-select-sm {
+                font-size: 0.5rem !important;
+                padding: 1px 2px !important;
+            }
+            
+            .btn {
+                font-size: 0.6rem !important;
+                padding: 3px 6px !important;
+            }
+            .btn-sm {
+                font-size: 0.5rem !important;
+                padding: 2px 4px !important;
+            }
+            
+            footer {
+                font-size: 0.65rem;
+            }
+            footer h5 {
+                font-size: 0.75rem !important;
             }
         }
         
+        /* Estilos do dropdown */
         .dropdown-menu {
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -229,119 +284,108 @@
             font-size: 0.85rem;
             color: #6c757d;
         }
-        
-        /* Scroll da navbar quando fica escura */
-        .navbar.navbar-scrolled .form-control {
-            background: rgba(255, 255, 255, 0.1) !important;
-            border-color: rgba(255, 255, 255, 0.15) !important;
-        }
-        .navbar.navbar-scrolled .form-control:focus {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border-color: rgba(255, 255, 255, 0.25) !important;
-        }
     </style>
 </head>
 
 <body class="d-flex flex-column min-vh-100">
-   <!-- ========================================================== -->
-   <!-- NAVBAR - TRANSPARENTE                                      -->
-   <!-- ========================================================== -->
-   <nav id="navbar" class="navbar navbar-expand-lg navbar-dark navbar-transparent position-fixed w-100 top-0" style="z-index: 1030;">
-     <div class="container">
-       
-       <a class="navbar-brand" href="{% url 'index' %}">
-         <i class="bi bi-shop-window me-2"></i> Distrito Fitness
-       </a>
+   <!-- Navegação MENU -->
+<nav id="navbar" class="navbar navbar-expand-lg navbar-dark navbar-transparent position-fixed w-100 top-0" style="z-index: 1030;">
+  <div class="container">
+    
+    <a class="navbar-brand" href="{% url 'index' %}">
+      <i class="bi bi-shop-window me-2"></i> Distrito Fitness
+    </a>
 
-       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-         <span class="navbar-toggler-icon"></span>
-       </button>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-       <div class="collapse navbar-collapse" id="navbarNav">
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
          
-         <ul class="navbar-nav me-auto">
-           {% if user.is_authenticated and user.is_superuser %}
-           <li class="nav-item"><a class="nav-link" href="{% url 'estoque' %}">Estoque</a></li>
-           <li class="nav-item"><a class="nav-link" href="{% url 'relatorios' %}">Relatórios</a></li>
-           <li class="nav-item"><a class="nav-link" href="{% url 'cadastrar_produto' %}">Cadastrar Produto</a></li>
-           <li class="nav-item"><a class="nav-link" href="{% url 'gerenciar_pedidos' %}">Pedidos</a></li>
-           {% endif %}
-         </ul>
+        <li class="nav-item"><a class="nav-link" href="{% url 'lista_vendas' %}"><i class="bi bi-card-list"></i> Quem somos?</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'orcamento' %}"><i class="bi bi-card-list"></i>Contato</a></li>
+        {% if user.is_authenticated and user.is_superuser %}
+        <li class="nav-item"><a class="nav-link orcamento-link-navbar" href="{% url 'estoque' %}"><i class="bi bi-card-list"></i> Estoque</a></li>
+               
+        <li class="nav-item"><a class="nav-link" href="{% url 'relatorios' %}"><i class="bi bi-graph-up"></i> Relatórios</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'cadastrar_produto' %}"><i class="bi bi-box-seam"></i> Cadastrar Produto</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'gerenciar_pedidos' %}"><i class="bi bi-receipt"></i> Pedidos</a></li>
+        {% endif %}
+      </ul>
 
-         <ul class="navbar-nav ms-auto align-items-center">
-           
-           <li class="nav-item me-2">
-             <form class="d-flex" role="search" method="GET" action="{% url 'pagina_inicial' %}">
-               <input class="form-control form-control-sm" type="search" name="busca" placeholder="Buscar..." aria-label="Buscar">
-               <button class="btn btn-sm btn-outline-light ms-1" type="submit">
-                 <i class="bi bi-search"></i>
-               </button>
-             </form>
-           </li>
+      <!-- Bloco Login à direita -->
+      <ul class="navbar-nav ms-auto">
+        {% if user.is_authenticated %}
+        <!-- Sacola ao lado do nome -->
+        <li class="nav-item d-flex align-items-center me-2">
+          <a class="nav-link position-relative" href="{% url 'visualizar_carrinho' %}">
+            <i class="bi bi-cart3 fs-5"></i>
+            <span class="badge bg-primary rounded-pill position-absolute top-0 start-100 translate-middle" id="carrinho-count">
+              {{ carrinho_count|default:0 }}
+            </span>
+          </a>
+        </li>
+        <li class="nav-item d-flex align-items-center me-2">
+          <a class="nav-link instagram-link-filter" href="https://instagram.com/boutiquemirna7" target="_blank">
+            <i class="bi bi-instagram fs-15"></i> 
+          </a>
+        </li>
 
-           <li class="nav-item d-flex align-items-center me-2">
-             <a class="nav-link" href="https://instagram.com/use.distritofit" target="_blank" style="color: rgba(255,255,255,0.7) !important;">
-               <i class="bi bi-instagram fs-5"></i>
-             </a>
-           </li>
+        <!-- Dropdown do usuário -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle text-white" href="#" role="button" 
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-person-circle me-1"></i> 
+            {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><h6 class="dropdown-header">Minha Conta</h6></li>
+            <li><hr class="dropdown-divider"></li>
 
-           <li class="nav-item d-flex align-items-center me-2">
-             <a class="nav-link position-relative" href="{% url 'visualizar_carrinho' %}" style="color: rgba(255,255,255,0.7) !important;">
-               <i class="bi bi-cart3 fs-5"></i>
-               <span class="badge carrinho-badge position-absolute top-0 start-100 translate-middle" id="carrinho-count">
-                 {{ carrinho_count|default:0 }}
-               </span>
-             </a>
-           </li>
+            <li><a class="dropdown-item" href="{% url 'meus_pedidos' %}">
+              <i class="bi bi-bag-check me-2"></i> Meus Pedidos
+            </a></li>
 
-           {% if user.is_authenticated %}
-           <li class="nav-item dropdown">
-             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: rgba(255,255,255,0.8) !important;">
-               <i class="bi bi-person-circle me-1"></i> 
-               {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}
-             </a>
-             <ul class="dropdown-menu dropdown-menu-end">
-               <li><h6 class="dropdown-header">Minha Conta</h6></li>
-               <li><hr class="dropdown-divider"></li>
-               <li><a class="dropdown-item" href="{% url 'meus_pedidos' %}"><i class="bi bi-bag-check me-2"></i> Meus Pedidos</a></li>
-               <li><a class="dropdown-item" href="{% url 'meus_enderecos' %}"><i class="bi bi-geo-alt me-2"></i> Meus Endereços</a></li>
-               <li><a class="dropdown-item" href="{% url 'meu_perfil' %}"><i class="bi bi-person-gear me-2"></i> Meu Perfil</a></li>
-               <li><hr class="dropdown-divider"></li>
-               <li>
-                 <form id="logout-form" method="post" action="{% url 'logout' %}">
-                   {% csrf_token %}
-                   <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i> Sair</button>
-                 </form>
-               </li>
-             </ul>
-           </li>
-           {% else %}
-           <li class="nav-item"><a class="nav-link" href="{% url 'login' %}" style="color: rgba(255,255,255,0.8) !important;"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
-           <li class="nav-item"><a class="nav-link" href="{% url 'registrar_com_endereco' %}" style="color: rgba(255,255,255,0.8) !important;"><i class="bi bi-person-plus"></i> Cadastrar</a></li>
-           {% endif %}
-         </ul>
-       </div>
-     </div>
-   </nav>
+            <li><a class="dropdown-item" href="{% url 'meus_enderecos' %}">
+              <i class="bi bi-geo-alt me-2"></i> Meus Endereços
+            </a></li>
 
-   <!-- ========================================================== -->
-   <!-- MENU DE CATEGORIAS                                         -->
-   <!-- ========================================================== -->
-   <div class="categorias-bar">
-     <div class="container">
-       <div class="categorias-wrapper">
-         <a class="cat-link {% if not categoria_selecionada %}active{% endif %}" href="{% url 'pagina_inicial' %}">Todos</a>
-         <a class="cat-link {% if categoria_selecionada == 'lancamentos' %}active{% endif %}" href="?categoria=lancamentos">Lançamentos</a>
-         <a class="cat-link {% if categoria_selecionada == 'promocoes' %}active{% endif %}" href="?categoria=promocoes">Promoções</a>
-         <a class="cat-link {% if categoria_selecionada == 'conjuntos' %}active{% endif %}" href="?categoria=conjuntos">Conjuntos</a>
-         <a class="cat-link" href="{% url 'orcamento' %}"><i class="bi bi-card-list"></i> Orçamento</a>
-         <a class="cat-link {% if categoria_selecionada == 'outros' %}active{% endif %}" href="?categoria=outros">Outros</a>
-         <a class="cat-link" href="https://instagram.com/use.distritofit" target="_blank" style="color: #f59e0b !important;">
-           <i class="bi bi-instagram"></i> @use.distritofit
-         </a>
-       </div>
-     </div>
-   </div>
+            <li><a class="dropdown-item" href="{% url 'meu_perfil' %}">
+              <i class="bi bi-person-gear me-2"></i> Meu Perfil
+            </a></li>
+
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form id="logout-form" method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item">
+                  <i class="bi bi-box-arrow-right me-2"></i> Sair
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+
+        {% else %}
+    <!-- ============================================ -->
+    <!-- CARRINHO PARA USUÁRIO NÃO LOGADO -->
+    <!-- ============================================ -->
+    <li class="nav-item d-flex align-items-center me-2">
+        <a class="nav-link position-relative" href="{% url 'login' %}">
+            <i class="bi bi-cart3 fs-5"></i>
+            <span class="badge bg-primary rounded-pill position-absolute top-0 start-100 translate-middle" id="carrinho-count">
+                0
+            </span>
+        </a>
+    </li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'registrar_com_endereco' %}"><i class="bi bi-person-plus"></i> Cadastrar</a></li>
+    {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
 
     <div class="hero-background">
      <!--imagem do menu -->
@@ -357,6 +401,7 @@
     <!-- Aqui começa o conteúdo Form Login-->
     {% block extra_style %}
         <style>
+          /* Configuração atualizar status pedido */
           .auto-check-indicator {
               animation: pulse 2s infinite;
           }
