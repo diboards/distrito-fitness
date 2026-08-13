@@ -221,7 +221,8 @@
                                                            value="{{ variacao.quantidade_estoque }}" min="0" required>
                                                 </td>
                                                 <td>
-                                                    <input type="file" class="form-control form-control-sm" name="imagem_variacao[]" accept="image/*">
+                                                    <input type="file" class="form-control form-control-sm" 
+                                                           name="imagem_variacao_{{ forloop.counter0 }}" accept="image/*">
                                                     {% if variacao.imagem %}
                                                     <div class="mt-1">
                                                         <img src="{{ variacao.imagem.url }}" style="max-height: 40px; border-radius: 4px;">
@@ -399,6 +400,7 @@
 function adicionarLinhaVariacao(produtoId) {
     const tabela = document.getElementById(`tabela-variacoes-${produtoId}`);
     const tbody = tabela.querySelector('tbody');
+    const numLinhas = tbody.querySelectorAll('tr').length;
     
     const novaLinha = document.createElement('tr');
     novaLinha.innerHTML = `
@@ -435,7 +437,8 @@ function adicionarLinhaVariacao(produtoId) {
             <input type="number" class="form-control form-control-sm" name="quantidade_estoque[]" min="0" value="0" required>
         </td>
         <td>
-            <input type="file" class="form-control form-control-sm" name="imagem_variacao[]" accept="image/*">
+            <input type="file" class="form-control form-control-sm" 
+                   name="imagem_variacao_${numLinhas}" accept="image/*">
         </td>
         <td>
             <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()">
