@@ -8,9 +8,10 @@
 
 <div class="container-projetos">
 
-    <!-- MENU -->
-    <div class="hero-header">
-        <div class="menu-container">
+    <!-- MENU - CORRIGIDO PARA ROLAGEM HORIZONTAL -->
+<div class="hero-header">
+    <div class="menu-container">
+        <div class="menu-scroll-wrapper">
             <a class="menu-item {% if not categoria_selecionada %}active{% endif %}" href="{% url 'pagina_inicial' %}">Todos</a>
             <a class="menu-item {% if categoria_selecionada == 'lancamentos' %}active{% endif %}" href="?categoria=lancamentos">Lançamentos</a>
             <a class="menu-item {% if categoria_selecionada == 'promocoes' %}active{% endif %}" href="?categoria=promocoes">Promoções</a>
@@ -22,6 +23,7 @@
             </a>
         </div>
     </div>
+</div>
 
     <!-- LOGO/BANNER -->
     <section class="hero-banner" style="background: url('{% static 'img/logo.jpg' %}') no-repeat center center; background-size: cover;">
