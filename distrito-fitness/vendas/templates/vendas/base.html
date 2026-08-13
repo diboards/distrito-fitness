@@ -32,17 +32,19 @@
         }
         
         /* ========================================== */
-        /* NAVBAR PRINCIPAL - COM TRANSPARÊNCIA       */
+        /* NAVBAR PRINCIPAL - ESTILO ORIGINAL         */
         /* ========================================== */
         .navbar {
-            padding: 8px 0 !important;
-            background: transparent !important;
+            padding: 10px 0 !important;
+            background: rgba(26, 26, 46, 0.85) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             transition: all 0.4s ease;
-            box-shadow: none;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
         }
         .navbar.navbar-scrolled {
-            background: #1a1a2e !important;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+            background: rgba(26, 26, 46, 0.95) !important;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.4);
         }
         .navbar .container {
             padding: 0 15px !important;
@@ -58,24 +60,24 @@
         
         /* Links da navbar */
         .navbar-nav .nav-link {
-            color: rgba(255,255,255,0.8) !important;
+            color: rgba(255,255,255,0.85) !important;
             font-size: 0.85rem !important;
             padding: 8px 14px !important;
             transition: all 0.3s ease;
+            border-radius: 20px;
         }
         .navbar-nav .nav-link:hover {
             color: white !important;
             background: rgba(255,255,255,0.1);
-            border-radius: 20px;
         }
         .navbar-nav .nav-link.active {
             color: #f59e0b !important;
         }
         
-        /* 🔥 CAMPO DE BUSCA - CORRIGIDO */
+        /* 🔥 CAMPO DE BUSCA - ESTILO ORIGINAL */
         .navbar .form-control {
-            background: rgba(255, 255, 255, 0.12) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
             color: white !important;
             font-size: 0.85rem;
             border-radius: 20px;
@@ -87,8 +89,8 @@
             color: rgba(255, 255, 255, 0.5) !important;
         }
         .navbar .form-control:focus {
-            background: rgba(255, 255, 255, 0.2) !important;
-            border-color: rgba(255, 255, 255, 0.4) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
             box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05) !important;
             color: white !important;
         }
@@ -248,32 +250,14 @@
             font-size: 0.85rem;
             color: #6c757d;
         }
-        
-        /* 🔥 CORREÇÃO PARA O CAMPO DE BUSCA NO MODO SCROLLED */
-        .navbar.navbar-scrolled .form-control {
-            background: rgba(255, 255, 255, 0.1) !important;
-            border-color: rgba(255, 255, 255, 0.15) !important;
-        }
-        .navbar.navbar-scrolled .form-control:focus {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
-        }
-        .navbar.navbar-scrolled .btn-outline-light {
-            border-color: rgba(255, 255, 255, 0.1) !important;
-            color: rgba(255, 255, 255, 0.6) !important;
-        }
-        .navbar.navbar-scrolled .btn-outline-light:hover {
-            background: rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
-        }
     </style>
 </head>
 
 <body class="d-flex flex-column min-vh-100">
    <!-- ========================================================== -->
-   <!-- NAVBAR PRINCIPAL - COM TRANSPARÊNCIA                       -->
+   <!-- NAVBAR PRINCIPAL - ESTILO ORIGINAL                         -->
    <!-- ========================================================== -->
-   <nav id="navbar" class="navbar navbar-expand-lg navbar-dark navbar-transparent position-fixed w-100 top-0" style="z-index: 1030;">
+   <nav id="navbar" class="navbar navbar-expand-lg navbar-dark position-fixed w-100 top-0" style="z-index: 1030;">
      <div class="container">
        
        <!-- Logo -->
@@ -300,7 +284,6 @@
 
          <!-- ========================================================== -->
          <!-- LADO DIREITO: BUSCA | INSTAGRAM | CARRINHO | LOGIN        -->
-         <!-- (FIXOS NA NAVBAR)                                         -->
          <!-- ========================================================== -->
          <ul class="navbar-nav ms-auto align-items-center">
            
@@ -367,7 +350,7 @@
    <!-- ========================================================== -->
    <!-- MENU DE CATEGORIAS (ROLA COM A PÁGINA)                     -->
    <!-- ========================================================== -->
-   <div class="categorias-bar" style="margin-top: 56px;">
+   <div class="categorias-bar">
      <div class="container">
        <div class="categorias-wrapper">
          <a class="cat-link {% if not categoria_selecionada %}active{% endif %}" href="{% url 'pagina_inicial' %}">Todos</a>
