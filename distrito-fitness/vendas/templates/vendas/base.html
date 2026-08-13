@@ -62,7 +62,7 @@
         .navbar-nav .nav-link {
             color: rgba(255, 255, 255, 0.85) !important;
             font-size: 0.85rem !important;
-            padding: 8px 14px !important;
+            padding: 8px 10px !important;
             transition: all 0.3s ease;
             border-radius: 20px;
         }
@@ -74,14 +74,14 @@
             color: #f59e0b !important;
         }
         
-        /* Campo de busca - estilo original */
+        /* Campo de busca */
         .navbar .form-control {
             background: rgba(255, 255, 255, 0.1) !important;
             border: 1px solid rgba(255, 255, 255, 0.15) !important;
             color: white !important;
             font-size: 0.85rem;
             border-radius: 20px;
-            min-width: 160px;
+            min-width: 140px;
             padding: 6px 14px;
             transition: all 0.3s ease;
         }
@@ -93,12 +93,6 @@
             border-color: rgba(255, 255, 255, 0.3) !important;
             box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05) !important;
             color: white !important;
-        }
-        /* Corrige autocomplete */
-        .navbar .form-control:-webkit-autofill {
-            background: rgba(255, 255, 255, 0.15) !important;
-            -webkit-box-shadow: 0 0 0 30px rgba(30, 30, 30, 0.9) inset !important;
-            -webkit-text-fill-color: white !important;
         }
         
         .navbar .btn-outline-light {
@@ -170,7 +164,7 @@
         }
         
         /* ========================================== */
-        /* RESPONSIVO                                */
+        /* RESPONSIVO - CELULAR                       */
         /* ========================================== */
         @media (max-width: 768px) {
             main {
@@ -179,21 +173,51 @@
             }
             
             .navbar-brand {
-                font-size: 0.9rem !important;
-            }
-            .navbar .form-control {
-                min-width: 100px !important;
-                font-size: 0.75rem !important;
-                padding: 5px 12px !important;
+                font-size: 0.85rem !important;
             }
             .navbar-nav .nav-link {
-                font-size: 0.75rem !important;
-                padding: 6px 10px !important;
+                font-size: 0.7rem !important;
+                padding: 4px 6px !important;
+            }
+            
+            /* 🔥 CARRINHO E LOGIN NA MESMA LINHA */
+            .navbar-nav.ms-auto {
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                justify-content: flex-end !important;
+                gap: 2px !important;
+            }
+            .navbar-nav.ms-auto .nav-item {
+                display: inline-flex !important;
+                align-items: center !important;
+            }
+            .navbar-nav.ms-auto .nav-link {
+                font-size: 0.7rem !important;
+                padding: 4px 6px !important;
+            }
+            
+            /* 🔥 CAMPO DE BUSCA - PODE QUEBRAR PARA BAIXO */
+            .navbar .form-control {
+                min-width: 100px !important;
+                font-size: 0.7rem !important;
+                padding: 4px 10px !important;
+            }
+            .navbar .btn-outline-light {
+                padding: 4px 8px !important;
+                font-size: 0.7rem !important;
             }
             
             .categorias-wrapper .cat-link {
-                font-size: 0.7rem;
-                padding: 4px 12px;
+                font-size: 0.65rem;
+                padding: 4px 10px;
+            }
+            
+            /* 🔥 Ajuste do container da navbar no mobile */
+            .navbar .container {
+                padding: 0 8px !important;
+            }
+            .navbar-collapse {
+                padding-top: 5px !important;
             }
         }
         
@@ -204,21 +228,31 @@
             }
             
             .navbar-brand {
-                font-size: 0.8rem !important;
-            }
-            .navbar .form-control {
-                min-width: 70px !important;
-                font-size: 0.7rem !important;
-                padding: 4px 10px !important;
+                font-size: 0.75rem !important;
             }
             .navbar-nav .nav-link {
-                font-size: 0.7rem !important;
-                padding: 4px 8px !important;
+                font-size: 0.65rem !important;
+                padding: 3px 5px !important;
+            }
+            
+            .navbar-nav.ms-auto .nav-link {
+                font-size: 0.6rem !important;
+                padding: 3px 4px !important;
+            }
+            
+            .navbar .form-control {
+                min-width: 80px !important;
+                font-size: 0.6rem !important;
+                padding: 3px 8px !important;
+            }
+            .navbar .btn-outline-light {
+                padding: 3px 6px !important;
+                font-size: 0.6rem !important;
             }
             
             .categorias-wrapper .cat-link {
-                font-size: 0.6rem;
-                padding: 3px 10px;
+                font-size: 0.55rem;
+                padding: 3px 8px;
             }
         }
         
@@ -243,7 +277,6 @@
             color: #6c757d;
         }
         
-        /* Ajuste para o scroll da navbar */
         .navbar.navbar-scrolled .form-control {
             background: rgba(255, 255, 255, 0.08) !important;
             border-color: rgba(255, 255, 255, 0.1) !important;
@@ -272,9 +305,14 @@
 
        <div class="collapse navbar-collapse" id="navbarNav">
          
+         <!-- Links da esquerda -->
          <ul class="navbar-nav me-auto">
-           <!-- Categorias substituem "Quem somos?" e "Contato" -->
-           
+           <li class="nav-item"><a class="nav-link {% if not categoria_selecionada %}active{% endif %}" href="{% url 'pagina_inicial' %}">Todos</a></li>
+           <li class="nav-item"><a class="nav-link {% if categoria_selecionada == 'lancamentos' %}active{% endif %}" href="?categoria=lancamentos">Lançamentos</a></li>
+           <li class="nav-item"><a class="nav-link {% if categoria_selecionada == 'promocoes' %}active{% endif %}" href="?categoria=promocoes">Promoções</a></li>
+           <li class="nav-item"><a class="nav-link {% if categoria_selecionada == 'conjuntos' %}active{% endif %}" href="?categoria=conjuntos">Conjuntos</a></li>
+           <li class="nav-item"><a class="nav-link" href="{% url 'orcamento' %}">Orçamento</a></li>
+           <li class="nav-item"><a class="nav-link {% if categoria_selecionada == 'outros' %}active{% endif %}" href="?categoria=outros">Outros</a></li>
            
            {% if user.is_authenticated and user.is_superuser %}
            <li class="nav-item"><a class="nav-link" href="{% url 'estoque' %}">Estoque</a></li>
@@ -285,11 +323,12 @@
          </ul>
 
          <!-- ========================================================== -->
-         <!-- LADO DIREITO: BUSCA | INSTAGRAM | CARRINHO | LOGIN        -->
+         <!-- LADO DIREITO: BUSCA | CARRINHO | LOGIN (MESMA LINHA)      -->
          <!-- ========================================================== -->
          <ul class="navbar-nav ms-auto align-items-center">
            
-           <li class="nav-item me-2">
+           <!-- Busca -->
+           <li class="nav-item me-1">
              <form class="d-flex" role="search" method="GET" action="{% url 'pagina_inicial' %}">
                <input class="form-control form-control-sm" type="search" name="busca" placeholder="Buscar..." aria-label="Buscar">
                <button class="btn btn-sm btn-outline-light ms-1" type="submit">
@@ -298,26 +337,29 @@
              </form>
            </li>
 
-           <li class="nav-item d-flex align-items-center me-2">
-             <a class="nav-link" href="https://instagram.com/use.distritofit" target="_blank" style="color: rgba(255,255,255,0.7) !important;">
-               <i class="bi bi-instagram fs-5"></i>
+           <!-- Instagram -->
+           <li class="nav-item d-flex align-items-center me-1">
+             <a class="nav-link" href="https://instagram.com/use.distritofit" target="_blank" style="color: rgba(255,255,255,0.7) !important; padding: 4px 6px;">
+               <i class="bi bi-instagram fs-6"></i>
              </a>
            </li>
 
-           <li class="nav-item d-flex align-items-center me-2">
-             <a class="nav-link position-relative" href="{% url 'visualizar_carrinho' %}" style="color: rgba(255,255,255,0.7) !important;">
-               <i class="bi bi-cart3 fs-5"></i>
+           <!-- Carrinho -->
+           <li class="nav-item d-flex align-items-center me-1">
+             <a class="nav-link position-relative" href="{% url 'visualizar_carrinho' %}" style="color: rgba(255,255,255,0.7) !important; padding: 4px 6px;">
+               <i class="bi bi-cart3 fs-6"></i>
                <span class="badge carrinho-badge position-absolute top-0 start-100 translate-middle" id="carrinho-count">
                  {{ carrinho_count|default:0 }}
                </span>
              </a>
            </li>
 
+           <!-- Login / Usuário -->
            {% if user.is_authenticated %}
            <li class="nav-item dropdown">
-             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: rgba(255,255,255,0.8) !important;">
+             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: rgba(255,255,255,0.8) !important; padding: 4px 6px; font-size: 0.8rem;">
                <i class="bi bi-person-circle me-1"></i> 
-               {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}
+               {% if user.first_name %}{{ user.first_name|truncatechars:6 }}{% else %}{{ user.username|truncatechars:6 }}{% endif %}
              </a>
              <ul class="dropdown-menu dropdown-menu-end">
                <li><h6 class="dropdown-header">Minha Conta</h6></li>
@@ -335,8 +377,8 @@
              </ul>
            </li>
            {% else %}
-           <li class="nav-item"><a class="nav-link" href="{% url 'login' %}" style="color: rgba(255,255,255,0.8) !important;"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
-           <li class="nav-item"><a class="nav-link" href="{% url 'registrar_com_endereco' %}" style="color: rgba(255,255,255,0.8) !important;"><i class="bi bi-person-plus"></i> Cadastrar</a></li>
+           <li class="nav-item"><a class="nav-link" href="{% url 'login' %}" style="color: rgba(255,255,255,0.8) !important; padding: 4px 6px; font-size: 0.8rem;"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
+           <li class="nav-item"><a class="nav-link" href="{% url 'registrar_com_endereco' %}" style="color: rgba(255,255,255,0.8) !important; padding: 4px 6px; font-size: 0.8rem;"><i class="bi bi-person-plus"></i> Cadastrar</a></li>
            {% endif %}
          </ul>
        </div>
@@ -344,7 +386,7 @@
    </nav>
 
    <!-- ========================================================== -->
-   <!-- MENU DE CATEGORIAS (embaixo)                               -->
+   <!-- MENU DE CATEGORIAS                                         -->
    <!-- ========================================================== -->
    <div class="categorias-bar">
      <div class="container">
@@ -362,14 +404,8 @@
      </div>
    </div>
 
-    <div class="hero-background">
-     <!--imagem do menu -->
-    </div>
-
-      
     <main class="flex-grow-1">
       {% block content %}
-      <!-- Conteúdo das outras páginas -->
       {% endblock %}
     </main>
 
