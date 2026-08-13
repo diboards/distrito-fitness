@@ -32,6 +32,8 @@ import requests
 import mercadopago
 from django.conf import settings
 
+from django.core.paginator import Paginator # Estoque com filtros e paginação
+from django.db.models import Q # Estoque com filtros e paginação
 
 from vendas.utils import get_itens_carrinho
 
@@ -1527,24 +1529,31 @@ def superuser_required(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
+
 @superuser_required
 # vendas/views/views.py
-
 def estoque(request):
-    """View para gerenciamento de estoque com filtros"""
+    """View para gerenciamento de estoque com filtros e paginação"""
     
     if not request.user.is_authenticated or not request.user.is_superuser:
         return redirect('login')
 
-    # Obter parâmetros de filtro
+    # 🔥 PARÂMETROS DE FILTRO E BUSCA
     status_filter = request.GET.get('status', '')
     categoria_filter = request.GET.get('categoria', '')
     estoque_baixo_filter = request.GET.get('estoque_baixo', '')
+    busca = request.GET.get('busca', '').strip()
+    ordenar = request.GET.get('ordenar', 'nome')
+    ordem = request.GET.get('ordem', 'asc')
 
-    # Query base com pré-carregamento das variações
+    # Query base
     produtos = Produto.objects.prefetch_related('variacoes').all()
     
-    # 🔥 APLICAR FILTROS
+    # 🔥 BUSCA POR NOME
+    if busca:
+        produtos = produtos.filter(nome__icontains=busca)
+    
+    # 🔥 FILTROS
     if status_filter == 'ativo':
         produtos = produtos.filter(ativo=True)
     elif status_filter == 'inativo':
@@ -1553,7 +1562,7 @@ def estoque(request):
     if categoria_filter:
         produtos = produtos.filter(categoria=categoria_filter)
     
-    # Filtro por Estoque Baixo (usando as variações)
+    # Filtro por Estoque Baixo
     if estoque_baixo_filter == 'sim':
         produtos_ids = []
         for p in produtos:
@@ -1567,6 +1576,16 @@ def estoque(request):
                 produtos_ids.append(p.id)
         produtos = produtos.filter(id__in=produtos_ids)
 
+    # 🔥 ORDENAÇÃO
+    if ordenar == 'nome':
+        produtos = produtos.order_by('nome' if ordem == 'asc' else '-nome')
+    elif ordenar == 'preco':
+        # Ordenação por preço da primeira variação (mais complexa, será feita na lista)
+        pass
+    elif ordenar == 'estoque':
+        # Ordenação por estoque da primeira variação
+        pass
+
     # 🔥 CALCULAR TOTAIS
     total_produtos = Produto.objects.count()
     produtos_ativos = Produto.objects.filter(ativo=True).count()
@@ -1577,9 +1596,8 @@ def estoque(request):
         for variacao in p.variacoes.all():
             total_estoque_geral += variacao.quantidade_estoque
 
-    # 🔥 PREPARAR OS PRODUTOS
+    # 🔥 PREPARAR LISTA COM DADOS DAS VARIAÇÕES
     produtos_com_precos = []
-    
     for p in produtos:
         variacao = p.variacoes.first()
         
@@ -1610,27 +1628,61 @@ def estoque(request):
         if not imagem_url:
             imagem_url = "https://placehold.co/300x200?text=Sem+Imagem"
         
-        # 🔥 PASSANDO O OBJETO PRODUTO COMPLETO E AS VARIAÇÕES
         produtos_com_precos.append({
             'id': p.id,
             'nome': p.nome,
-            'preco': float(preco) if preco else 0.0,
-            'quantidade_estoque': estoque if estoque else 0,
+            'preco': float(preco),
+            'quantidade_estoque': estoque,
             'cor': cor,
             'tamanho': tamanho,
             'imagem': imagem_url,
             'categoria': p.get_categoria_display(),
             'ativo': p.ativo,
             'data_cadastro': p.data_criacao if hasattr(p, 'data_criacao') else p.data_cadastro,
-            'produto_obj': p,  # 🔥 OBJETO PRODUTO COMPLETO COM AS VARIAÇÕES
+            'produto_obj': p,
+            'variacoes_count': p.variacoes.count(),
         })
 
+    # 🔥 ORDENAÇÃO POR PREÇO/ESTOQUE (pós-processamento)
+    if ordenar == 'preco':
+        produtos_com_precos.sort(key=lambda x: x['preco'], reverse=(ordem == 'desc'))
+    elif ordenar == 'estoque':
+        produtos_com_precos.sort(key=lambda x: x['quantidade_estoque'], reverse=(ordem == 'desc'))
+
+    # 🔥 PAGINAÇÃO
+    paginator = Paginator(produtos_com_precos, 20)  # 20 itens por página
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    # 🔥 CORES E TAMANHOS PARA O MODAL
+    cores_disponiveis = []
+    tamanhos_disponiveis = []
+    ordem_tamanhos = {'PP': 0, 'P': 1, 'M': 2, 'G': 3, 'GG': 4, 'U': 5}
+    
+    for p in produtos:
+        for variacao in p.variacoes.all():
+            if variacao.cor not in cores_disponiveis:
+                cores_disponiveis.append(variacao.cor)
+            if variacao.tamanho not in tamanhos_disponiveis:
+                tamanhos_disponiveis.append(variacao.tamanho)
+    
+    tamanhos_disponiveis.sort(key=lambda x: ordem_tamanhos.get(x, 99))
+
     context = {
-        'produtos': produtos_com_precos,
+        'page_obj': page_obj,
+        'produtos': page_obj.object_list,
         'total_produtos': total_produtos,
         'produtos_ativos': produtos_ativos,
         'produtos_inativos': produtos_inativos,
         'total_estoque': total_estoque_geral,
+        'cores_disponiveis': cores_disponiveis,
+        'tamanhos_disponiveis': tamanhos_disponiveis,
+        'busca': busca,
+        'status_filter': status_filter,
+        'categoria_filter': categoria_filter,
+        'estoque_baixo_filter': estoque_baixo_filter,
+        'ordenar': ordenar,
+        'ordem': ordem,
     }
 
     return render(request, 'vendas/estoque.html', context)
