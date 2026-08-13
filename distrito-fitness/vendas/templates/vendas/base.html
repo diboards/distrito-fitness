@@ -27,60 +27,130 @@
         }
         
         main {
-            margin-top: 80px !important;
+            margin-top: 130px !important;
             padding: 0 10px;
         }
         
-        /* Navbar responsiva */
+        /* ========================================== */
+        /* NAVBAR PRINCIPAL                           */
+        /* ========================================== */
         .navbar {
-            padding: 10px 0 !important;
+            padding: 8px 0 !important;
+            background: #1a1a2e !important;
         }
         .navbar .container {
-            padding: 0 10px !important;
+            padding: 0 15px !important;
         }
         .navbar-brand {
             font-size: 1.1rem !important;
+            color: white !important;
+            font-weight: bold;
         }
+        .navbar-brand i {
+            color: #f59e0b;
+        }
+        
+        /* Links da navbar */
         .navbar-nav .nav-link {
+            color: rgba(255,255,255,0.8) !important;
             font-size: 0.85rem !important;
-            padding: 8px 12px !important;
-            border-radius: 20px;
+            padding: 8px 14px !important;
             transition: all 0.3s ease;
         }
         .navbar-nav .nav-link:hover {
+            color: white !important;
             background: rgba(255,255,255,0.1);
+            border-radius: 20px;
         }
         .navbar-nav .nav-link.active {
-            background: rgba(255,255,255,0.15);
-            color: white !important;
+            color: #f59e0b !important;
         }
         
         /* Campo de busca na navbar */
         .navbar .form-control {
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
             color: white;
             font-size: 0.85rem;
             border-radius: 20px;
             min-width: 160px;
+            padding: 6px 14px;
         }
         .navbar .form-control::placeholder {
             color: rgba(255,255,255,0.5);
         }
         .navbar .form-control:focus {
-            background: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.3);
             box-shadow: none;
             color: white;
         }
         .navbar .btn-outline-light {
             border-radius: 20px;
-            border-color: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.15);
             color: rgba(255,255,255,0.7);
+            padding: 6px 12px;
         }
         .navbar .btn-outline-light:hover {
             background: rgba(255,255,255,0.15);
             color: white;
+        }
+        
+        /* Carrinho badge */
+        .carrinho-badge {
+            background: #f59e0b;
+            color: #1a1a2e;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 50%;
+        }
+        
+        /* ========================================== */
+        /* MENU DE CATEGORIAS (EMBAIXO)               */
+        /* ========================================== */
+        .categorias-bar {
+            background: #16213e;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 6px 0;
+            position: fixed;
+            top: 56px;
+            width: 100%;
+            z-index: 1029;
+        }
+        .categorias-wrapper {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            gap: 4px;
+            padding: 4px 15px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .categorias-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+        .categorias-wrapper .cat-link {
+            flex: 0 0 auto;
+            white-space: nowrap;
+            padding: 6px 16px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        .categorias-wrapper .cat-link:hover {
+            color: white;
+            background: rgba(255,255,255,0.08);
+        }
+        .categorias-wrapper .cat-link.active {
+            color: #f59e0b;
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+        .categorias-wrapper .cat-link i {
+            margin-right: 4px;
         }
         
         /* Ajuste do container */
@@ -89,58 +159,63 @@
             padding-right: 12px !important;
         }
         
-        /* Cards responsivos */
-        .card {
-            border-radius: 10px;
-        }
-        .card-body {
-            padding: 12px !important;
-        }
-        .card-title {
-            font-size: 1rem !important;
-        }
-        .card-text {
-            font-size: 0.85rem !important;
-        }
-        
-        /* Botões responsivos */
-        .btn {
-            font-size: 0.8rem !important;
-            padding: 6px 12px !important;
-        }
-        .btn-sm {
-            font-size: 0.7rem !important;
-            padding: 4px 8px !important;
-        }
-        
-        /* Estatísticas */
-        .card.text-center h3 {
-            font-size: 1.5rem !important;
-        }
-        .card.text-center p {
-            font-size: 0.7rem !important;
-        }
-        
-        /* Tabelas responsivas */
-        .table-responsive {
-            font-size: 0.75rem !important;
-        }
-        .table-responsive .form-control-sm,
-        .table-responsive .form-select-sm {
-            font-size: 0.65rem !important;
-            padding: 2px 4px !important;
-        }
-        .table-responsive .btn-sm {
-            font-size: 0.6rem !important;
-            padding: 2px 6px !important;
+        /* ========================================== */
+        /* RESPONSIVO PARA CELULAR                   */
+        /* ========================================== */
+        @media (max-width: 768px) {
+            main {
+                margin-top: 110px !important;
+                padding: 0 8px;
+            }
+            
+            .navbar-brand {
+                font-size: 0.9rem !important;
+            }
+            .navbar .form-control {
+                min-width: 100px !important;
+                font-size: 0.75rem;
+            }
+            .navbar-nav .nav-link {
+                font-size: 0.75rem !important;
+                padding: 6px 10px !important;
+            }
+            
+            .categorias-bar {
+                top: 50px;
+                padding: 4px 0;
+            }
+            .categorias-wrapper .cat-link {
+                font-size: 0.7rem;
+                padding: 4px 12px;
+            }
         }
         
-        /* Footer responsivo */
-        footer {
-            font-size: 0.85rem;
-        }
-        footer h5 {
-            font-size: 1rem !important;
+        @media (max-width: 480px) {
+            main {
+                margin-top: 95px !important;
+                padding: 0 5px;
+            }
+            
+            .navbar-brand {
+                font-size: 0.8rem !important;
+            }
+            .navbar .form-control {
+                min-width: 70px !important;
+                font-size: 0.7rem;
+                padding: 4px 10px;
+            }
+            .navbar-nav .nav-link {
+                font-size: 0.7rem !important;
+                padding: 4px 8px !important;
+            }
+            
+            .categorias-bar {
+                top: 46px;
+            }
+            .categorias-wrapper .cat-link {
+                font-size: 0.6rem;
+                padding: 3px 10px;
+            }
         }
         
         /* Estilos do dropdown */
@@ -163,175 +238,14 @@
             font-size: 0.85rem;
             color: #6c757d;
         }
-        
-        /* ========================================== */
-        /* RESPONSIVO PARA CELULAR (max-width: 768px) */
-        /* ========================================== */
-        @media (max-width: 768px) {
-            main {
-                margin-top: 70px !important;
-                padding: 0 8px;
-            }
-            
-            .navbar-brand {
-                font-size: 0.95rem !important;
-            }
-            .navbar-nav .nav-link {
-                font-size: 0.75rem !important;
-                padding: 6px 10px !important;
-            }
-            .navbar .container {
-                padding: 0 8px !important;
-            }
-            .navbar .form-control {
-                min-width: 100px !important;
-                font-size: 0.75rem;
-            }
-            
-            .container {
-                padding-left: 8px !important;
-                padding-right: 8px !important;
-            }
-            
-            .card.text-center h3 {
-                font-size: 1.2rem !important;
-            }
-            .card.text-center p {
-                font-size: 0.6rem !important;
-            }
-            
-            .btn {
-                font-size: 0.7rem !important;
-                padding: 4px 8px !important;
-            }
-            .btn-sm {
-                font-size: 0.6rem !important;
-                padding: 3px 6px !important;
-            }
-            
-            .card-title {
-                font-size: 0.85rem !important;
-            }
-            .card-text {
-                font-size: 0.75rem !important;
-            }
-            
-            .table-responsive {
-                font-size: 0.65rem !important;
-            }
-            .table-responsive .form-control-sm,
-            .table-responsive .form-select-sm {
-                font-size: 0.55rem !important;
-                padding: 1px 3px !important;
-            }
-            .table-responsive .btn-sm {
-                font-size: 0.5rem !important;
-                padding: 1px 4px !important;
-            }
-            
-            footer {
-                font-size: 0.75rem;
-            }
-            footer h5 {
-                font-size: 0.85rem !important;
-            }
-            footer .list-unstyled li {
-                font-size: 0.7rem;
-            }
-            
-            .modal-dialog {
-                margin: 5px !important;
-            }
-            .modal-content {
-                border-radius: 8px !important;
-            }
-            .modal-header h5 {
-                font-size: 0.9rem !important;
-            }
-            .modal-body {
-                padding: 8px !important;
-            }
-            .modal-footer {
-                padding: 8px !important;
-            }
-            .modal-footer .btn {
-                font-size: 0.7rem !important;
-                padding: 4px 10px !important;
-            }
-            
-            /* No celular, categorias ficam empilhadas */
-            .navbar-nav.me-auto {
-                flex-direction: column;
-                align-items: stretch;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            main {
-                margin-top: 60px !important;
-                padding: 0 5px;
-            }
-            
-            .navbar-brand {
-                font-size: 0.8rem !important;
-            }
-            .navbar-nav .nav-link {
-                font-size: 0.7rem !important;
-                padding: 4px 8px !important;
-            }
-            .navbar .form-control {
-                min-width: 80px !important;
-                font-size: 0.7rem;
-            }
-            
-            .container {
-                padding-left: 5px !important;
-                padding-right: 5px !important;
-            }
-            
-            .card-body {
-                padding: 8px !important;
-            }
-            .card-title {
-                font-size: 0.75rem !important;
-            }
-            .card-text {
-                font-size: 0.65rem !important;
-            }
-            
-            .table-responsive {
-                font-size: 0.55rem !important;
-            }
-            .table-responsive .form-control-sm,
-            .table-responsive .form-select-sm {
-                font-size: 0.5rem !important;
-                padding: 1px 2px !important;
-            }
-            
-            .btn {
-                font-size: 0.6rem !important;
-                padding: 3px 6px !important;
-            }
-            .btn-sm {
-                font-size: 0.5rem !important;
-                padding: 2px 4px !important;
-            }
-            
-            footer {
-                font-size: 0.65rem;
-            }
-            footer h5 {
-                font-size: 0.75rem !important;
-            }
-        }
     </style>
 </head>
 
 <body class="d-flex flex-column min-vh-100">
    <!-- ========================================================== -->
-   <!-- NAVBAR PRINCIPAL - COM CATEGORIAS E BUSCA                   -->
+   <!-- NAVBAR PRINCIPAL                                           -->
    <!-- ========================================================== -->
-   <nav id="navbar" class="navbar navbar-expand-lg navbar-dark navbar-transparent position-fixed w-100 top-0" style="z-index: 1030;">
+   <nav id="navbar" class="navbar navbar-expand-lg navbar-dark position-fixed w-100 top-0" style="z-index: 1030;">
      <div class="container">
        
        <!-- Logo -->
@@ -346,18 +260,8 @@
 
        <div class="collapse navbar-collapse" id="navbarNav">
          
-         <!-- ========================================================== -->
-         <!-- CATEGORIAS (SUBSTITUI "QUEM SOMOS?" E "CONTATO")           -->
-         <!-- ========================================================== -->
+         <!-- Links da esquerda (apenas staff) -->
          <ul class="navbar-nav me-auto">
-           <li class="nav-item"><a class="nav-link {% if not categoria_selecionada %}active{% endif %}" href="{% url 'pagina_inicial' %}">Todos</a></li>
-           <li class="nav-item"><a class="nav-link {% if categoria_selecionada == 'lancamentos' %}active{% endif %}" href="?categoria=lancamentos">Lançamentos</a></li>
-           <li class="nav-item"><a class="nav-link {% if categoria_selecionada == 'promocoes' %}active{% endif %}" href="?categoria=promocoes">Promoções</a></li>
-           <li class="nav-item"><a class="nav-link {% if categoria_selecionada == 'conjuntos' %}active{% endif %}" href="?categoria=conjuntos">Conjuntos</a></li>
-           <li class="nav-item"><a class="nav-link" href="{% url 'orcamento' %}">Orçamento</a></li>
-           <li class="nav-item"><a class="nav-link {% if categoria_selecionada == 'outros' %}active{% endif %}" href="?categoria=outros">Outros</a></li>
-           
-           <!-- Links do staff (mantido) -->
            {% if user.is_authenticated and user.is_superuser %}
            <li class="nav-item"><a class="nav-link" href="{% url 'estoque' %}">Estoque</a></li>
            <li class="nav-item"><a class="nav-link" href="{% url 'relatorios' %}">Relatórios</a></li>
@@ -367,7 +271,7 @@
          </ul>
 
          <!-- ========================================================== -->
-         <!-- LADO DIREITO: BUSCA | LOGIN/CARRINHO                       -->
+         <!-- LADO DIREITO: BUSCA | INSTAGRAM | CARRINHO | LOGIN        -->
          <!-- ========================================================== -->
          <ul class="navbar-nav ms-auto align-items-center">
            
@@ -383,16 +287,16 @@
 
            <!-- Ícone Instagram -->
            <li class="nav-item d-flex align-items-center me-2">
-             <a class="nav-link instagram-link-filter" href="https://instagram.com/use.distritofit" target="_blank">
+             <a class="nav-link" href="https://instagram.com/use.distritofit" target="_blank" style="color: rgba(255,255,255,0.7) !important;">
                <i class="bi bi-instagram fs-5"></i>
              </a>
            </li>
 
            <!-- Carrinho -->
            <li class="nav-item d-flex align-items-center me-2">
-             <a class="nav-link position-relative" href="{% url 'visualizar_carrinho' %}">
+             <a class="nav-link position-relative" href="{% url 'visualizar_carrinho' %}" style="color: rgba(255,255,255,0.7) !important;">
                <i class="bi bi-cart3 fs-5"></i>
-               <span class="badge bg-primary rounded-pill position-absolute top-0 start-100 translate-middle" id="carrinho-count">
+               <span class="badge carrinho-badge position-absolute top-0 start-100 translate-middle" id="carrinho-count">
                  {{ carrinho_count|default:0 }}
                </span>
              </a>
@@ -403,7 +307,7 @@
            <!-- ========================================================== -->
            {% if user.is_authenticated %}
            <li class="nav-item dropdown">
-             <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: rgba(255,255,255,0.8) !important;">
                <i class="bi bi-person-circle me-1"></i> 
                {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.username }}{% endif %}
              </a>
@@ -423,13 +327,32 @@
              </ul>
            </li>
            {% else %}
-           <li class="nav-item"><a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
-           <li class="nav-item"><a class="nav-link" href="{% url 'registrar_com_endereco' %}"><i class="bi bi-person-plus"></i> Cadastrar</a></li>
+           <li class="nav-item"><a class="nav-link" href="{% url 'login' %}" style="color: rgba(255,255,255,0.8) !important;"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
+           <li class="nav-item"><a class="nav-link" href="{% url 'registrar_com_endereco' %}" style="color: rgba(255,255,255,0.8) !important;"><i class="bi bi-person-plus"></i> Cadastrar</a></li>
            {% endif %}
          </ul>
        </div>
      </div>
    </nav>
+
+   <!-- ========================================================== -->
+   <!-- MENU DE CATEGORIAS (EMBAIXO DA NAVBAR)                     -->
+   <!-- ========================================================== -->
+   <div class="categorias-bar position-fixed w-100" style="top: 56px; z-index: 1029;">
+     <div class="container">
+       <div class="categorias-wrapper">
+         <a class="cat-link {% if not categoria_selecionada %}active{% endif %}" href="{% url 'pagina_inicial' %}">Todos</a>
+         <a class="cat-link {% if categoria_selecionada == 'lancamentos' %}active{% endif %}" href="?categoria=lancamentos">Lançamentos</a>
+         <a class="cat-link {% if categoria_selecionada == 'promocoes' %}active{% endif %}" href="?categoria=promocoes">Promoções</a>
+         <a class="cat-link {% if categoria_selecionada == 'conjuntos' %}active{% endif %}" href="?categoria=conjuntos">Conjuntos</a>
+         <a class="cat-link" href="{% url 'orcamento' %}"><i class="bi bi-card-list"></i> Orçamento</a>
+         <a class="cat-link {% if categoria_selecionada == 'outros' %}active{% endif %}" href="?categoria=outros">Outros</a>
+         <a class="cat-link" href="https://instagram.com/use.distritofit" target="_blank" style="color: #f59e0b !important;">
+           <i class="bi bi-instagram"></i> @use.distritofit
+         </a>
+       </div>
+     </div>
+   </div>
 
     <div class="hero-background">
      <!--imagem do menu -->
