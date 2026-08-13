@@ -1659,7 +1659,17 @@ def editar_produto(request, produto_id):
         tamanhos = request.POST.getlist('tamanho[]')
         precos = request.POST.getlist('preco[]')
         estoques = request.POST.getlist('quantidade_estoque[]')
-        imagens = request.FILES.getlist('imagem_variacao[]')
+        
+        # 🔥 MAPEIA AS IMAGENS PELO ID DA VARIAÇÃO
+        imagens = {}
+        for key, file in request.FILES.items():
+            if key.startswith('imagem_variacao_'):
+                # Extrai o índice ou ID da variação
+                try:
+                    idx = int(key.split('_')[-1])
+                    imagens[idx] = file
+                except:
+                    pass
         
         manter_ids = []
         
@@ -1689,21 +1699,25 @@ def editar_produto(request, produto_id):
                         variacao.tamanho = tamanho
                         variacao.preco = preco
                         variacao.quantidade_estoque = estoque
-                        if i < len(imagens) and imagens[i]:
+                        
+                        # 🔥 VERIFICA SE TEM IMAGEM PARA ESTA VARIAÇÃO
+                        if i in imagens and imagens[i]:
                             variacao.imagem = imagens[i]
+                        
                         variacao.save()
                         manter_ids.append(variacao.id)
                     except ProdutoVariacao.DoesNotExist:
                         pass
                 else:
                     # 🔥 CRIA NOVA VARIAÇÃO
+                    imagem = imagens[i] if i in imagens and imagens[i] else None
                     nova_variacao = ProdutoVariacao.objects.create(
                         produto=produto,
                         cor=cor,
                         tamanho=tamanho,
                         preco=preco,
                         quantidade_estoque=estoque,
-                        imagem=imagens[i] if i < len(imagens) and imagens[i] else None
+                        imagem=imagem
                     )
                     manter_ids.append(nova_variacao.id)
             except Exception as e:
