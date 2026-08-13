@@ -290,3 +290,165 @@
     border-color: #0d6efd;
 }
 </style>
+
+<!-- ========================================================== -->
+<!-- JAVASCRIPT PARA GERENCIAR GRADE DE VARIAÇÕES               -->
+<!-- ========================================================== -->
+<script>
+// ==========================================
+// ADICIONAR NOVA COR (LINHA NA GRADE)
+// ==========================================
+function adicionarCor(produtoId) {
+    const select = document.getElementById(`nova-cor-select-${produtoId}`);
+    const cor = select.value;
+    if (!cor) {
+        alert('Selecione uma cor!');
+        return;
+    }
+    
+    const tabela = document.getElementById(`tabela-variacoes-${produtoId}`);
+    const coresExistentes = tabela.querySelectorAll('tbody tr td:first-child strong');
+    for (let td of coresExistentes) {
+        if (td.textContent === cor) {
+            alert('Esta cor já existe!');
+            return;
+        }
+    }
+    
+    const cabecalho = tabela.querySelector('thead tr');
+    const tamanhos = [];
+    for (let i = 1; i < cabecalho.children.length - 1; i++) {
+        tamanhos.push(cabecalho.children[i].textContent.trim());
+    }
+    
+    const tbody = tabela.querySelector('tbody');
+    const novaLinha = document.createElement('tr');
+    novaLinha.dataset.cor = cor;
+    
+    let html = `<td><strong>${cor}</strong><input type="hidden" name="cor_nome[]" value="${cor}"></td>`;
+    
+    for (let tamanho of tamanhos) {
+        html += `<td style="padding: 2px;">
+            <input type="number" name="estoque_${cor}_${tamanho}" value="0" min="0" 
+                   class="form-control form-control-sm text-center" style="width: 50px; display: inline-block;">
+            <input type="number" name="preco_${cor}_${tamanho}" value="0" step="0.01" min="0" 
+                   class="form-control form-control-sm text-center mt-1" style="width: 70px; display: inline-block;" placeholder="Preço">
+        </td>`;
+    }
+    
+    html += `<td>
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removerCor(${produtoId}, '${cor}', this)">
+            <i class="bi bi-trash"></i>
+        </button>
+    </td>`;
+    
+    novaLinha.innerHTML = html;
+    tbody.appendChild(novaLinha);
+    
+    select.value = '';
+}
+
+// ==========================================
+// ADICIONAR NOVO TAMANHO (NOVA COLUNA)
+// ==========================================
+function adicionarTamanho(produtoId) {
+    const select = document.getElementById(`novo-tamanho-select-${produtoId}`);
+    const tamanho = select.value;
+    if (!tamanho) {
+        alert('Selecione um tamanho!');
+        return;
+    }
+    
+    const tabela = document.getElementById(`tabela-variacoes-${produtoId}`);
+    const cabecalho = tabela.querySelector('thead tr');
+    const tamanhosExistentes = [];
+    for (let i = 1; i < cabecalho.children.length - 1; i++) {
+        tamanhosExistentes.push(cabecalho.children[i].textContent.trim());
+    }
+    
+    if (tamanhosExistentes.includes(tamanho)) {
+        alert('Este tamanho já existe!');
+        return;
+    }
+    
+    const novaTh = document.createElement('th');
+    novaTh.textContent = tamanho;
+    cabecalho.insertBefore(novaTh, cabecalho.lastElementChild);
+    
+    const linhas = tabela.querySelectorAll('tbody tr');
+    linhas.forEach(linha => {
+        const cor = linha.querySelector('td:first-child strong').textContent;
+        const td = document.createElement('td');
+        td.style.padding = '2px';
+        td.innerHTML = `
+            <input type="number" name="estoque_${cor}_${tamanho}" value="0" min="0" 
+                   class="form-control form-control-sm text-center" style="width: 50px; display: inline-block;">
+            <input type="number" name="preco_${cor}_${tamanho}" value="0" step="0.01" min="0" 
+                   class="form-control form-control-sm text-center mt-1" style="width: 70px; display: inline-block;" placeholder="Preço">
+        `;
+        linha.insertBefore(td, linha.lastElementChild);
+    });
+    
+    select.value = '';
+}
+
+// ==========================================
+// REMOVER COR
+// ==========================================
+function removerCor(produtoId, cor, button) {
+    if (confirm(`Remover a cor "${cor}" e todas suas variações?`)) {
+        const linha = button.closest('tr');
+        const form = linha.closest('form');
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'excluir_cor[]';
+        input.value = cor;
+        form.appendChild(input);
+        
+        linha.remove();
+    }
+}
+
+// ==========================================
+// PREENCHER GRADE COM VALORES PADRÃO
+// ==========================================
+function preencherGrade(produtoId) {
+    const tabela = document.getElementById(`tabela-variacoes-${produtoId}`);
+    if (!tabela) return;
+    
+    const linhas = tabela.querySelectorAll('tbody tr');
+    if (linhas.length === 0) {
+        alert('Nenhuma variação para preencher!');
+        return;
+    }
+    
+    const valorPreco = prompt('Digite o preço padrão para todas as variações (ex: 49.90):', '0.00');
+    if (valorPreco === null) return;
+    const precoPadrao = parseFloat(valorPreco) || 0;
+    
+    const valorEstoque = prompt('Digite o estoque padrão para todas as variações:', '10');
+    if (valorEstoque === null) return;
+    const estoquePadrao = parseInt(valorEstoque) || 0;
+    
+    linhas.forEach(linha => {
+        const precoInputs = linha.querySelectorAll('input[name^="preco_"]');
+        const estoqueInputs = linha.querySelectorAll('input[name^="estoque_"]');
+        
+        precoInputs.forEach(input => {
+            if (!input.name.includes('variacao')) {
+                input.value = precoPadrao;
+            }
+        });
+        estoqueInputs.forEach(input => {
+            if (!input.name.includes('variacao')) {
+                input.value = estoquePadrao;
+            }
+        });
+    });
+    
+    alert(`✅ Grade preenchida com Preço: R$ ${precoPadrao.toFixed(2)} e Estoque: ${estoquePadrao}`);
+}
+</script>
+{% endblock %}
+                            
