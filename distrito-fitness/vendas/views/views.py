@@ -1460,7 +1460,7 @@ def pagamento_pendente(request, pedido_id):
 
     return render(request, 'vendas/pagamento_pendente.html', {'pedido': pedido})
     
-@staff_member_required
+
 # vendas/views/views.py
 
 # 🔥 REMOVA O DECORADOR @login_required da função
@@ -1531,27 +1531,58 @@ def gerenciar_pedidos(request):
 
 @login_required
 def verificar_status_pagamento(request, pedido_id):
-    # 🔥 Staff pode verificar qualquer pedido
-    if request.user.is_superuser:
-        pedido = get_object_or_404(Pedido, id=pedido_id)
-    else:
-        pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
+    """Verifica o status do pagamento via AJAX"""
+    try:
+        # 🔥 Staff pode verificar qualquer pedido
+        if request.user.is_superuser:
+            pedido = get_object_or_404(Pedido, id=pedido_id)
+        else:
+            pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
 
-    if not pedido.id_mercado_pago:
+        print(f"🔍 Verificando pedido #{pedido_id} - Usuário: {request.user.username}")
+        print(f"📋 Pedido: status={pedido.status}, status_pagamento={pedido.status_pagamento}, id_mp={pedido.id_mercado_pago}")
+
+        if not pedido.id_mercado_pago:
+            print("⚠️ Pedido sem ID do Mercado Pago")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Pedido sem ID do Mercado Pago'
+            })
+
+        # 🔥 CHAMA A FUNÇÃO SEM DECORADOR
+        try:
+            atualizado = atualizar_status_pedido(pedido)
+            print(f"✅ Status atualizado: {atualizado}")
+        except Exception as e:
+            print(f"❌ Erro ao atualizar status: {e}")
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Erro ao atualizar status: {str(e)}'
+            }, status=500)
+
         return JsonResponse({
-            'status': 'error',
-            'message': 'Pedido sem ID do Mercado Pago'
+            'status': 'success',
+            'atualizado': atualizado,
+            'pedido_status': pedido.status,
+            'status_pagamento': pedido.status_pagamento,
+            'status_entrega': pedido.status_entrega
         })
 
-    atualizado = atualizar_status_pedido(pedido)
+    except Pedido.DoesNotExist:
+        print(f"❌ Pedido #{pedido_id} não encontrado")
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Pedido não encontrado'
+        }, status=404)
 
-    return JsonResponse({
-        'status': 'success',
-        'atualizado': atualizado,
-        'pedido_status': pedido.status,
-        'status_pagamento': pedido.status_pagamento,
-        'status_entrega': pedido.status_entrega
-    })
+    except Exception as e:
+        print(f"💥 Erro ao verificar pedido #{pedido_id}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
 
 # Função para verificar se o usuário é superusuário
 def superuser_required(view_func):
