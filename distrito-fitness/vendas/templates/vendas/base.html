@@ -307,12 +307,12 @@
          
          <!-- Links da esquerda -->
          <ul class="navbar-nav me-auto">
-           <li class="nav-item"><a class="nav-link {% if not categoria_selecionada %}active{% endif %}" href="{% url 'pagina_inicial' %}">Todos</a></li>
+           <!--li class="nav-item"><a class="nav-link {% if not categoria_selecionada %}active{% endif %}" href="{% url 'pagina_inicial' %}">Todos</a></li>
            <li class="nav-item"><a class="nav-link {% if categoria_selecionada == 'lancamentos' %}active{% endif %}" href="?categoria=lancamentos">Lançamentos</a></li>
            <li class="nav-item"><a class="nav-link {% if categoria_selecionada == 'promocoes' %}active{% endif %}" href="?categoria=promocoes">Promoções</a></li>
            <li class="nav-item"><a class="nav-link {% if categoria_selecionada == 'conjuntos' %}active{% endif %}" href="?categoria=conjuntos">Conjuntos</a></li>
            <li class="nav-item"><a class="nav-link" href="{% url 'orcamento' %}">Orçamento</a></li>
-           <li class="nav-item"><a class="nav-link {% if categoria_selecionada == 'outros' %}active{% endif %}" href="?categoria=outros">Outros</a></li>
+           <li class="nav-item"><a class="nav-link {% if categoria_selecionada == 'outros' %}active{% endif %}" href="?categoria=outros">Outros</a></li-->
            
            {% if user.is_authenticated and user.is_superuser %}
            <li class="nav-item"><a class="nav-link" href="{% url 'estoque' %}">Estoque</a></li>
@@ -339,7 +339,7 @@
 
            <!-- Instagram -->
            <li class="nav-item d-flex align-items-center me-1">
-             <a class="nav-link" href="https://instagram.com/use.distritofit" target="_blank" style="color: rgba(255,255,255,0.7) !important; padding: 4px 6px;">
+             <a class="nav-link" href="https://instagram.com/use.boutiquemirna7" target="_blank" style="color: rgba(255,255,255,0.7) !important; padding: 4px 6px;">
                <i class="bi bi-instagram fs-6"></i>
              </a>
            </li>
@@ -397,8 +397,8 @@
          <a class="cat-link {% if categoria_selecionada == 'conjuntos' %}active{% endif %}" href="?categoria=conjuntos">Conjuntos</a>
          <a class="cat-link" href="{% url 'orcamento' %}"><i class="bi bi-card-list"></i> Orçamento</a>
          <a class="cat-link {% if categoria_selecionada == 'outros' %}active{% endif %}" href="?categoria=outros">Outros</a>
-         <a class="cat-link" href="https://instagram.com/use.distritofit" target="_blank" style="color: #f59e0b !important;">
-           <i class="bi bi-instagram"></i> @use.distritofit
+         <a class="cat-link" href="https://instagram.com/use.boutiquemirna7" target="_blank" style="color: #f59e0b !important;">
+           <i class="bi bi-instagram"></i> @Mirna Boutique
          </a>
        </div>
      </div>
