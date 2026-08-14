@@ -20,7 +20,7 @@
 
         <!-- CARDS DE ESTATÍSTICAS -->
         <div class="row mb-4">
-            <div class="col-md-3 col-6">
+            <div class="col-3">
                 <div class="card text-center bg-light border-0 shadow-sm">
                     <div class="card-body py-2">
                         <h3 class="mb-0">{{ total_produtos }}</h3>
@@ -28,7 +28,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-3">
                 <div class="card text-center bg-success text-white border-0 shadow-sm">
                     <div class="card-body py-2">
                         <h3 class="mb-0">{{ produtos_ativos }}</h3>
@@ -36,7 +36,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-3">
                 <div class="card text-center bg-warning border-0 shadow-sm">
                     <div class="card-body py-2">
                         <h3 class="mb-0">{{ produtos_inativos }}</h3>
@@ -44,7 +44,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-3">
                 <div class="card text-center bg-info text-white border-0 shadow-sm">
                     <div class="card-body py-2">
                         <h3 class="mb-0">{{ total_estoque }}</h3>
@@ -471,27 +471,26 @@
 </div>
 
 <style>
-.table th {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.table td {
-    vertical-align: middle;
-    font-size: 0.9rem;
-}
-.btn-sm {
-    padding: 0.2rem 0.5rem;
-}
-.card {
-    border-radius: 10px;
-}
-.page-link {
-    color: #0d6efd;
-}
-.page-item.active .page-link {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+/* ========================================== */
+/* CORREÇÃO CARDS DE ESTATÍSTICAS NO CELULAR */
+/* ========================================== */
+
+@media (max-width: 480px) {
+    .col-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+        padding: 0 4px;
+    }
+    .col-3 .card .card-body {
+        padding: 6px 2px !important;
+    }
+    .col-3 .card h3 {
+        font-size: 0.9rem !important;
+    }
+    .col-3 .card small {
+        font-size: 0.5rem !important;
+        display: block;
+    }
 }
 </style>
 
