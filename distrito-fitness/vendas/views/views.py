@@ -1511,7 +1511,7 @@ def gerenciar_pedidos(request):
         'pedidos_aprovados': pedidos.filter(status='aprovado').count(),
         'pedidos_entregues': pedidos.filter(status='entregue').count(),
     }
-    return render(request, 'vendas/gerenciar_pedidos.html', context)
+    return render('/meus_pedidos')
 # vendas/views/views.py
 
 @login_required
