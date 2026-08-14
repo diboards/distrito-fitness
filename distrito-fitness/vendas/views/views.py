@@ -1447,7 +1447,11 @@ def pagamento_pendente(request, pedido_id):
     return render(request, 'vendas/pagamento_pendente.html', {'pedido': pedido})
     
 @staff_member_required
+# vendas/views/views.py
+
+# 🔥 REMOVA O DECORADOR @login_required da função
 def atualizar_status_pedido(pedido):
+    """Atualiza o status do pedido consultando o Mercado Pago"""
     try:
         sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
         payment_info = sdk.payment().get(pedido.id_mercado_pago)
@@ -1470,9 +1474,9 @@ def atualizar_status_pedido(pedido):
 
                 if novo_status_pagamento == 'aprovado':
                     pedido.data_pagamento = timezone.now()
-                    # 🔥 CORRIGIDO: define status_entrega corretamente
                     pedido.status_entrega = 'preparando'
-                    pedido.status = 'aprovado'  # ✅ Adicionado
+                    pedido.status = 'aprovado'
+                    # Limpa carrinho
                     CarrinhoItem.objects.filter(usuario=pedido.usuario).delete()
                 elif novo_status_pagamento == 'pendente':
                     pedido.status_entrega = 'aguardando'
@@ -1482,8 +1486,9 @@ def atualizar_status_pedido(pedido):
                     pedido.status = 'cancelado'
 
                 pedido.save()
+                return True
 
-        return True
+        return False
 
     except Exception as e:
         print(f"Erro ao atualizar status do pedido {pedido.id}: {e}")
@@ -1502,17 +1507,26 @@ def gerenciar_pedidos(request):
         'pedidos': pedidos
     })
 
+# vendas/views/views.py
+
 @login_required
 def verificar_status_pagamento(request, pedido_id):
+    """Verifica o status do pagamento via AJAX"""
     pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
 
     if not pedido.id_mercado_pago:
-        return JsonResponse({'status': 'error'})
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Pedido sem ID do Mercado Pago'
+        })
 
-    atualizar_status_pedido(pedido)
+    # 🔥 CHAMA A FUNÇÃO SEM DECORADOR
+    atualizado = atualizar_status_pedido(pedido)
 
     return JsonResponse({
         'status': 'success',
+        'atualizado': atualizado,
+        'pedido_status': pedido.status,
         'status_pagamento': pedido.status_pagamento,
         'status_entrega': pedido.status_entrega
     })
