@@ -1496,17 +1496,22 @@ def atualizar_status_pedido(pedido):
 
 # Views lista todos pedidos
 
+# vendas/views/views.py
+
 @login_required
+@user_passes_test(lambda u: u.is_superuser)
 def gerenciar_pedidos(request):
-    if not request.user.is_superuser:
-        return redirect('pagina_inicial')
-
-    pedidos = Pedido.objects.all().order_by('-id')
-
-    return render(request, 'vendas/admin/pedidos.html', {
-        'pedidos': pedidos
-    })
-
+    """Painel de gerenciamento de pedidos para staff"""
+    pedidos = Pedido.objects.all().order_by('-data_criacao')
+    
+    context = {
+        'pedidos': pedidos,
+        'total_pedidos': pedidos.count(),
+        'pedidos_pendentes': pedidos.filter(status='pendente').count(),
+        'pedidos_aprovados': pedidos.filter(status='aprovado').count(),
+        'pedidos_entregues': pedidos.filter(status='entregue').count(),
+    }
+    return render(request, 'vendas/gerenciar_pedidos.html', context)
 # vendas/views/views.py
 
 @login_required
