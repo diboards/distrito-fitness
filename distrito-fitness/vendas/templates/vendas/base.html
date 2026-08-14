@@ -17,6 +17,15 @@
     <script src="https://sdk.mercadopago.com/js/v2"></script>
     {% block extra_css %}{% endblock %}
     
+    <!-- Ocultar mensagens de debug em produção -->
+    {% if debug %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endif %}
+    
     <style>
         /* ========================================== */
         /* CORREÇÕES RESPONSIVAS PARA CELULAR         */
