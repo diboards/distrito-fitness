@@ -652,15 +652,24 @@ def finalizar_pedido(request):
 
 @login_required
 def meus_pedidos(request):
-    pedidos = Pedido.objects.filter(usuario=request.user).prefetch_related(
-        'itens_pedido', 
-        'itens_pedido__variacao',  # ← BUSCA A VARIAÇÃO
-        'itens_pedido__variacao__produto'  # ← BUSCA O PRODUTO ATRAVÉS DA VARIAÇÃO
-    )
+    """Exibe pedidos do usuário (ou todos se for superusuário)"""
+    
+    # 🔥 Staff vê todos os pedidos
+    if request.user.is_superuser:
+        pedidos = Pedido.objects.all().prefetch_related(
+            'itens_pedido',
+            'itens_pedido__variacao',
+            'itens_pedido__variacao__produto'
+        ).order_by('-data_criacao')
+    else:
+        pedidos = Pedido.objects.filter(usuario=request.user).prefetch_related(
+            'itens_pedido',
+            'itens_pedido__variacao',
+            'itens_pedido__variacao__produto'
+        )
 
     for pedido in pedidos:
         status = pedido.status
-        status_entrega = pedido.status_entrega
 
         pedido.is_pendente = status in ['pendente', 'aguardando_aprovacao']
         pedido.is_aprovado = status in ['aprovado']
@@ -1195,7 +1204,12 @@ def verificar_credenciais_mp(request):
 # Detalhe do pedigo pago
 @login_required
 def detalhes_pedido(request, pedido_id):
-    pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
+    # 🔥 Staff (admin) pode ver qualquer pedido
+    if request.user.is_superuser:
+        pedido = get_object_or_404(Pedido, id=pedido_id)
+    else:
+        pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
+    
     itens_pedido = ItemPedido.objects.filter(pedido=pedido)
     
     return render(request, 'vendas/detalhes_pedido.html', {
@@ -1517,8 +1531,11 @@ def gerenciar_pedidos(request):
 
 @login_required
 def verificar_status_pagamento(request, pedido_id):
-    """Verifica o status do pagamento via AJAX"""
-    pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
+    # 🔥 Staff pode verificar qualquer pedido
+    if request.user.is_superuser:
+        pedido = get_object_or_404(Pedido, id=pedido_id)
+    else:
+        pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
 
     if not pedido.id_mercado_pago:
         return JsonResponse({
@@ -1526,7 +1543,6 @@ def verificar_status_pagamento(request, pedido_id):
             'message': 'Pedido sem ID do Mercado Pago'
         })
 
-    # 🔥 CHAMA A FUNÇÃO SEM DECORADOR
     atualizado = atualizar_status_pedido(pedido)
 
     return JsonResponse({
