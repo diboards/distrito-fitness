@@ -1473,7 +1473,45 @@ def atualizar_status_pedido(pedido):
         print(f"Erro ao atualizar status do pedido {pedido.id}: {e}")
         return False
 
-# Views lista todos pedidos
+
+# Views lista todos pedidos ADMIN
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_atualizar_status(request, pedido_id):
+    """Admin atualiza o status do pedido manualmente"""
+    if request.method == 'POST':
+        pedido = get_object_or_404(Pedido, id=pedido_id)
+        novo_status = request.POST.get('status_entrega')
+        
+        status_validos = ['aguardando', 'preparando', 'enviado', 'entregue', 'retirado', 'cancelado']
+        
+        if novo_status in status_validos:
+            # 🔥 ATUALIZA O STATUS DE ENTREGA
+            pedido.status_entrega = novo_status
+            
+            # Atualiza o status principal
+            if novo_status == 'entregue':
+                pedido.status = 'entregue'
+            elif novo_status == 'cancelado':
+                pedido.status = 'cancelado'
+            elif novo_status == 'enviado':
+                pedido.status = 'enviado'
+            elif novo_status == 'preparando':
+                pedido.status = 'processando'
+            elif novo_status == 'aguardando':
+                pedido.status = 'pendente'
+            elif novo_status == 'retirado':
+                pedido.status = 'entregue'
+            
+            pedido.save()
+            messages.success(request, f'✅ Status do pedido #{pedido.id} atualizado para {pedido.get_status_entrega_display()}')
+        else:
+            messages.error(request, '❌ Status inválido.')
+        
+        return redirect('meus_pedidos')
+    
+    return redirect('meus_pedidos')
 
 # vendas/views/views.py
 
