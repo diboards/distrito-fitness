@@ -123,6 +123,7 @@ def pagina_inicial(request):
         return resultado
     
     context = {
+        'debug': settings.DEBUG,  # 🔥 Ocultar mensagens de debug em produção 
         'produtos_lancamentos': calcular_precos(produtos_lancamentos),
         'produtos_promocoes': calcular_precos(produtos_promocoes),
         'produtos_conjuntos': calcular_precos(produtos_conjuntos),
