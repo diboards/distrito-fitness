@@ -1354,42 +1354,6 @@ def webhook_mercadopago(request):
     
     return JsonResponse({'status': 'invalid_method'}, status=405)
 
-def atualizar_status_pedido(pedido):
-    try:
-        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
-        payment_info = sdk.payment().get(pedido.id_mercado_pago)
-
-        if payment_info['status'] == 200:
-            payment = payment_info['response']
-            status_mp = payment['status']
-
-            status_map = {
-                'pending': 'pendente',
-                'approved': 'aprovado',
-                'rejected': 'rejeitado',
-                'cancelled': 'rejeitado'
-            }
-
-            novo_status_pagamento = status_map.get(status_mp, 'pendente')
-
-            if pedido.status_pagamento != novo_status_pagamento:
-                pedido.status_pagamento = novo_status_pagamento
-
-                if novo_status_pagamento == 'aprovado':
-                    pedido.data_pagamento = timezone.now()
-
-                    # 🔥 IMPORTANTE: inicia fluxo logístico
-                    pedido.status_entrega = 'preparando'
-
-                    CarrinhoItem.objects.filter(usuario=pedido.usuario).delete()
-
-                pedido.save()
-
-        return True
-
-    except Exception as e:
-        print(f"Erro: {e}")
-        return False
 
 
 @login_required
