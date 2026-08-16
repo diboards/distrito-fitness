@@ -41,7 +41,7 @@ urlpatterns = [
     path('painel/pedidos/', views_principais.gerenciar_pedidos, name='gerenciar_pedidos'),
     #path('painel/pedido/<int:pedido_id>/status/', views_principais.atualizar_status_entrega, name='atualizar_status_entrega'),
     # 🔥 ADMIN - ATUALIZAR STATUS MANUALMENTE
-    path('admin/pedido/<int:pedido_id>/status/', views_principais.admin_atualizar_status, name='admin_atualizar_status'),
+    path('painel/pedido/<int:pedido_id>/status/', views_principais.admin_atualizar_status, name='admin_atualizar_status'),
    
     # Carrinho e produtos
     path('produto/<int:produto_id>/', views_principais.detalhes_produto, name='detalhes_produto'),
