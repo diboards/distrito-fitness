@@ -163,7 +163,7 @@
                             </div>
                             
                             <!-- ========================================================== -->
-                            <!-- COLUNA 3: RESUMO (25%)                                   -->
+                            <!-- COLUNA 3: RESUMO (25%) + ADMIN                             -->
                             <!-- ========================================================== -->
                             <div class="col-md-3">
                                 <div class="bg-light p-3 rounded">
@@ -180,7 +180,27 @@
                                         <span class="fw-bold">R$ {{ pedido.total|floatformat:2 }}</span>
                                     </div>
                                     
-                                    <div class="d-flex gap-2">
+                                    <!-- 🔥 SE FOR ADMIN, MOSTRA DROPDOWN PARA ALTERAR STATUS -->
+                                    {% if user.is_superuser %}
+                                    <div class="mt-2">
+                                        <form method="POST" action="{% url 'admin_atualizar_status' pedido.id %}" class="d-flex gap-1">
+                                            {% csrf_token %}
+                                            <select name="status_entrega" class="form-select form-select-sm" style="font-size: 0.7rem;">
+                                                <option value="aguardando" {% if pedido.status_entrega == 'aguardando' %}selected{% endif %}>Aguardando</option>
+                                                <option value="preparando" {% if pedido.status_entrega == 'preparando' %}selected{% endif %}>Preparando</option>
+                                                <option value="enviado" {% if pedido.status_entrega == 'enviado' %}selected{% endif %}>Enviado</option>
+                                                <option value="entregue" {% if pedido.status_entrega == 'entregue' %}selected{% endif %}>Entregue</option>
+                                                <option value="retirado" {% if pedido.status_entrega == 'retirado' %}selected{% endif %}>Retirado</option>
+                                                <option value="cancelado" {% if pedido.status_entrega == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-warning btn-sm" title="Atualizar Status">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="d-flex gap-2 mt-2">
                                         <a href="#" class="btn btn-outline-secondary btn-sm flex-fill">Comprar novamente</a>
                                         <a href="{% url 'detalhes_pedido' pedido.id %}" class="btn btn-primary btn-sm flex-fill">Ver detalhes</a>
                                     </div>
