@@ -90,6 +90,19 @@
                                             </div>
                                         </div>
                                         
+                                        <!-- 2. Pagamento >
+                                        <div class="status-step">
+                                            {% if pedido.status_pagamento == 'aprovado' %}
+                                                <div class="step-icon completed">💳</div>
+                                                <div class="step-label completed">Pagamento<br>confirmado</div>
+                                            {% elif pedido.status_pagamento == 'pendente' %}
+                                                <div class="step-icon pending">💳</div>
+                                                <div class="step-label pending">Aguardando<br>pagamento</div>
+                                            {% else %}
+                                                <div class="step-icon inactive">💳</div>
+                                                <div class="step-label inactive">Pagamento<br>recusado</div>
+                                            {% endif %}
+                                    </div-->
                                         <!-- 2. Pagamento -->
                                         <div class="status-step">
                                             {% if pedido.status_pagamento == 'aprovado' %}
@@ -98,6 +111,9 @@
                                             {% elif pedido.status_pagamento == 'pendente' %}
                                                 <div class="step-icon pending">💳</div>
                                                 <div class="step-label pending">Aguardando<br>pagamento</div>
+                                            {% elif pedido.status == 'cancelado' or pedido.status_entrega == 'cancelado' %}
+                                                <div class="step-icon cancelado">💳</div>
+                                                <div class="step-label cancelado">Pagamento<br>recusado</div>
                                             {% else %}
                                                 <div class="step-icon inactive">💳</div>
                                                 <div class="step-label inactive">Pagamento<br>recusado</div>
@@ -316,6 +332,34 @@
     }
     .bg-light {
         background-color: #f8f9fa !important;
+    }
+    /* ========================================================== */
+    /* STATUS CANCELADO - VERMELHO                                */
+    /* ========================================================== */
+    
+    /* 🔥 Quando o pedido for cancelado, fica vermelho */
+    .step-icon.cancelado {
+        border-color: #dc3545 !important;
+        background: #dc3545 !important;
+        color: white !important;
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
+        animation: none !important;
+    }
+    
+    .step-label.cancelado {
+        color: #dc3545 !important;
+        font-weight: 600 !important;
+        animation: none !important;
+    }
+    
+    .step-icon.inactive-cancelado {
+        border-color: #dc3545 !important;
+        background: #f8d7da !important;
+        color: #dc3545 !important;
+    }
+    
+    .step-label.inactive-cancelado {
+        color: #dc3545 !important;
     }
 </style>
 
