@@ -328,7 +328,7 @@
            
            {% if user.is_authenticated and user.is_superuser %}
            <li class="nav-item"><a class="nav-link" href="{% url 'estoque' %}">Estoque</a></li>
-           <li class="nav-item"><a class="nav-link" href="{% url 'relatorios' %}">Relatórios</a></li>
+           <li class="nav-item"><a class="nav-link" href="{% url 'relatorios_pedidos' %}">Relatórios</a></li>
            <li class="nav-item"><a class="nav-link" href="{% url 'cadastrar_produto' %}">Cadastrar Produto</a></li>
            <li class="nav-item"><a class="nav-link" href="{% url 'gerenciar_pedidos' %}">Pedidos</a></li>
            {% endif %}
