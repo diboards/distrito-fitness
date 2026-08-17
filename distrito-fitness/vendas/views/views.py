@@ -1963,31 +1963,121 @@ def nova_venda(request):
     return render(request, 'vendas/nova_venda.html', {'form': form, 'produtos': produtos})
 
 @login_required
-def relatorios(request):
+@user_passes_test(lambda u: u.is_superuser)
+def relatorios_pedidos(request):
+    from django.db.models import Sum, Count, F
+    from django.utils.dateparse import parse_date
+    from decimal import Decimal
+    
     data_inicio = request.GET.get('data_inicio')
     data_fim = request.GET.get('data_fim')
-
-    vendas = Venda.objects.select_related('produto')
-
+    
+    # Query base de pedidos
+    pedidos = Pedido.objects.all()
+    
+    # Aplicar filtros de data
     if data_inicio:
-        data_inicio = parse_date(data_inicio)
-        vendas = vendas.filter(data_venda__date__gte=data_inicio)
-
+        data_inicio_parsed = parse_date(data_inicio)
+        if data_inicio_parsed:
+            pedidos = pedidos.filter(data_criacao__date__gte=data_inicio_parsed)
+    
     if data_fim:
-        data_fim = parse_date(data_fim)
-        vendas = vendas.filter(data_venda__date__lte=data_fim)
-
-    produtos_vendidos = vendas.values('produto__nome').annotate(total=Sum('quantidade'))
-    total_vendas = vendas.count()
-    valor_total = vendas.aggregate(total=Sum(F('quantidade') * F('preco_unitario')))['total'] or 0
-
-    return render(request, 'vendas/relatorios.html', {
-        'produtos_vendidos': produtos_vendidos,
+        data_fim_parsed = parse_date(data_fim)
+        if data_fim_parsed:
+            pedidos = pedidos.filter(data_criacao__date__lte=data_fim_parsed)
+    
+    # ========================================================== #
+    # ESTATÍSTICAS GERAIS                                         #
+    # ========================================================== #
+    total_pedidos = pedidos.count()
+    
+    # Valor total de todos os pedidos
+    valor_total = pedidos.aggregate(total=Sum('total'))['total'] or Decimal('0.00')
+    
+    # Pedidos por status
+    pedidos_pendentes = pedidos.filter(status='pendente').count()
+    pedidos_aprovados = pedidos.filter(status='aprovado').count()
+    pedidos_processando = pedidos.filter(status='processando').count()
+    pedidos_enviados = pedidos.filter(status='enviado').count()
+    pedidos_entregues = pedidos.filter(status='entregue').count()
+    pedidos_cancelados = pedidos.filter(status='cancelado').count()
+    
+    # ========================================================== #
+    # PRODUTOS MAIS VENDIDOS                                     #
+    # ========================================================== #
+    produtos_vendidos = ItemPedido.objects.filter(
+        pedido__in=pedidos
+    ).values(
+        'variacao__produto__nome'
+    ).annotate(
+        total_quantidade=Sum('quantidade'),
+        total_vendas=Count('pedido', distinct=True)
+    ).order_by('-total_quantidade')[:10]
+    
+    # ========================================================== #
+    # VENDAS POR MÊS (para gráfico de linha)                     #
+    # ========================================================== #
+    from django.db.models.functions import TruncMonth
+    vendas_por_mes = pedidos.filter(
+        status__in=['aprovado', 'entregue', 'enviado']
+    ).annotate(
+        mes=TruncMonth('data_criacao')
+    ).values('mes').annotate(
+        total_mes=Sum('total')
+    ).order_by('mes')
+    
+    meses_labels = []
+    meses_valores = []
+    for item in vendas_por_mes:
+        if item['mes']:
+            meses_labels.append(item['mes'].strftime('%b/%Y'))
+            meses_valores.append(float(item['total_mes']))
+    
+    # ========================================================== #
+    # FORMAS DE PAGAMENTO                                        #
+    # ========================================================== #
+    pagamentos = pedidos.values('metodo_pagamento').annotate(
+        total=Count('id')
+    ).order_by('-total')
+    
+    pagamentos_labels = []
+    pagamentos_valores = []
+    for item in pagamentos:
+        label = dict(Pedido.METODO_PAGAMENTO_CHOICES).get(item['metodo_pagamento'], item['metodo_pagamento'])
+        pagamentos_labels.append(label)
+        pagamentos_valores.append(item['total'])
+    
+    # ========================================================== #
+    # CONTEXTO                                                   #
+    # ========================================================== #
+    context = {
+        # Filtros
         'data_inicio': request.GET.get('data_inicio', ''),
         'data_fim': request.GET.get('data_fim', ''),
-        'total_vendas': total_vendas,
+        
+        # Estatísticas gerais
+        'total_pedidos': total_pedidos,
         'valor_total': valor_total,
-    })
+        'pedidos_pendentes': pedidos_pendentes,
+        'pedidos_aprovados': pedidos_aprovados,
+        'pedidos_processando': pedidos_processando,
+        'pedidos_enviados': pedidos_enviados,
+        'pedidos_entregues': pedidos_entregues,
+        'pedidos_cancelados': pedidos_cancelados,
+        
+        # Produtos mais vendidos
+        'produtos_vendidos': produtos_vendidos,
+        
+        # Vendas por mês
+        'meses_labels': meses_labels,
+        'meses_valores': meses_valores,
+        
+        # Formas de pagamento
+        'pagamentos_labels': pagamentos_labels,
+        'pagamentos_valores': pagamentos_valores,
+    }
+    
+    return render(request, 'vendas/relatorios_pedidos.html', context)
 
 @login_required
 def editar_venda(request, venda_id):
