@@ -175,71 +175,98 @@
             margin-right: 4px;
         }
         
-/* ========================================== */
-/* RODAPÉ RESPONSIVO                           */
-/* ========================================== */
-
-footer {
-    font-size: 0.75rem;
-}
-
-footer h5 {
-    font-size: 0.8rem !important;
-    margin-bottom: 2px !important;
-}
-
-footer .list-unstyled li {
-    line-height: 1.4;
-}
-
-footer a {
-    transition: all 0.3s ease;
-    font-size: 0.7rem;
-}
-
-footer a:hover {
-    color: #ffc107 !important;
-}
-
-footer hr {
-    opacity: 0.1;
-    margin: 6px 0;
-}
-
-/* 🔥 Ajustes para celular */
-@media (max-width: 576px) {
-    footer {
-        font-size: 0.6rem;
-    }
-    footer h5 {
-        font-size: 0.65rem !important;
-    }
-    footer .list-unstyled li {
-        line-height: 1.2;
-    }
-    footer a {
-        font-size: 0.6rem;
-    }
-    footer .col-4 {
-        padding: 0 4px;
-    }
-    footer .d-none.d-sm-inline {
-        display: none !important;
-    }
-}
-
-/* 🔥 Ajustes para telas muito pequenas (até 400px) */
-@media (max-width: 400px) {
-    footer h5 {
-        font-size: 0.55rem !important;
-    }
-    footer a {
-        font-size: 0.5rem;
-    }
-    footer .list-unstyled li {
-        line-height: 1.1;
-    }
-}
+        /* ========================================== */
+        /* RESPONSIVO - CELULAR                       */
+        /* ========================================== */
+        @media (max-width: 768px) {
+            main {
+                margin-top: 100px !important;
+                padding: 0 8px;
+            }
+            
+            .navbar-brand {
+                font-size: 0.85rem !important;
+            }
+            .navbar-nav .nav-link {
+                font-size: 0.7rem !important;
+                padding: 4px 6px !important;
+            }
+            
+            /* 🔥 CARRINHO E LOGIN NA MESMA LINHA */
+            .navbar-nav.ms-auto {
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                justify-content: flex-end !important;
+                gap: 2px !important;
+            }
+            .navbar-nav.ms-auto .nav-item {
+                display: inline-flex !important;
+                align-items: center !important;
+            }
+            .navbar-nav.ms-auto .nav-link {
+                font-size: 0.7rem !important;
+                padding: 4px 6px !important;
+            }
+            
+            /* 🔥 CAMPO DE BUSCA - PODE QUEBRAR PARA BAIXO */
+            .navbar .form-control {
+                min-width: 100px !important;
+                font-size: 0.7rem !important;
+                padding: 4px 10px !important;
+            }
+            .navbar .btn-outline-light {
+                padding: 4px 8px !important;
+                font-size: 0.7rem !important;
+            }
+            
+            .categorias-wrapper .cat-link {
+                font-size: 0.65rem;
+                padding: 4px 10px;
+            }
+            
+            /* 🔥 Ajuste do container da navbar no mobile */
+            .navbar .container {
+                padding: 0 8px !important;
+            }
+            .navbar-collapse {
+                padding-top: 5px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            main {
+                margin-top: 85px !important;
+                padding: 0 5px;
+            }
+            
+            .navbar-brand {
+                font-size: 0.75rem !important;
+            }
+            .navbar-nav .nav-link {
+                font-size: 0.65rem !important;
+                padding: 3px 5px !important;
+            }
+            
+            .navbar-nav.ms-auto .nav-link {
+                font-size: 0.6rem !important;
+                padding: 3px 4px !important;
+            }
+            
+            .navbar .form-control {
+                min-width: 80px !important;
+                font-size: 0.6rem !important;
+                padding: 3px 8px !important;
+            }
+            .navbar .btn-outline-light {
+                padding: 3px 6px !important;
+                font-size: 0.6rem !important;
+            }
+            
+            .categorias-wrapper .cat-link {
+                font-size: 0.55rem;
+                padding: 3px 8px;
+            }
+        }
         
         /* Estilos do dropdown */
         .dropdown-menu {
@@ -451,70 +478,65 @@ footer hr {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Rodapé -->
-<footer class="bg-dark text-white mt-5">
-    <div class="container py-3 py-md-4">
-        <div class="row g-2 g-md-3">
-            <!-- COLUNA 1: Logo + Descrição -->
-            <div class="col-4 col-md-4">
-                <h5 class="text-warning fs-6 fs-md-5 mb-1">
-                    <i class="bi bi-shop-window me-1"></i>Mirna Boutique
-                </h5>
-                <p class="small mb-0 d-none d-md-block">
-                    Entrega qualidade e satisfação.
-                </p>
-            </div>
-            
-            <!-- COLUNA 2: Links Rápidos -->
-            <div class="col-4 col-md-4">
-                <h5 class="text-warning fs-6 fs-md-5 mb-1">Links</h5>
-                <ul class="list-unstyled small mb-0">
-                    <li><a href="{% url 'lista_vendas' %}" class="text-white text-decoration-none">Vendas</a></li>
-                    <li><a href="{% url 'relatorios_pedidos' %}" class="text-white text-decoration-none">Relatórios</a></li>
-                    <li><a href="{% url 'cadastrar_produto' %}" class="text-white text-decoration-none">Produtos</a></li>
-                </ul>
-            </div>
-            
-            <!-- COLUNA 3: Contato + Endereço -->
-            <div class="col-4 col-md-4">
-                <h5 class="text-warning fs-6 fs-md-5 mb-1">Contato</h5>
-                <ul class="list-unstyled small mb-0">
-                    <li>
-                        <a href="mailto:mirnaboutique@gmail.com" class="text-white text-decoration-none">
-                            <i class="bi bi-envelope"></i>
-                            <span class="d-none d-sm-inline">Email</span>
-                        </a>
+    <footer class="bg-dark text-white mt-5">
+      <div class="container py-4">
+          <div class="row">
+              <div class="col-md-4 mb-4 mb-md-0">
+                  <h5 class="text-warning">
+                      <i class="bi bi-shop-window me-2"></i>Mirna Boutique
+                  </h5>
+                  <p class="small mt-3">
+                      Entrega qualidade e satisfação.
+                  </p>
+              </div>
+              
+              <div class="col-md-4 mb-4 mb-md-0">
+                  <h5 class="text-warning">Links Rápidos</h5>
+                  <ul class="list-unstyled">
+                      <li class="mb-2">
+                          <a href="{% url 'lista_vendas' %}" class="text-white text-decoration-none">
+                              <i class="bi bi-card-list me-1"></i> Vendas
+                          </a>
+                      </li>
+                      <li class="mb-2">
+                          <a href="{% url 'relatorios_pedidos' %}" class="text-white text-decoration-none">
+                              <i class="bi bi-graph-up me-1"></i> Relatórios
+                          </a>
+                      </li>
+                      <li>
+                          <a href="{% url 'cadastrar_produto' %}" class="text-white text-decoration-none">
+                              <i class="bi bi-box-seam me-1"></i> Produtos
+                          </a>
+                      </li>
+                  </ul>
+              </div>
+              
+              <div class="col-md-4">
+                <h5 class="text-warning">Contato</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-envelope me-2"></i> mirnaboutique@gmail.com
                     </li>
                     <li>
                         <a href="https://wa.me/5561991485382" target="_blank" class="text-white text-decoration-none">
-                            <i class="bi bi-whatsapp text-success"></i>
-                            <span class="d-none d-sm-inline">WhatsApp</span>
+                            <i class="bi bi-whatsapp text-success fs-6 me-1"></i> (61) 99148-5382
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="https://www.instagram.com/use.distritofit/" target="_blank" class="text-white text-decoration-none">
+                            <i class="bi bi-instagram text-danger fs-6 me-1"></i> @use.boutiquemirna7
                         </a>
                     </li>
                     <li>
-                        <a href="https://www.instagram.com/use.boutiquemirna7/" target="_blank" class="text-white text-decoration-none">
-                            <i class="bi bi-instagram text-danger"></i>
-                            <span class="d-none d-sm-inline">Instagram</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="https://www.google.com/maps/search/?api=1&query=Qr+316+conjunto+O+lote+18,+Santa+Maria+-+Brasília,+DF" 
-                           target="_blank" class="text-white text-decoration-none">
-                            <i class="bi bi-geo-alt text-warning"></i>
-                            <span class="d-none d-sm-inline">Endereço</span>
-                        </a>
+                      <a href="https://www.google.com/maps/search/?api=1&query=Qr+316+conjunto+O+lote+18,+Santa+Maria+-+Brasília,+DF" 
+                        target="_blank" class="text-white text-decoration-none">
+                        <i class="bi bi-geo-alt me-2 text-warning"></i> 
+                        Qr 316 conjunto O lote 18, Santa Maria - Brasília, DF
+                      </a>
                     </li>
                 </ul>
             </div>
-        </div>
-        
-        <!-- Linha divisória e copyright -->
-        <hr class="my-2 my-md-3 bg-secondary">
-        <div class="text-center small">
-            <p class="mb-0 mt-1 small text-muted">
-                Qr 316 conjunto O lote 18, Santa Maria - Brasília, DF
-            </p>
-        </div>
-    </div>
+          </div>
           
           <hr class="my-4 bg-secondary">
           
