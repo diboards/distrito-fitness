@@ -12,8 +12,9 @@
 .hero-header {
     background: linear-gradient(135deg, #16bcf9, #0cb6ea);
     border-radius: 20px;
-    padding: 15px;
-    margin-bottom: 20px;
+    padding: 10px 15px;
+    margin-bottom: 5px;
+    margin-top: 15px;
 }
 .menu-container {
     background: #fff;
