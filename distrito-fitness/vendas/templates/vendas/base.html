@@ -299,84 +299,112 @@
         }
         
 /* ========================================== */
-/* RODAPÉ RESPONSIVO - SOMENTE AJUSTE CELULAR */
+/* RODAPÉ - FORÇAR HORIZONTAL NO CELULAR      */
 /* ========================================== */
 
-/* 🔥 Ajustes apenas para celular - mantém todo o conteúdo */
+/* 🔥 Força o rodapé a ficar em uma linha horizontal no celular */
 @media (max-width: 576px) {
     footer .container {
-        padding-left: 8px !important;
-        padding-right: 8px !important;
+        padding: 8px 4px !important;
+        max-width: 100% !important;
     }
     
     footer .row {
         display: flex !important;
         flex-wrap: nowrap !important;
         margin: 0 !important;
+        gap: 2px !important;
     }
     
     footer .col-md-4 {
         flex: 0 0 33.333% !important;
         max-width: 33.333% !important;
-        padding: 0 4px !important;
+        padding: 0 2px !important;
         margin-bottom: 0 !important;
+        width: auto !important;
     }
     
     footer h5 {
-        font-size: 0.55rem !important;
+        font-size: 0.5rem !important;
         white-space: nowrap !important;
-        margin-bottom: 2px !important;
+        margin-bottom: 1px !important;
+        text-align: center !important;
+    }
+    
+    footer h5 i {
+        font-size: 0.6rem !important;
     }
     
     footer p.small {
-        font-size: 0.5rem !important;
-        margin-top: 2px !important;
+        font-size: 0.4rem !important;
+        margin-top: 1px !important;
         margin-bottom: 0 !important;
         white-space: nowrap !important;
+        text-align: center !important;
+        display: none !important;
     }
     
     footer .list-unstyled {
         margin-bottom: 0 !important;
+        padding-left: 0 !important;
+        text-align: center !important;
     }
     
     footer .list-unstyled li {
-        font-size: 0.5rem !important;
-        margin-bottom: 1px !important;
-        line-height: 1.2 !important;
+        font-size: 0.4rem !important;
+        margin-bottom: 0 !important;
+        line-height: 1.1 !important;
         white-space: nowrap !important;
+        display: block !important;
+        padding: 0 !important;
     }
     
     footer .list-unstyled li a {
-        font-size: 0.5rem !important;
+        font-size: 0.4rem !important;
         white-space: nowrap !important;
+        padding: 0 !important;
+        display: inline !important;
     }
     
     footer .list-unstyled li i {
-        font-size: 0.6rem !important;
-        margin-right: 2px !important;
+        font-size: 0.5rem !important;
+        margin-right: 1px !important;
     }
     
     footer hr {
-        margin: 4px 0 !important;
+        margin: 3px 0 !important;
     }
     
     footer .text-center.small {
-        font-size: 0.45rem !important;
+        font-size: 0.4rem !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    footer .text-center.small p {
+        margin: 0 !important;
+        padding: 0 !important;
     }
 }
 
 @media (max-width: 400px) {
     footer h5 {
-        font-size: 0.45rem !important;
+        font-size: 0.4rem !important;
     }
     footer .list-unstyled li {
-        font-size: 0.4rem !important;
+        font-size: 0.35rem !important;
     }
     footer .list-unstyled li a {
+        font-size: 0.35rem !important;
+    }
+    footer h5 i {
+        font-size: 0.5rem !important;
+    }
+    footer .list-unstyled li i {
         font-size: 0.4rem !important;
     }
-    footer p.small {
-        font-size: 0.4rem !important;
+    footer .text-center.small {
+        font-size: 0.35rem !important;
     }
 }
         
