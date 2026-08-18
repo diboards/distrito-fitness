@@ -13,8 +13,8 @@
     background: linear-gradient(135deg, #16bcf9, #0cb6ea);
     border-radius: 20px;
     padding: 15px;
-    margin-bottom: 20px;
-    margin-top: 20px;
+    margin-bottom: 0px;
+    margin-top: 0px;
 }
 .menu-container {
     background: #fff;
@@ -55,7 +55,8 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    margin-bottom: 30px; /* 👈 Adiciona margem inferior */
+    margin-top: -10px;     /* ← ADICIONE ESTA LINHA */
+    margin-bottom: 10px; /* 👈 Adiciona margem inferior */
     border-radius: 20px; /* 👈 Arredonda as bordas */
     overflow: hidden;    /* 👈 Garante que a imagem não vaze */
 }
