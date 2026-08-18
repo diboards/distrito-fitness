@@ -9,13 +9,7 @@
     max-height: 280px;
     object-fit: contain;
 }
-.hero-header {
-    background: linear-gradient(135deg, #16bcf9, #0cb6ea);
-    border-radius: 20px;
-    padding: 15px;
-    margin-bottom: 0px;
-    margin-top: 0px;
-}
+
 .menu-container {
     background: #fff;
     border-radius: 50px;
@@ -66,9 +60,10 @@
     background: linear-gradient(135deg, #16bcf9, #0cb6ea);
     border-radius: 20px;
     padding: 15px;
-    margin-bottom: 20px;
-    margin-top: 10px;
+    margin-bottom: 0px;
+    margin-top: 0px;
 }
+
 /* Espaçamento após o banner para o carousel/menu */
 .hero-banner + .carousel,
 .hero-banner + div:not(.carousel) {
