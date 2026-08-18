@@ -49,7 +49,7 @@
 
 /* ===== AJUSTE DE MARGEM DA LOGO/BANNER ===== */
 .hero-banner {
-    width: 100%;
+    width: 50%;
     height: 400px;
     display: flex;
     align-items: center;
