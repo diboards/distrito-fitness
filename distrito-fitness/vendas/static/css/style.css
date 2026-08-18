@@ -119,7 +119,12 @@
     .hero-banner {
         height: 250px;
         margin-bottom: 20px;
+        margin-top: -5px;
         border-radius: 12px;
+    }
+        .hero-header {
+        margin-bottom: 0px;   /* ← ADICIONE ESTA LINHA */
+        margin-top: 0px;
     }
     
     .hero-content h1 {
