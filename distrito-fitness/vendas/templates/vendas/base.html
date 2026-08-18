@@ -543,66 +543,79 @@
 
     <!-- Rodapé -->
     <footer class="bg-dark text-white mt-5">
-      <div class="container py-4">
-          <div class="row">
-              <div class="col-md-4 mb-4 mb-md-0">
-                  <h5 class="text-warning">
-                      <i class="bi bi-shop-window me-2"></i>Mirna Boutique 
-                  </h5>
+      <div class="container py-3">
+          <div class="row g-0 g-md-3">
+                          <!-- COLUNA 1: Logo -->
+            <div class="col-4 col-md-4 text-center text-md-start">
+                <h5 class="text-warning fs-6 fs-md-5 mb-0">
+                    <i class="bi bi-shop-window me-1"></i>Mirna Boutique
+                </h5>
                   <p class="small mt-3">
                       Entrega qualidade e satisfação.
                   </p>
               </div>
               
-              <div class="col-md-4 mb-4 mb-md-0">
-                  <h5 class="text-warning">Links Rápidos</h5>
-                  <ul class="list-unstyled">
-                      <li class="mb-2">
-                          <a href="{% url 'lista_vendas' %}" class="text-white text-decoration-none">
-                              <i class="bi bi-card-list me-1"></i> Vendas
-                          </a>
-                      </li>
-                      <li class="mb-2">
-                          <a href="{% url 'relatorios_pedidos' %}" class="text-white text-decoration-none">
-                              <i class="bi bi-graph-up me-1"></i> Relatórios
-                          </a>
-                      </li>
-                      <li>
-                          <a href="{% url 'cadastrar_produto' %}" class="text-white text-decoration-none">
-                              <i class="bi bi-box-seam me-1"></i> Produtos
-                          </a>
-                      </li>
-                  </ul>
-              </div>
-              
-              <div class="col-md-4">
-                <h5 class="text-warning">Contato</h5>
-                <ul class="list-unstyled small">
-                    <li class="mb-2">
-                        <i class="bi bi-envelope me-2"></i> mirnaboutique@gmail.com
+              <!-- Rodapé -->
+<footer class="bg-dark text-white mt-5">
+    <div class="container py-3">
+        <div class="row g-0 g-md-3">
+            <!-- COLUNA 1: Logo -->
+            <div class="col-4 col-md-4 text-center text-md-start">
+                <h5 class="text-warning fs-6 fs-md-5 mb-0">
+                    <i class="bi bi-shop-window me-1"></i>Mirna Boutique
+                </h5>
+            </div>
+            
+            <!-- COLUNA 2: Links -->
+            <div class="col-4 col-md-4 text-center">
+                <h5 class="text-warning fs-6 fs-md-5 mb-0">Links</h5>
+                <ul class="list-unstyled small mb-0 d-flex d-md-block justify-content-center gap-2 flex-wrap">
+                    <li class="d-inline d-md-block"><a href="{% url 'lista_vendas' %}" class="text-white text-decoration-none">Vendas</a></li>
+                    <li class="d-inline d-md-block"><a href="{% url 'relatorios_pedidos' %}" class="text-white text-decoration-none">Relatórios</a></li>
+                    <li class="d-inline d-md-block"><a href="{% url 'cadastrar_produto' %}" class="text-white text-decoration-none">Produtos</a></li>
+                </ul>
+            </div>
+            
+            <!-- COLUNA 3: Contato -->
+            <div class="col-4 col-md-4 text-center text-md-end">
+                <h5 class="text-warning fs-6 fs-md-5 mb-0">Contato</h5>
+                <ul class="list-unstyled small mb-0 d-flex d-md-block justify-content-center gap-2 flex-wrap">
+                    <li class="d-inline d-md-block">
+                        <a href="mailto:mirnaboutique@gmail.com" class="text-white text-decoration-none">
+                            <i class="bi bi-envelope"></i>
+                        </a>
                     </li>
-                    <li>
+                    <li class="d-inline d-md-block">
                         <a href="https://wa.me/5561991485382" target="_blank" class="text-white text-decoration-none">
-                            <i class="bi bi-whatsapp text-success fs-6 me-1"></i> (61) 99148-5382
+                            <i class="bi bi-whatsapp text-success"></i>
                         </a>
                     </li>
-                    <li class="mb-2">
+                    <li class="d-inline d-md-block">
                         <a href="https://instagram.com/boutiquemirna7" target="_blank" class="text-white text-decoration-none">
-                            <i class="bi bi-instagram text-danger fs-6 me-1"></i> @boutiquemirna7
+                            <i class="bi bi-instagram text-danger"></i>
                         </a>
                     </li>
-                    <li>
-                      <a href="https://www.google.com/maps/search/?api=1&query=Qr+316+conjunto+O+lote+18,+Santa+Maria+-+Brasília,+DF" 
-                        target="_blank" class="text-white text-decoration-none">
-                        <i class="bi bi-geo-alt me-2 text-warning"></i> 
-                        Qr 316 conjunto O lote 18, Santa Maria - Brasília, DF
-                      </a>
+                    <li class="d-inline d-md-block">
+                        <a href="https://www.google.com/maps/search/?api=1&query=Qr+316+conjunto+O+lote+18,+Santa+Maria+-+Brasília,+DF" 
+                           target="_blank" class="text-white text-decoration-none">
+                            <i class="bi bi-geo-alt text-warning"></i>
+                        </a>
                     </li>
                 </ul>
             </div>
-          </div>
+        </div>
+        
+        <!-- Linha divisória e copyright -->
+        <hr class="my-2 bg-secondary">
+        <div class="text-center small">
+            <p class="mb-0">
+                &copy; {% now "Y" %} Mirna Boutique. Todos os direitos reservados.
+            </p>
+        </div>
+    </div>
+</footer>
           
-          <hr class="my-4 bg-secondary">
+          <hr class="my-2 bg-secondary">
           
           <div class="text-center small">
               <p class="mb-0">
